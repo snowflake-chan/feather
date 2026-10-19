@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": false,
+    "composite": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "rootDir": "src",
+    "outDir": ".",
+    "removeComments": true,
+    "strictPropertyInitialization": false
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["build", "node_modules"]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "探险者2",
+  "parts": {
+    "head": "Qmbyf9vm2V2qE2GhUq8duNCc9ndPiLmXejkFdNPej3HuEj",
+    "hips": "QmV3hSe9mPsHZ33wqeAg8P3xcHfNgXNyuBW8Z56AoyytNZ",
+    "leftFoot": "QmYDKCsFcxJ2JnmwaWLL9irVhTh31hEeL96Pd3Z1XL8A4H",
+    "leftHand": "QmRxn3YzyYcJqwaup7jNtFgRs8NFqbY32GLDSegjz33Zhb",
+    "leftLowerArm": "Qmcaq7qeDrnGD3xZvvAM6qcLKeN7v2mpsK2G5T22fgwWMn",
+    "leftLowerLeg": "Qmaavi38pp2oU1Ui4WYCAjezGzoDUbk8VPnt2LM2whg1xW",
+    "leftShoulder": "QmZhiM1oCKYpR2FdrL9LebRHuAmDPXx6Dn7rhGxjKzKQkk",
+    "leftUpperArm": "QmQNdCWfckFcMqQsPEgzhtogS6RcCxVGXXdVuMc3T6aEop",
+    "leftUpperLeg": "QmPQknmf2oEh2jqbTmodWmYk5efxh2tUH82G8436NyJrcw",
+    "neck": "QmZBk7rEoQJznXRLT81aM8xjj97nwb3fPY5Hp3qAtenqbw",
+    "rightFoot": "QmYC3jWpfvAKMnv34CnhRUjPgZBouaVPySoV7MVMxYgnVG",
+    "rightHand": "QmPXZBKX2AzkpfGzFFwLxT2W5Bx9ZQZf8druHJM9dH24eX",
+    "rightLowerArm": "QmcuRgtLmk3cZToiCVHHvpgmvo9UV9a9mNry4qcmRh9s7q",
+    "rightLowerLeg": "QmQzVFuxXyhr8jq2y9ffB6UT1qrL1Aj2mKtk1ozvzxq7gV",
+    "rightShoulder": "QmYzvFSBhJ1phKQxHAsT3qq3aJFG1MaKxuRrA43tFXEP1W",
+    "rightUpperArm": "QmU5nobMghwRPUpqLEpqdFg44iVRwhwQ31THcaaJzkMCDM",
+    "rightUpperLeg": "QmS8fXohiXa2hMXa19ZegWMFHt5JKu2cZzyYLSdYRwEF4N",
+    "torso": "QmT2jX7MZToEeK5Xh7NcVMArcPygaggqhdKoV17MBfRrWS"
+  }
+}

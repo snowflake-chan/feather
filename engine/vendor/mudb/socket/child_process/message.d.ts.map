@@ -1,0 +1,1 @@
+{"version":3,"file":"message.d.ts","sourceRoot":"","sources":["../../src/socket/child_process/message.ts"],"names":[],"mappings":"AAGA,MAAM,MAAM,sBAAsB,GAAG,cAAc,GAAG,YAAY,CAAC;AAEnE,KAAK,cAAc,GAAG;IAClB,IAAI,EAAE,SAAS,CAAC;IAChB,OAAO,EAAE;QACL,SAAS,EAAE,MAAM,CAAC;KACrB,CAAC;CACL,CAAC;AAEF,KAAK,YAAY,GAAG;IAChB,IAAI,EAAE,OAAO,CAAC;CACjB,CAAC"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"skin-schema.js","sourceRoot":"","sources":["../../mesh/skin-schema.ts"],"names":[],"mappings":";;;AAAA,+CAAuE;AACvE,6CAA+D;AAE/D,sDAAkD;AAErC,QAAA,oBAAoB,GAAG,IAAI,iBAAQ,CAAC;IAC/C,MAAM,EAAsB,IAAI,gBAAO,CAAC,CAAC,CAAC,EAAE,UAAU;IACtD,OAAO,EAAE,wBAAU;IACnB,IAAI,EAAE,uBAAc;IACpB,OAAO,EAAE,0BAAiB;CAC3B,CAAC,CAAC"}

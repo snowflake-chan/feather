@@ -1,0 +1,14 @@
+{
+  "func": "swapExtensions",
+  "args": [
+    {
+      "func": "optimizeDir",
+      "args": [
+        {
+          "dir": "weather"
+        }
+      ]
+    }
+  ],
+  "ret": "json"
+}

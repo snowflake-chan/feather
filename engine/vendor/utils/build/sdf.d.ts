@@ -1,0 +1,23 @@
+import { vec2, vec3 } from 'gl-matrix';
+export declare const DEG_TO_RAD: number;
+export declare function length2(p: number[] | vec2): number;
+export declare function length6(p: number[] | vec2): number;
+export declare function length8(p: number[] | vec2): number;
+export declare function rotateY(p: vec3, a: number): vec3;
+export declare function sdBox(p: vec3, b: vec3): number;
+export declare function sdRoundBox(p: vec3, b: vec3, r: number): number;
+export declare function sdSphere(p: vec3, r: number): number;
+export declare function sdCone(p: vec3, c: vec3): number;
+export declare function sdEllipsoid(p: vec3, r: vec3): number;
+export declare function sdTorus(p: vec3, t: number[] | vec2): number;
+export declare function sdTorus82(p: vec3, t: number[] | vec2): number;
+export declare function sdTorus88(p: vec3, t: number[] | vec2): number;
+export declare function sdPryamid4(p: vec3, h: vec3): number;
+export declare function sdHexPrism_2(p: vec3, h: vec2 | number[]): number;
+export declare function sdHexPrism(p: vec3, h: vec2 | number[]): number;
+export declare function sdTriPrism(p: vec3, h: vec2 | number[]): number;
+export declare function sdCylinder(p: vec3, h: number[] | vec2): number;
+export declare function skull(p: vec3): number;
+export declare function heart(p: vec3): number;
+export declare function flower(p: vec3): number;
+//# sourceMappingURL=sdf.d.ts.map

@@ -1,0 +1,25 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const __1 = require("../");
+const _do_1 = require("./_do");
+const uint8SortedArray = new __1.MuSortedArray(new __1.MuUint8(), Infinity);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [], []);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0], [0]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [], [0]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [], [0, 1]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [], [0, 1, 2]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0], [0, 1]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [1], [0, 1]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0], []);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0, 1], []);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0, 1], [0]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0, 1, 2], [0]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0], [1]);
+(0, _do_1.deltaByteLength)(uint8SortedArray, [0, 1], [1, 2]);
+const a1 = [0, 1, 2, 4, 5];
+const a2 = [1, 3, 5, 7, 9];
+(0, _do_1.diffPatchDuration)(uint8SortedArray, a1, a1, 1e3, 'b=t');
+(0, _do_1.diffPatchDuration)(uint8SortedArray, a1, a2, 1e3, 'b!=t');
+(0, _do_1.diffPatchDuration)(uint8SortedArray, a1, a2, 1e4, 'b!=t');
+(0, _do_1.diffPatchDuration)(uint8SortedArray, a1, a2, 1e5, 'b!=t');
+//# sourceMappingURL=sorted-array.js.map

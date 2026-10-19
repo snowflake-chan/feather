@@ -1,0 +1,1 @@
+{"version":3,"file":"navigator-protocol.js","sourceRoot":"","sources":["../../navigator/navigator-protocol.ts"],"names":[],"mappings":";;;AAAA,yDAA2E;AAE9D,QAAA,iBAAiB,GAAG;IAC/B,IAAI,EAAE,WAAW;IACjB,MAAM,EAAE;QACN,WAAW,EAAE,oCAAiB;KAC/B;IACD,MAAM,EAAE;QACN,YAAY,EAAE,qCAAkB;KACjC;CACF,CAAC"}

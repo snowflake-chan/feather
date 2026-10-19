@@ -1,0 +1,9 @@
+{
+  "locales": {
+    "zh": {
+      "kind_function": "函数",
+      "kind_plural_function": "函数",
+      "tag_version": "版本"
+    }
+  }
+}

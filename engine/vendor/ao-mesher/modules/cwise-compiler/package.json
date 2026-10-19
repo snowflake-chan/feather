@@ -1,0 +1,58 @@
+{
+  "_args": [
+    [
+      "cwise-compiler@0.1.0",
+      "/Users/mac/Desktop/编程猫/Box3-new/Box3"
+    ]
+  ],
+  "_from": "cwise-compiler@0.1.0",
+  "_id": "cwise-compiler@0.1.0",
+  "_inBundle": false,
+  "_integrity": "sha1-iZ5cGYG1YEGrKSGGSwNP4NWRtxo=",
+  "_location": "/ao-mesher/cwise-compiler",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "cwise-compiler@0.1.0",
+    "name": "cwise-compiler",
+    "escapedName": "cwise-compiler",
+    "rawSpec": "0.1.0",
+    "saveSpec": null,
+    "fetchSpec": "0.1.0"
+  },
+  "_requiredBy": [
+    "/ao-mesher"
+  ],
+  "_resolved": "http://registry.npm.taobao.org/cwise-compiler/download/cwise-compiler-0.1.0.tgz",
+  "_spec": "0.1.0",
+  "_where": "/Users/mac/Desktop/编程猫/Box3-new/Box3",
+  "author": {
+    "name": "Mikola Lysenko"
+  },
+  "bugs": {
+    "url": "https://github.com/mikolalysenko/cwise-compiler/issues"
+  },
+  "dependencies": {
+    "uniq": "~0.0.2"
+  },
+  "description": "cwise's internal compiler",
+  "gitHead": "29e146315bd0a8c50bd44b9b6b5bf4b769bd7aec",
+  "homepage": "https://github.com/mikolalysenko/cwise-compiler#readme",
+  "keywords": [
+    "cwise",
+    "ndarray",
+    "compiler"
+  ],
+  "license": "MIT",
+  "main": "compiler.js",
+  "name": "cwise-compiler",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikolalysenko/cwise-compiler.git"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "version": "0.1.0"
+}

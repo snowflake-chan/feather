@@ -1,0 +1,43 @@
+{
+  "name": "@box/script-api",
+  "version": "0.3.0",
+  "description": "",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./dist/es/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./dts/*": "./dts/*"
+  },
+  "main": "dist/cjs/index.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "./dts/*",
+    "./libs/*"
+  ],
+  "scripts": {
+    "build": "npm run build:dist && npm run rollup && node ./scripts/fix-dts.js",
+    "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
+    "build:dist": "node scripts/sync-moderation-types.js && rm -rf dist && npm run build:es && npm run build:cjs",
+    "build:es": "tsc --module ESNext --outDir dist/es",
+    "build:watch": "npm run build",
+    "dev": "npm run wiki --watch",
+    "doc": "typedoc --plugin typedoc-plugin-markdown --disableSources --hideInPageTOC --excludeInternal --entryPointStrategy expand --out docs/ --tsconfig tsconfig.json --entryPoints ./src/server/global-doc.ts --entryPoints ./src/server/modules",
+    "rollup": "rollup --config rollup.config.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "wiki": "rimraf ./docs/* && typedoc --lang zh --plugin typedoc-plugin-markdown --plugin typedoc-gitlab-wiki-theme --excludeReferences  --cleanOutputDir false --disableSources  --entryPointStrategy resolve --out docs --tsconfig tsconfig.json --entryPoints ./src/client/global.ts --entryPoints ./src/server/global.ts"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "16.0.1",
+    "rimraf": "6.0.1",
+    "rollup": "4.59.0",
+    "rollup-plugin-dts": "6.2.1",
+    "typedoc": "0.26.7",
+    "typedoc-gitlab-wiki-theme": "2.0.1",
+    "typedoc-plugin-markdown": "4.2.7",
+    "typedoc-plugin-missing-exports": "3.0.0",
+    "typescript": "5.6.3"
+  }
+}

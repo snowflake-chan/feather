@@ -1,0 +1,61 @@
+{
+  "name": "@box/env",
+  "version": "0.3.0",
+  "license": "MIT",
+  "description": "",
+  "keywords": [],
+  "author": "Code Infinity",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./constants": {
+      "import": "./dist/constants.es.js",
+      "require": "./dist/constants.js"
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/index.d.ts"
+      ],
+      "constants": [
+        "dist/constants.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc --emitDeclarationOnly && rollup --config rollup.config.mjs && node scripts/normalize-dist.js",
+    "build:watch": "npm run build"
+  },
+  "dependencies": {
+    "@box/utils": "workspace:*",
+    "@types/node": "20.16.15",
+    "@types/ramda": "0.28.15",
+    "ajv": "8.11.0",
+    "axios": "1.20.0",
+    "debug": "4.3.4",
+    "dotenv": "16.0.1",
+    "form-data": "4.0.6",
+    "ramda": "0.28.0",
+    "typescript": "5.6.3",
+    "yaml": "2.8.3"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "28.0.3",
+    "@rollup/plugin-node-resolve": "16.0.1",
+    "@rollup/plugin-swc": "0.4.0",
+    "@swc/core": "1.4.13",
+    "@types/debug": "4.1.7",
+    "rollup": "4.59.0",
+    "tslib": "2.3.1"
+  }
+}

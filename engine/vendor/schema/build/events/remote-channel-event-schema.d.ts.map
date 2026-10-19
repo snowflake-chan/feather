@@ -1,0 +1,1 @@
+{"version":3,"file":"remote-channel-event-schema.d.ts","sourceRoot":"","sources":["../../events/remote-channel-event-schema.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,OAAO,EAAE,MAAM,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAOvE,eAAO,MAAM,wBAAwB;;;;EAGnC,CAAC;AAEH,eAAO,MAAM,yBAAyB;;;;GAGrC,CAAC;AAEF,eAAO,MAAM,uBAAuB;;;EAAkC,CAAC;AAEvE,eAAO,MAAM,wBAAwB;;;GAGpC,CAAC"}

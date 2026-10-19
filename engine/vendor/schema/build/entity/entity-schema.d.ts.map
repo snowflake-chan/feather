@@ -1,0 +1,1 @@
+{"version":3,"file":"entity-schema.d.ts","sourceRoot":"","sources":["../../entity/entity-schema.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,aAAa,EACb,QAAQ,EACR,QAAQ,EACR,QAAQ,EACR,YAAY,EACZ,SAAS,EACV,MAAM,kBAAkB,CAAC;AAE1B,eAAO,MAAM,eAAe,yBAI3B,CAAC;AAEF,eAAO,MAAM,qBAAqB,yBAGjC,CAAC;AAEF,eAAO,MAAM,iBAAiB;;;;;EAM5B,CAAC"}
