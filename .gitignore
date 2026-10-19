@@ -8,3 +8,5 @@ protocol/dist/
 .maps/
 
 transport/dist/
+
+daemon/dist/

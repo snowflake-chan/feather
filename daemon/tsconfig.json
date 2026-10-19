@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2017",
+    "lib": ["es2018"],
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmitOnError": true
+  },
+  "include": ["src/**/*.ts"]
+}

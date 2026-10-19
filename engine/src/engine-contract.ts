@@ -76,15 +76,8 @@ export interface EngineSessionApi {
   allowAttempt(ipAddress: string, limit: number): Promise<boolean>;
 }
 
-/** 给 daemon/CLI 用的管理面；HTTP 路由由 api 层暴露 */
-export interface EngineAdminApi {
-  stats(): Promise<EngineStatus>;
-  stop(): Promise<void>;
-  command(name: string, args?: unknown): Promise<unknown>;
-}
-
 /**
- * engine 对 api 暴露的唯一门面。
+ * engine 对 game api 暴露的唯一门面。
  * engine 不创建 http.Server，也不 listen；网络边缘归 api/app。
  */
 export interface EngineHandle {
@@ -94,7 +87,6 @@ export interface EngineHandle {
   readonly muServer: MuServer;
   readonly session: EngineSessionApi;
   readonly content: EngineContentApi;
-  readonly admin: EngineAdminApi;
   /** 同步快照，供 health/status 使用 */
   status(): EngineStatus;
   /** 启动游戏循环（不监听端口） */

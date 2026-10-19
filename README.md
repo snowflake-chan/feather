@@ -5,6 +5,7 @@ engine + shell 的 monorepo。
 ```
 feather/
 ├── engine/          # 主线程：权威状态、物理、网络、内容
+├── daemon/          # 本地管理面契约（Docker-like；暂只有类型）
 ├── shell/           # Worker：执行用户代码
 ├── protocol/        # engine/shell 共享的脚本协议、schema、golden vectors
 ├── transport/       # Node worker_threads 传输层（server/client）
@@ -63,7 +64,8 @@ curl http://127.0.0.1:9977/api/health-check
 
 | 文档 | 内容 |
 |---|---|
-| [docs/API-DESIGN.md](docs/API-DESIGN.md) | API 层边界、engine 契约、迁移步骤 |
+| [docs/API-DESIGN.md](docs/API-DESIGN.md) | Game API（玩家入口）、engine 契约 |
+| [docs/DAEMON-API.md](docs/DAEMON-API.md) | Daemon API（本地管理面，Docker-like） |
 | [protocol/README.md](protocol/README.md) | 共享协议、构建顺序、golden vectors |
 | [engine/README.md](engine/README.md) | engine 抽取、worker 传输、构建 |
 | [engine/SMOKE.md](engine/SMOKE.md) | 已验证的 smoke 命令与输出 |

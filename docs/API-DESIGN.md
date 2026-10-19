@@ -1,201 +1,137 @@
-# API 层设计
+# Game API 设计
 
-目标：把「网络边缘」从 engine 里彻底拆出去，engine 变成可嵌入的库，API 层可以替换（HTTP/WS、Go daemon、unix socket），app 负责组合。
+玩家入口。和本地管理面（daemon API）完全分开，见 [DAEMON-API.md](DAEMON-API.md)。
 
-## 1. 分层
+## 1. 两个平面
+
+| | Game API | Daemon API |
+|---|---|---|
+| 面向 | 玩家客户端 | 本机管理员 / CLI / daemon |
+| 位置 | 每张图一个，游戏端口 | supervisor 一个，本地 socket/localhost |
+| 认证 | session cookie / session proof | socket 权限 / 本地 token |
+| CORS | 允许 | 不允许 |
+| 典型接口 | `createSession`、WS、内容 | 地图生命周期、日志、stats、events |
+| 玩家会话 | **是** | **否** |
+
+`createSession` 属于 Game API；daemon 不碰玩家 session。
+
+## 2. 分层
 
 ```
-app/           唯一组合根：创建 httpServer / socketServer / engine / api，然后 listen
-api/           网络边缘：HTTP 路由、WS 服务、TLS、CORS、鉴权、限流、版本化、admin
-engine/        领域：项目/内容、游戏循环、session、脚本宿主、状态
-protocol/      共享协议与 schema
-transport/     worker_threads server/client
+app/game/        组合根：httpServer + socketServer + engine + gameApi
+api-game/        玩家网络边缘：HTTP session/content + WS 游戏协议
+engine/          领域：项目、游戏循环、session、脚本、状态
+protocol/        共享协议
+transport/       worker_threads
 ```
 
-依赖方向：
+依赖：`app/game → api-game → engine`。engine 不 import api。
 
-```
-app → api → engine
-app → engine
-app → transport
-engine → protocol, transport/server（仅 CLI 组合根）
-api    → engine 的 EngineHandle
-```
+## 3. Game API 面
 
-**engine 永远不 import api。** api 只通过 `EngineHandle` 访问 engine。
+### 3.1 HTTP（玩家）
 
-## 2. API 面
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/health-check` | 玩家侧 liveness；不暴露内部细节 |
+| GET | `/api/server-info` | 名称、版本、协议版本、contentId、maxPlayers |
+| POST | `/createSession` | **玩家创建 session**；调 `engine.session.create`，设置 cookie |
+| GET | `/api/session` | 查询当前 session |
+| GET | `/engine/m/:hash` | 内容寻址读取 |
+| GET | `/block` | 体素块（engine 自己注册） |
+| GET | `/api/project-skin-previews` | 皮肤预览（engine 自己注册） |
 
-### 2.1 控制面（HTTP）
+### 3.2 WebSocket
 
-| 方法 | 路径 | 归属 | 说明 |
-|---|---|---|---|
-| GET | `/api/health-check` | api | liveness/readiness，返回 runtime/storage/redis |
-| GET | `/api/server-info` | api | 名称、版本、协议版本、contentId、maxPlayers |
-| POST | `/createSession` | api | 创建 session；调 `engine.session.create` |
-| GET | `/api/session` | api | 查询当前 session |
-| GET | `/v1/status` | api（未来） | daemon/CLI 用；比 health-check 更详细 |
-| POST | `/v1/commands/:name` | api（未来） | 管理命令，转发 `engine.admin.command` |
-| GET | `/v1/logs` | api（未来） | 日志流 |
-| POST | `/v1/maps/:id/stop` | api（未来） | 多图 host 后使用 |
+- 每个游戏端口一个 `MuWebSocketServer`
+- `requireSessionProof: true`
+- 会话校验在 `engine.session.get` / `GameSession`
+- 路径、TLS、代理头由 `api-game` 决定
 
-### 2.2 内容面
+## 4. Engine 契约（Game）
 
-| 方法 | 路径 | 归属 | 说明 |
-|---|---|---|---|
-| GET | `/engine/m/:hash` | api | 内容寻址读取，走 `engine.content.read/stat` |
-| GET | `/block` | engine | 体素块数据；engine 自己注册 |
-| GET | `/api/project-skin-previews` | engine | 皮肤预览；engine 自己注册 |
-
-engine 返回 `httpRoutes`（只有自己拥有的路由），api 合并自己的路由后再 `listen`。
-
-### 2.3 数据面（WebSocket）
-
-- api 创建 `MuWebSocketServer`（`httpServer` + `requireSessionProof`）
-- engine 用这个 socket server 创建 `MuServer`
-- 会话校验在 engine 的 `GameSession` 里；api 只负责把 `socketServer` 交给 engine
-- 路径、TLS、CORS、代理头由 api 决定
-
-### 2.4 Admin / daemon（未来）
-
-给 Go CLI 用的控制面：
-
-- `GET /v1/status`：运行状态、tick、玩家数、内存
-- `GET /v1/logs`：日志流
-- `POST /v1/commands/:name`：管理命令
-- `POST /v1/maps/:id/stop`、`/restart`
-- 错误统一 `{ status, code, msg }`；`/v1` 版本化；写操作支持 `Idempotency-Key`
-
-## 3. Engine 契约
-
-engine 预留的接口在 `engine/src/engine-contract.ts`，通过 `feather-engine/contract` 暴露：
+`feather-engine/contract`：
 
 ```ts
-import type { EngineHandle, CreateEngine } from 'feather-engine/contract';
-```
-
-核心是：
-
-```ts
-export interface EngineHandle {
+interface EngineHandle {
   readonly httpRoutes: EngineHttpRoutes;
   readonly muServer: MuServer;
   readonly session: EngineSessionApi;
   readonly content: EngineContentApi;
-  readonly admin: EngineAdminApi;
   status(): EngineStatus;
-  start(): Promise<void>;
+  start(): Promise<void>;   // 游戏循环，不 listen
   close(): Promise<void>;
 }
-```
 
-### 3.1 字段职责
-
-| 字段 | 给谁用 | 说明 |
-|---|---|---|
-| `httpRoutes` | api | engine 自己拥有的路由；api 合并 |
-| `muServer` | api / admin | 协议服务；api 用它接 `MuWebSocketServer` |
-| `session` | api | 创建/查询/吊销 session、限流 |
-| `content` | api | 读内容、取大小/MIME；api 负责流式响应 |
-| `admin` | api（未来） | 状态、命令、停止 |
-| `status()` | api | 同步快照，health/status 用 |
-| `start()` / `close()` | app | 启动/停止游戏循环，不监听端口 |
-
-### 3.2 创建
-
-```ts
-export interface CreateEngineOptions {
-  scriptServer: ScriptServer;   // 由 app 注入
-  socketServer: MuSocketServer; // 由 api/app 创建
+interface CreateEngineOptions {
+  scriptServer: ScriptServer;
+  socketServer: MuSocketServer; // api-game 创建
   httpRoutes?: EngineHttpRoutes;
 }
-
-export type CreateEngine = (
-  config: EngineConfig,
-  options: CreateEngineOptions,
-) => Promise<EngineHandle>;
 ```
 
-- `socketServer` 由 api 创建，engine 不再 import `MuWebSocketServer`。
-- `httpRoutes` 可以由 api 传入一个空 map，engine 往里注册；也可以 engine 自己建，返回给 api。契约里两者都允许。
-- `createEngine` **只 build，不 listen**；`httpServer.listen` 由 api 负责。
+- **没有 `admin`**：地图生命周期归 daemon。
+- `session` 只服务玩家 session。
+- `content` 给 `/engine/m/:hash` 用。
+- `httpRoutes` 只含 engine 自己的 `/block`、`/api/project-skin-previews`。
 
-## 4. 关键流程
+## 5. 关键流程
 
-### 4.1 createSession
-
-```
-client → api POST /createSession
-api: 解析 body/headers、CORS、鉴权、限流
-api → engine.session.create({ ipAddress, token, ... })
-engine: 后端登录 / 构造 GameSessionData / bindUserSession
-engine → api: GameSessionData
-api: 设置 cookie、返回 { sessionId, ... }
-```
-
-### 4.2 WebSocket join
+### createSession
 
 ```
-api: httpServer + MuWebSocketServer
-app: createEngine({ socketServer, scriptServer })
+client → api-game POST /createSession
+api-game: body/CORS/限流
+api-game → engine.session.create({ ipAddress, token, ... })
+engine: 后端登录 → GameSessionData → bindUserSession
+api-game: 设置 cookie → 返回 { sessionId }
+```
+
+### WS join
+
+```
+api-game: httpServer + MuWebSocketServer
+app/game: createEngine({ socketServer, scriptServer })
 engine: new MuServer(socketServer) + GameServer + GameSession
 client: WS connect
-MuServer: session proof 校验 → engine.session.get(sessionId)
+MuServer: session proof → engine.session.get
 engine: GameServer.handleUserJoin
 ```
 
-### 4.3 内容
+## 6. 边界规则
 
-```
-client → api GET /engine/m/:hash
-api → engine.content.stat(hash) → size/contentType
-api → engine.content.read(hash) → stream
-```
+1. engine 不 import api-game；api-game 不 import `entry.ts` 内部闭包。
+2. api-game 拥有端口、TLS、CORS、cookie、限流、错误格式。
+3. engine 拥有 session 语义、内容寻址、游戏循环、脚本宿主。
+4. engine 不创建 `http.Server` / `MuWebSocketServer`。
+5. daemon 不调用 `createSession`，也不持有玩家 cookie。
+6. app 是唯一组合根。
 
-## 5. 边界规则
+## 7. 迁移
 
-1. **engine 不 import api**；api 不 import `engine/src/entry.ts` 的内部闭包。
-2. **api 拥有端口、TLS、CORS、鉴权头、限流、错误格式、版本化。**
-3. **engine 拥有 session 语义、内容寻址、游戏循环、脚本宿主。**
-4. **engine 不创建 `http.Server` / `MuWebSocketServer`**；只接收 `MuSocketServer`。
-5. **app 是唯一知道所有实现的地方**；`launch.ts` 最终变成 `app/cli.ts`。
-6. **协议层不依赖 api**；`@feather/protocol` 只放共享类型/schema。
+### C1（已完成）
 
-## 6. 迁移步骤
-
-### C1（本次）
-
-- 新增 `engine/src/engine-contract.ts`：`EngineHandle` / `EngineStatus` / `EngineSessionApi` / `EngineContentApi` / `EngineAdminApi` / `CreateEngine`。
-- `engine/package.json` 增加 `./contract` export + `typesVersions`。
-- 打开 `declaration: true`，engine 现在可以给 app/api 提供 `.d.ts`。
-- 不改运行时。
+- `engine/src/engine-contract.ts`：`EngineHandle` / `EngineStatus` / `EngineSessionApi` / `EngineContentApi` / `CreateEngine`
+- `feather-engine/contract` 导出
+- engine 打开 `declaration: true`
 
 ### C2
 
-- 把 `createGameServer` 的 `MuWebSocketServer` 创建移出去：接受 `socketServer: MuSocketServer`。
-- 拆 `startServer` 为 `createEngine`（build） + `engine.start()`（game loop），不 `listen`。
-- `startServer` 保留为过渡包装。
+- `createGameServer` 接受 `socketServer`，不再自己 `new MuWebSocketServer`
+- `startServer` 拆成 `createEngine`（build）+ `engine.start()`
+- 保留 `startServer` 过渡
 
 ### C3
 
-- 新建 `api/` 包：
-  - `createApi({ engine, httpServer, socketServer })`
-  - 注册 `/api/health-check`、`/api/server-info`、`/createSession`、`/api/session`
-  - 注册 `/engine/m/:hash`
+- 新建 `api-game/`：
+  - `/api/health-check`、`/api/server-info`、`/createSession`、`/api/session`
+  - `/engine/m/:hash`
   - 合并 `engine.httpRoutes`
-- `createGameServer` 不再注册控制面路由。
+- `app/game/index.ts` 组合
+- `entry.ts` 不再注册控制面路由
 
 ### C4
 
-- `app/index.ts`：组合根
-- `app/cli.ts`：参数解析、help
-- `api/admin/*`：`/v1/status`、`/v1/commands`、`/v1/logs`
-- 多图 host / worker pool 也接在这里
-
-## 7. 待定
-
-- `EngineSessionApi.create` 的输入字段（token/登录模式）需要和后端登录流程对齐
-- admin 鉴权方式（token / unix socket / mTLS）
-- `content.read` 是整块 `Uint8Array` 还是流；先整块，大文件再改流
-- WS 路径是否加 `/v1`；游戏协议本身已有版本
-- `EngineStatus.storage` 的三态（ok/disabled/error）由 engine 计算
+- daemon supervisor + daemon API（见 DAEMON-API.md）
+- `app/daemon/index.ts`
+- CLI 走 daemon socket

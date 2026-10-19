@@ -3,4 +3,5 @@ packages:
   - transport
   - shell
   - engine
+  - daemon
   - vendor/*

@@ -8,6 +8,16 @@ importers:
 
   .: {}
 
+  daemon:
+    dependencies:
+      feather-engine:
+        specifier: workspace:*
+        version: link:../engine
+    devDependencies:
+      typescript:
+        specifier: 5.6.3
+        version: 5.6.3
+
   engine:
     dependencies:
       '@ai-sdk/openai-compatible':

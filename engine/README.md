@@ -100,12 +100,16 @@ shell 也使用同一份根 `vendor/`（不再维护裁剪版 schema）。
 
 ## API 契约
 
-API 层设计见 [`../docs/API-DESIGN.md`](../docs/API-DESIGN.md)。
-engine 对 api 暴露的类型在 `src/engine-contract.ts`，通过 `feather-engine/contract` 引入：
+Game API（玩家入口）见 [`../docs/API-DESIGN.md`](../docs/API-DESIGN.md)；
+Daemon API（本地管理面）见 [`../docs/DAEMON-API.md`](../docs/DAEMON-API.md)。
+
+engine 对 game api 暴露的类型在 `src/engine-contract.ts`，通过 `feather-engine/contract` 引入：
 
 ```ts
 import type { EngineHandle } from 'feather-engine/contract';
 ```
+
+map 生命周期/日志/stats 归 `@feather/daemon/contract`，不在 `EngineHandle` 里。
 
 ## ScriptServer 注入
 

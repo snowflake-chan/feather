@@ -4,8 +4,8 @@
   "private": true,
   "description": "feather monorepo：engine（主线程）+ shell（Worker）+ 共享 @box vendor",
   "scripts": {
-    "typecheck": "pnpm --filter @feather/protocol typecheck && pnpm --filter @feather/transport typecheck && pnpm --filter feather-shell typecheck && pnpm --filter feather-engine typecheck",
-    "build": "pnpm --filter @feather/protocol build && pnpm --filter @feather/transport build && pnpm --filter feather-shell build && pnpm --filter feather-engine build",
+    "typecheck": "pnpm --filter @feather/protocol typecheck && pnpm --filter @feather/transport typecheck && pnpm --filter feather-shell typecheck && pnpm --filter feather-engine typecheck && pnpm --filter @feather/daemon typecheck",
+    "build": "pnpm --filter @feather/protocol build && pnpm --filter @feather/transport build && pnpm --filter feather-shell build && pnpm --filter feather-engine build && pnpm --filter @feather/daemon build",
     "test:protocol": "pnpm --filter @feather/protocol build && pnpm --filter @feather/protocol test:golden"
   }
 }
