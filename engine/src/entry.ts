@@ -379,11 +379,24 @@ export async function startServer(
   logger.info('Adding /healthCheck route.');
   const httpRoutes: HttpRoutes = {
     '/api/health-check': async (req, res) => {
+      const databaseUrl = String(spec.databaseUrl || '');
+      const dataStorageDriver = String(spec.dataStorageDriver || '').toLowerCase();
+      const storage =
+        databaseUrl.startsWith('sqlite:') ||
+        dataStorageDriver === 'sqlite' ||
+        (isLocal && !databaseUrl)
+          ? 'sqlite'
+          : databaseUrl.startsWith('postgres://') ||
+              databaseUrl.startsWith('postgresql://')
+            ? 'postgres'
+            : isLocal
+              ? 'disabled'
+              : 'remote';
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({
         status: 'ok',
         runtime: 'ready',
-        storage: spec.databaseUrl ? 'postgres' : isLocal ? 'disabled' : 'remote',
+        storage,
         redis: {
           configured: Boolean(spec.REDIS_HOST),
           business: !spec.REDIS_HOST

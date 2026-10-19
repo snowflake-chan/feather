@@ -14,7 +14,9 @@ import {
   StorageClientSetSchema,
 } from './storage-schema';
 import { Semaphore } from '@box/utils/semaphore';
+import path from 'node:path';
 import { PostgresDataStorage } from './postgres-data-storage';
+import { SqliteDataStorage } from './sqlite-data-storage';
 import { DisabledDataStorage } from './disabled-data-storage';
 import { DB_ERROR_STATUS, ListReturnValue } from '@box/schema/api/js/storage';
 import { StorageLimiters } from './limiters';
@@ -39,7 +41,18 @@ export class StorageController {
     this.state.storage.sql = spec.sql;
     this.protocol = spec.server.protocol(StorageProtocol);
     const config = getConfigSync();
-    const usePostgres = Boolean(String(config.databaseUrl || '').trim());
+    const databaseUrl = String(config.databaseUrl || '').trim();
+    const driver = String(config.dataStorageDriver || '').trim().toLowerCase();
+    const usePostgres =
+      databaseUrl.startsWith('postgres://') ||
+      databaseUrl.startsWith('postgresql://');
+    const sqliteFromUrl = databaseUrl.startsWith('sqlite:')
+      ? databaseUrl.replace(/^sqlite:(\/\/)?/, '')
+      : '';
+    const useSqlite =
+      Boolean(sqliteFromUrl) ||
+      driver === 'sqlite' ||
+      (config.method === 'local' && !usePostgres);
     const projectNamespace = String(
         config.dataStorageNamespace ||
         config.containerName ||
@@ -47,7 +60,19 @@ export class StorageController {
         'default',
       );
     const groupNamespace = resolveGroupStorageNamespace(config);
-    if (usePostgres) {
+    if (useSqlite) {
+      const sqlitePath =
+        sqliteFromUrl ||
+        path.join(config.dataStoragePath || config.storagePath, 'data.sqlite');
+      this.dbServer = new SqliteDataStorage({
+        path: sqlitePath === ':memory:' ? sqlitePath : path.resolve(sqlitePath),
+        projectNamespace,
+        groupNamespace,
+        mode: config.mode,
+        lockTimeoutMs: config.dataStorageLockTimeoutMs,
+        logger: this.state.logger,
+      });
+    } else if (usePostgres) {
       this.dbServer = new PostgresDataStorage({
         connectionString: config.databaseUrl,
         schema: config.databaseSchema,

@@ -83,14 +83,18 @@ function validateLocalRuntimeEnvironment(config: EnvConfig): void {
 
   const databaseUrl = String(config.databaseUrl || '').trim();
   if (databaseUrl) {
+    if (databaseUrl.startsWith('sqlite:')) {
+      // sqlite:///abs/path 或 sqlite::memory:
+      return;
+    }
     let protocol = '';
     try {
       protocol = new URL(databaseUrl).protocol;
     } catch {
-      throw new Error('本地配置错误：BOX_DATABASE_URL 不是有效的 PostgreSQL 连接串。');
+      throw new Error('本地配置错误：BOX_DATABASE_URL 不是有效的 PostgreSQL/SQLite 连接串。');
     }
     if (protocol !== 'postgres:' && protocol !== 'postgresql:') {
-      throw new Error('本地配置错误：BOX_DATABASE_URL 只支持 postgres:// 或 postgresql://。');
+      throw new Error('本地配置错误：BOX_DATABASE_URL 只支持 postgres://、postgresql:// 或 sqlite:。');
     }
   }
 }

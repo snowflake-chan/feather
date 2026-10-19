@@ -62,6 +62,7 @@ export const config = build({
   autoSaveInterval: N('AUTO_SAVE_INTERVAL', DEFAULT_SETTINGS.autoSaveInterval),
   storagePath: S('STORAGE_PATH', '/tmp'),
   dataStoragePath: S('BOX_DATA_STORAGE_PATH', ''),
+  dataStorageDriver: S('BOX_DATA_STORAGE_DRIVER', ''),
   vm: S('VM', ''),
   debug: B('DEBUG', false),
 
