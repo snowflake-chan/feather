@@ -88,3 +88,37 @@ get local VOXA mesh assets error: connect ECONNREFUSED 127.0.0.1:3001
 - `shell` 需要先构建：在仓库根 `pnpm --filter feather-shell build`（生成 `shell/dist/script/script-shell.js`）
 - worker 入口在 **shell**：`../shell/tools/worker-entry/worker-entry.js`
 - 端口被占用时改 `PORT`
+
+
+## 最小验证脚本（不依赖外部服务）
+
+用默认项目 + `engine/scripts/validation.js` 验证 tick / 定时器 / 查询 / 异常回传：
+
+```bash
+cd engine
+BOX_LOCAL_CONFIG_PATH=/Users/lawrencebi/Projects/box3-local-engine/apps/local-engine/config/local.config.json \
+BOX_BUNDLED_CONTENT_PATH=/Users/lawrencebi/Projects/box3-local-engine/apps/local-engine/data/blobs \
+METHOD=local MODE=play IS_HTTPS=false PORT=9977 \
+STORAGE_PATH=/tmp/feather-validation \
+SCRIPT=scripts/validation.js VM=worker \
+SCRIPT_WORKER_ENTRY=../shell/tools/worker-entry/worker-entry.js \
+NODE_ENV=development node dist/src/launch.js
+```
+
+预期（1 秒后）：
+
+```
+[shell:debug] Loading module: validation.js...
+[shell:debug] Module loaded.
+[shell:error] Error: [validation] 1s ticks=15 entities=0
+    at eval (validation.js:12:9)
+    at script-scheduler.js:69
+    at ScriptShell._poll (shell/dist/script/script-shell.js:572)
+```
+
+说明：
+
+- `console.log` 在 engine 里走 `logger.trace`，默认级别看不到；脚本用抛异常把结果带出来
+- `ticks=15` 证明 `world.onTick` 在跑
+- 堆栈证明 engine → worker socket → shell → scheduler → 用户脚本整条链路
+- 不依赖 PostgreSQL / player-service / 真图
