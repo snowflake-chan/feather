@@ -4,7 +4,7 @@ process.stderr.write('[worker-entry] boot\n');
 const path = require('path');
 const { parentPort } = require('worker_threads');
 const { randomUUID } = require('crypto');
-const { NodeWorkerSocket } = require('../worker-poc/adapter');
+const { NodeWorkerSocket } = require('@feather/transport/client');
 
 if (!parentPort) {
   throw new Error('worker-entry must run inside worker_threads');

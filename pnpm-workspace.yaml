@@ -1,5 +1,6 @@
 packages:
   - protocol
+  - transport
   - shell
   - engine
   - vendor/*

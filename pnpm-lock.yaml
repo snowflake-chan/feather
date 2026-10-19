@@ -46,6 +46,9 @@ importers:
       '@feather/protocol':
         specifier: workspace:*
         version: link:../protocol
+      '@feather/transport':
+        specifier: workspace:*
+        version: link:../transport
       '@openrouter/ai-sdk-provider':
         specifier: ~1.2.5
         version: 1.2.8(ai@5.0.92(zod@4.1.12))(zod@4.1.12)
@@ -204,6 +207,9 @@ importers:
       '@feather/protocol':
         specifier: workspace:*
         version: link:../protocol
+      '@feather/transport':
+        specifier: workspace:*
+        version: link:../transport
       debug:
         specifier: 4.3.4
         version: 4.3.4(supports-color@10.2.2)
@@ -220,6 +226,28 @@ importers:
       '@types/node':
         specifier: 22.10.2
         version: 22.10.2
+      typescript:
+        specifier: 5.6.3
+        version: 5.6.3
+
+  transport:
+    dependencies:
+      '@box/mudb':
+        specifier: workspace:*
+        version: link:../vendor/mudb
+      '@box/schema':
+        specifier: workspace:*
+        version: link:../vendor/schema
+      '@box/utils':
+        specifier: workspace:*
+        version: link:../vendor/utils
+      '@feather/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+    devDependencies:
+      '@types/node':
+        specifier: 20.16.15
+        version: 20.16.15
       typescript:
         specifier: 5.6.3
         version: 5.6.3

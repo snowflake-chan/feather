@@ -4,9 +4,9 @@ import type {
   MuSocketServerState,
   MuSocketServerSpec,
 } from '@box/mudb/socket/socket';
-import type { ScriptServer } from '../type';
+import type { ScriptServer } from '@feather/protocol/script-server';
 import { Worker as NodeWorker } from 'worker_threads';
-import { NodeWorkerSocketServer } from './mu-worker-socket';
+import { NodeWorkerSocketServer } from './server';
 
 export interface WorkerScriptServerOptions {
   /** 编译后的 worker 入口（rollup 产物 worker-script-entry.js） */

@@ -11,6 +11,7 @@ engine 和 shell 共享的脚本协议层。两边都从这里 import，不再�
 | `src/script-state-schema.ts` | `ScriptStateSnapshot` / `ScriptEvents` |
 | `src/bindings/*` | 绑定 schema + synchronizer + `component-sync` |
 | `src/player/*`、`particle/*`、`sound/*`、`zone/*`、`interact/*`、`dialog/*` | 双方共用的 server-state schema |
+| `src/script-server.ts` | `ScriptServer` 传输契约（engine 只依赖它） |
 | `src/codegen.ts`、`parse-error.ts`、`script-entry.ts` | 共享工具 |
 
 ## 消费方式

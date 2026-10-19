@@ -98,6 +98,18 @@ shell 也使用同一份根 `vendor/`（不再维护裁剪版 schema）。
 `@feather/protocol/*`。engine 侧只保留 `script-host.ts` 和 4 个 `bindings/*-update.ts`
 （把 patch 应用到 engine 状态）。
 
+## ScriptServer 注入
+
+`startServer(spec, { scriptServer })` 不再自己创建 worker；`launch.ts` 是当前的组合根：
+
+```ts
+const scriptServer = new WorkerScriptServer({ workerEntry });
+await startServer(serverConfig, { scriptServer });
+```
+
+engine 的库代码（`entry.ts` / `createServer.ts`）只依赖 `@feather/protocol/script-server` 的
+`ScriptServer` 接口；worker 实现已经移到 `@feather/transport`。
+
 ## 与 shell 的关系
 
 | | engine | shell |

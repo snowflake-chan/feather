@@ -4,7 +4,7 @@ import path from 'path';
 import { argv } from '../config';
 import { getConfig } from '../config/server';
 import { startServer } from './entry';
-import { WorkerScriptServer } from './utils/script-server/worker/worker-script-server';
+import { WorkerScriptServer } from '@feather/transport/worker-script-server';
 
 rootLogger.info('Start Game Server.');
 

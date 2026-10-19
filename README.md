@@ -7,6 +7,7 @@ feather/
 ├── engine/          # 主线程：权威状态、物理、网络、内容
 ├── shell/           # Worker：执行用户代码
 ├── protocol/        # engine/shell 共享的脚本协议、schema、golden vectors
+├── transport/       # Node worker_threads 传输层（server/client）
 ├── vendor/          # 13 个 @box 包（全量 schema，engine/shell 共用）
 ├── tsconfig.base.json
 ├── pnpm-workspace.yaml
@@ -27,8 +28,8 @@ engine 不在主线程执行用户代码；shell 只通过 `ScriptProtocol` 和 
 
 ```bash
 pnpm install
-pnpm typecheck     # protocol + shell + engine，0 errors
-pnpm build         # protocol dist + shell dist + engine dist
+pnpm typecheck     # protocol + transport + shell + engine，0 errors
+pnpm build         # protocol + transport + shell + engine
 pnpm test:protocol # golden vectors（schema 指纹 + diff/patch 字节）
 ```
 

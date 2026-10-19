@@ -8,7 +8,7 @@ engine 通过 `SCRIPT_WORKER_ENTRY` 指向这个文件，把 shell 跑在 `worke
 ## 依赖
 
 - `feather-shell` 先构建：`pnpm build`（生成 `dist/script/script-shell.js`）
-- `../worker-poc/adapter.js` 提供 `NodeWorkerSocket`（client 侧）
+- `@feather/transport/client` 提供 `NodeWorkerSocket`（client 侧）
 
 ## 用法
 
