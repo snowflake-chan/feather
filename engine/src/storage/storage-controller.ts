@@ -387,6 +387,28 @@ export class StorageController {
   }
 
   private resetMutex = new Semaphore(1);
+  public async close() {
+    this._limiters.reset();
+    const db = this.state.storage.db;
+    if (db) {
+      this.state.storage.db = null;
+      await new Promise<void>((resolve) => {
+        db.close({
+          onSuccess: () => resolve(),
+          onError: () => resolve(),
+        });
+      });
+    }
+    try {
+      await this.dbServer.close();
+    } catch (error) {
+      this.state.logger.warn(
+        `data storage close failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    this._dbServerReady = undefined;
+  }
+
   public async reset() {
     await this.resetMutex.p();
     this._limiters.reset();

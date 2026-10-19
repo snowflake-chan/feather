@@ -1058,6 +1058,31 @@ export class ScriptHost {
   }
 
   // stop all running scripts
+  public async close() {
+    await this.stop();
+    try {
+      this.scriptServer.close();
+    } catch (error) {
+      this.logger.warn(
+        `script server close failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    try {
+      this.muServer.destroy();
+    } catch (error) {
+      this.logger.warn(
+        `script mu server close failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    try {
+      await this.storage.close();
+    } catch (error) {
+      this.logger.warn(
+        `script storage close failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   public async stop() {
     if (this._state.script.stopSemaphore.counter > 0) {
       this.logger.info('Stop called while script already stopped.');

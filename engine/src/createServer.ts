@@ -280,7 +280,7 @@ export async function createGameServer(spec: {
     game = playServer.state.game;
   }
 
-  startPlayerRevocationPoller(game, spec.logger);
+  game.registerDisposer(startPlayerRevocationPoller(game, spec.logger));
 
   // install game traces
   if (serverConfig.traceAlloc || serverConfig.traceDoubleFree) {

@@ -143,6 +143,12 @@ export interface StartServerOptions {
   scriptServer: ScriptServer;
 }
 
+export interface StartServerResult {
+  game: Awaited<ReturnType<typeof createGameServer>>;
+  httpServer: http.Server | https.Server;
+  scriptServer: ScriptServer;
+}
+
 export async function startServer(
   spec: ServerRuntimeConfig,
   options: StartServerOptions,
@@ -798,4 +804,6 @@ export async function startServer(
   setTimeout(() => {
     clearMemoryPool();
   }, 1000);
+
+  return { game: gameServer, httpServer, scriptServer };
 }

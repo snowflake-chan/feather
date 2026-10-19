@@ -47,7 +47,10 @@ export class WorkerScriptServer implements ScriptServer {
     this._socketServer.start(spec);
   }
 
+  private _closing = false;
+
   public close() {
+    this._closing = true;
     for (const worker of this._workers) {
       try {
         worker.terminate();
@@ -68,7 +71,7 @@ export class WorkerScriptServer implements ScriptServer {
     if (worker.stderr) worker.stderr.on('data', (d) => process.stderr.write(d));
     this._workers.add(worker);
     worker.once('exit', (code) => {
-      if (code !== 0) console.error('[WorkerScriptServer] worker exit', code);
+      if (code !== 0 && !this._closing) console.error('[WorkerScriptServer] worker exit', code);
       this._workers.delete(worker);
     });
     worker.on('error', (err) => {

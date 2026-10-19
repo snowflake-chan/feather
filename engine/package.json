@@ -26,7 +26,9 @@
     "test": "node -r @swc-node/register scripts/check-disabled-data-storage.ts && node -r @swc-node/register scripts/check-local-derived-content.ts && node -r @swc-node/register scripts/regression-storage-namespace.ts && node -r @swc-node/register scripts/regression-teleport-player-continuity.ts && node -r @swc-node/register scripts/regression-local-voxa-fallback.ts && node -r @swc-node/register scripts/regression-empty-extra-project-snapshot.ts && node -r @swc-node/register scripts/regression-project-model-import.ts && node -r @swc-node/register scripts/regression-project-model-runtime-identity.ts && node -r @swc-node/register scripts/regression-project-model-trash.ts && node -r @swc-node/register scripts/regression-project-model-asset-integrity.ts && node -r @swc-node/register scripts/regression-runtime-mesh-assets.ts && node -r @swc-node/register scripts/regression-deleted-project-model.ts && node -r @swc-node/register scripts/regression-default-skin-project-scope.ts && node -r @swc-node/register scripts/regression-pending-player-joins.ts && node -r @swc-node/register scripts/regression-player-revocation-poller.ts && node -r @swc-node/register scripts/regression-map-group-state-lock.ts && node -r @swc-node/register scripts/regression-migrated-script-editor.ts && node -r @swc-node/register scripts/regression-migrated-script-entry.ts && node -r @swc-node/register scripts/regression-script-url-policy.ts && node -r @swc-node/register scripts/regression-local-shared-script-state.ts && node scripts/regression-production-script-worker.js",
     "build:assets": "node -r @swc-node/register --max-old-space-size=4096 scripts/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "check:sqlite-storage": "node -r @swc-node/register scripts/check-sqlite-data-storage.ts"
+    "check:sqlite-storage": "node -r @swc-node/register scripts/check-sqlite-data-storage.ts",
+    "check:game-close": "node -r @swc-node/register scripts/check-game-close.ts",
+    "check:two-games": "node -r @swc-node/register scripts/check-two-games.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1.0.28",

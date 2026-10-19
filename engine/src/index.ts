@@ -511,6 +511,42 @@ export class GameServer {
     });
   }
 
+  private _closed = false;
+  private _disposers: Array<() => void | Promise<void>> = [];
+
+  public registerDisposer(dispose: () => void | Promise<void>) {
+    this._disposers.push(dispose);
+  }
+
+  public async close() {
+    if (this._closed) return;
+    this._closed = true;
+    this.scheduler.clearInterval(this._loopInterval);
+    while (this._disposers.length > 0) {
+      const dispose = this._disposers.pop()!;
+      try {
+        await dispose();
+      } catch (error) {
+        this.state.logger.warn(
+          `game server disposer failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+    await this.script.close();
+    try {
+      this.webSocket.close();
+    } catch (error) {
+      this.state.logger.warn(
+        `backend socket close failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    this.server.destroy();
+    this.onReady.unsubAll();
+    this.onPoll.unsubAll();
+    this.onTick.unsubAll();
+    this.state.logger.info('game server closed');
+  }
+
   public start() {
     // FIXME: need to wait until script has started
     return new Promise<void>((resolve) => {
