@@ -2,7 +2,7 @@
   "compilerOptions": {
     "downlevelIteration": true,
     "allowJs": true,
-    "declaration": false,
+    "declaration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": [

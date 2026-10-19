@@ -4,7 +4,7 @@
   "description": "box3 engine（game-server 去掉 shell 执行运行时）",
   "license": "ISC",
   "author": "",
-  "main": "index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "node scripts/dev-launch.js",
@@ -81,5 +81,26 @@
     "pg-mem": "3.0.5",
     "rollup": "4.59.0",
     "ts-node": "10.4.0"
+  },
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "require": "./dist/src/index.js"
+    },
+    "./contract": {
+      "types": "./dist/src/engine-contract.d.ts",
+      "require": "./dist/src/engine-contract.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "contract": [
+        "dist/src/engine-contract.d.ts"
+      ],
+      "*": [
+        "dist/src/*"
+      ]
+    }
   }
 }

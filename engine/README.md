@@ -98,6 +98,15 @@ shell 也使用同一份根 `vendor/`（不再维护裁剪版 schema）。
 `@feather/protocol/*`。engine 侧只保留 `script-host.ts` 和 4 个 `bindings/*-update.ts`
 （把 patch 应用到 engine 状态）。
 
+## API 契约
+
+API 层设计见 [`../docs/API-DESIGN.md`](../docs/API-DESIGN.md)。
+engine 对 api 暴露的类型在 `src/engine-contract.ts`，通过 `feather-engine/contract` 引入：
+
+```ts
+import type { EngineHandle } from 'feather-engine/contract';
+```
+
 ## ScriptServer 注入
 
 `startServer(spec, { scriptServer })` 不再自己创建 worker；`launch.ts` 是当前的组合根：

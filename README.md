@@ -63,6 +63,7 @@ curl http://127.0.0.1:9977/api/health-check
 
 | 文档 | 内容 |
 |---|---|
+| [docs/API-DESIGN.md](docs/API-DESIGN.md) | API 层边界、engine 契约、迁移步骤 |
 | [protocol/README.md](protocol/README.md) | 共享协议、构建顺序、golden vectors |
 | [engine/README.md](engine/README.md) | engine 抽取、worker 传输、构建 |
 | [engine/SMOKE.md](engine/SMOKE.md) | 已验证的 smoke 命令与输出 |
