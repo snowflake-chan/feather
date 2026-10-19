@@ -7,7 +7,7 @@ import {
   PhysicsZoneSetSchema,
   ZoneSelectorGroupSetSchema,
 } from '@box/schema/zone/zone-schema';
-import { ServerEnvironmentZoneSetSchema } from './zone-server-state';
+import { ServerEnvironmentZoneSetSchema } from '@feather/protocol/zone/zone-server-state';
 
 export function getPlayerEnvironmentZones(
   state: GameServerState,

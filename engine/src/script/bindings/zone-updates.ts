@@ -1,10 +1,10 @@
 import { sortedArrayDelete } from '@box/utils/sorted-array-remove';
 import { GameServerState } from '../../game-server-schema';
 import { PhysicsZoneSchema } from '@box/schema/zone/zone-schema';
-import { ServerEnvironmentZoneSchema } from '../../zone/zone-server-state';
-import { synchronizeComponent } from './entity-update';
-import { EnvironmentZoneBinding, PhysicsZoneBinding } from './zone-bindings';
-import { ScriptZoneUpdate } from './zone-synchronizer';
+import { ServerEnvironmentZoneSchema } from '@feather/protocol/zone/zone-server-state';
+import { synchronizeComponent } from '@feather/protocol/bindings/component-sync';
+import { EnvironmentZoneBinding, PhysicsZoneBinding } from '@feather/protocol/bindings/zone-bindings';
+import { ScriptZoneUpdate } from '@feather/protocol/bindings/zone-synchronizer';
 
 export function applyScriptZoneUpdates(
   updates: ScriptZoneUpdate,

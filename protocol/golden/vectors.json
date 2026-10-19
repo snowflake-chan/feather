@@ -1,0 +1,11 @@
+{
+  "protocolSha256": "f3001a4cef399edc432b5400fd514cdf675dc8068bc249a2e32e9818afcc709e",
+  "perf": {
+    "schema": "ScriptPerfCounterSchema",
+    "schemaSha256": "76ec7ca79c69ef074a209c51060fe2ba9bb9490c94b523594dd0b6ed8252571e",
+    "changed": true,
+    "diffHex": "0001010307",
+    "diffBytes": 5,
+    "patchOk": true
+  }
+}

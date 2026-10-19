@@ -3,7 +3,7 @@ import { GamePrivateReplicaSchema } from '@box/schema/replica/game-private-repli
 import { ChatEventSchema } from '@box/schema/events/chat-event-schema';
 import { PhysicsEventSchema } from '@box/schema/events/physics-event-schema';
 import { MuSortedArray, MuUint32, MuStruct, MuVarint } from '@box/mudb/schema';
-import { ServerPlayerListSchema } from '../player/player-server-schema';
+import { ServerPlayerListSchema } from './player/player-server-schema';
 import { ScriptNetInputSetSchema } from '@box/schema/events/net-events';
 import { compareId } from '@box/utils/id';
 import { RespawnEventSetSchema } from '@box/schema/events/damage-event-schema';
@@ -12,11 +12,11 @@ import { EnvironmentParamSchema } from '@box/schema/environment/environment-sche
 import { PlayerDisplaySetSchema } from '@box/schema/player/player-schema';
 import { DamageSetSchema } from '@box/schema/damage/damage-schema';
 import { ContactIndexSchema } from '@box/schema/physics/physics-schema';
-import { ServerParticleSetSchema } from '../particle/particle-server-state';
-import { InteractiveEventSetSchema } from '../interact/interact-server-state';
+import { ServerParticleSetSchema } from './particle/particle-server-state';
+import { InteractiveEventSetSchema } from './interact/interact-server-state';
 import { InteractComponentSetSchema } from '@box/schema/interact/interact-protocol';
-import { DialogEventSetSchema } from '../dialog/dialog-server-schema';
-import { ServerSoundStateSchema } from '../sound/server-sound-state';
+import { DialogEventSetSchema } from './dialog/dialog-server-schema';
+import { ServerSoundStateSchema } from './sound/server-sound-state';
 import { RemoteChannelEventsSchema } from '@box/schema/events/remote-channel-event-schema';
 import { ClientKeyboardEventsSchema } from '@box/schema/events/client-keyboard-event-schema';
 import { EntityNameComponentSetSchema } from '@box/schema/entity-name/entity-name';

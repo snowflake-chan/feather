@@ -1,5 +1,5 @@
 import { GameServerState } from '../game-server-schema';
-import { ScriptKeyframePostTick } from '../script/script-protocol';
+import { ScriptKeyframePostTick } from '@feather/protocol/script-protocol';
 import { ENTITY_ANIM_BINDING } from '@box/schema/keyframes/bindings/entity-animation';
 import { applySyncPacket } from '@box/schema/keyframes/keyframe-binding';
 import { PLAYER_ANIM_BINDING } from '@box/schema/keyframes/bindings/player-animation';

@@ -4,7 +4,7 @@ import { RTCScriptProtocol } from './rtc-script-protocol';
 import { PromiseWrapper } from './promise-wrapper';
 import { ScriptShell } from '../script/script-shell';
 import { GamePlayerEntity } from '@box/schema/api/js/api';
-import { GameUIDEntity } from '../script/bindings/entity-synchronizer';
+import { GameUIDEntity } from '@feather/protocol/bindings/entity-synchronizer';
 
 function generateChannelId(len = 32) {
   const charset =

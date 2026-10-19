@@ -1,6 +1,6 @@
 import { NavigatorEventType } from '@box/schema/api/js/api';
 import { MuClientProtocol } from '@box/mudb/client';
-import { ScriptEntityWrapper } from '../script/bindings/entity-synchronizer';
+import { ScriptEntityWrapper } from '@feather/protocol/bindings/entity-synchronizer';
 import { ScriptShell } from '../script/script-shell';
 import {
   MessageEventSchema,

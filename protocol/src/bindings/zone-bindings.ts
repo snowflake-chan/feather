@@ -6,7 +6,7 @@ import { PhysicsZone, PhysicsZoneSchema } from '@box/schema/zone/zone-schema';
 import {
   ServerEnvironmentZone,
   ServerEnvironmentZoneSchema,
-} from '../../zone/zone-server-state';
+} from '../zone/zone-server-state';
 import { BindingFactory, safePropExpr } from './binding-factory';
 import { ScriptSynchronizer } from './synchronizer';
 import { ScriptZoneWrapper } from './zone-synchronizer';

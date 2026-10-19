@@ -16,7 +16,7 @@ import { getById } from '@box/utils/id';
 import { ChatLogEventSchema } from '@box/schema/events/chat-event-schema';
 import { Logger } from '@box/utils/logger';
 import { ContainerType } from '../settings/server-settings-schema';
-import { ServerPlayer } from '../player/player-server-schema';
+import { ServerPlayer } from '@feather/protocol/player/player-server-schema';
 import { BackendSocket } from '../../backendSocket';
 
 export class ChatServer {

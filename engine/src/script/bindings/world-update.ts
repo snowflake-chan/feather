@@ -1,4 +1,4 @@
-import { ScriptWorldUpdate } from './world-synchronizer';
+import { ScriptWorldUpdate } from '@feather/protocol/bindings/world-synchronizer';
 import { GameServerState } from '../../game-server-schema';
 import {
   WorldPhysicsBinding,
@@ -7,7 +7,7 @@ import {
   WorldRainBinding,
   WorldSoundBinding,
   WorldFogBinding,
-} from './world-bindings';
+} from '@feather/protocol/bindings/world-bindings';
 
 export function applyScriptWorldUpdates(
   updates: ScriptWorldUpdate,

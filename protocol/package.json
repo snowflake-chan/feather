@@ -1,0 +1,40 @@
+{
+  "name": "@feather/protocol",
+  "version": "0.0.0",
+  "private": true,
+  "description": "engine 与 shell 共享的脚本协议、状态 schema 和同步定义",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "require": "./dist/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/*"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:golden": "node scripts/golden.js"
+  },
+  "dependencies": {
+    "@box/mudb": "workspace:*",
+    "@box/schema": "workspace:*",
+    "@box/script-api": "workspace:*",
+    "@box/utils": "workspace:*",
+    "gl-matrix": "3.4.3"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3"
+  }
+}

@@ -23,7 +23,8 @@
     "debug": "4.3.4",
     "gl-matrix": "3.4.3",
     "nanoid": "3.3.7",
-    "pino": "8.19.0"
+    "pino": "8.19.0",
+    "@feather/protocol": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "22.10.2",

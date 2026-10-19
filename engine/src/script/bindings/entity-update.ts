@@ -1,9 +1,7 @@
-import { ScriptEntityUpdate, compareNum } from './entity-synchronizer';
+import { ScriptEntityUpdate, compareNum } from '@feather/protocol/bindings/entity-synchronizer';
 import { GameServerState } from '../../game-server-schema';
-import { ScriptSynchronizer, ScriptSyncPatch } from './synchronizer';
-import { MuSchema } from '@box/mudb/schema';
 import { sortedArrayDelete } from '@box/utils/sorted-array-remove';
-import { TaggedId, compareId, zipId } from '@box/utils/id';
+import { zipId } from '@box/utils/id';
 import { NetModelSchema } from '@box/schema/mesh/model-schema';
 import {
   RigidBodyBinding,
@@ -18,10 +16,10 @@ import {
   SoundBinding,
   PlayerSoundBinding,
   EntityNameBinding,
-} from './entity-bindings';
+} from '@feather/protocol/bindings/entity-bindings';
 import { vec3, quat } from 'gl-matrix';
 import { DamageSchema } from '@box/schema/damage/damage-schema';
-import { ServerParticleEntitySchema } from '../../particle/particle-server-state';
+import { ServerParticleEntitySchema } from '@feather/protocol/particle/particle-server-state';
 import {
   PlayerAttachmentStateSchema,
   BodyPart,
@@ -29,64 +27,14 @@ import {
   PlayerAttachmentSchema,
 } from '@box/schema/player/player-schema';
 import { InteractComponentSchema } from '@box/schema/interact/interact-protocol';
-import { ServerEntitySoundEffectSchema } from '../../sound/server-sound-state';
+import { ServerEntitySoundEffectSchema } from '@feather/protocol/sound/server-sound-state';
 import { CollisionFilterSchema } from '@box/schema/physics/collision-filter';
 import {
   destroyEntityId,
   clearDestroyedEntity,
 } from '../../entity/entity-controller';
 import { EntityNameComponentSchema } from '@box/schema/entity-name/entity-name';
-
-function createComponent<Synchronizer extends ScriptSynchronizer<any, any>>(
-  synchronizer: Synchronizer,
-  patch: ScriptSyncPatch,
-) {
-  const result = synchronizer.engineSchema.clone(
-    synchronizer.engineSchema.identity,
-  );
-  synchronizer.synchronize(result, patch);
-  result.id = patch.id;
-  return result;
-}
-
-export function synchronizeComponent<
-  Component extends TaggedId,
-  Schema extends MuSchema<Component>,
->(
-  synchronizer: ScriptSynchronizer<any, Schema>,
-  component: Component[],
-  patch: ScriptSyncPatch[],
-  deleted: { [id: number]: boolean },
-) {
-  let cptr = 0;
-  let pptr = 0;
-  const numComponent = component.length;
-  while (cptr < numComponent && pptr < patch.length) {
-    const c = component[cptr];
-    const p = patch[pptr];
-    if (c.id < p.id) {
-      cptr++;
-    } else if (p.id < c.id) {
-      if (!deleted[p.id]) {
-        component.push(createComponent(synchronizer, p));
-      }
-      pptr++;
-    } else {
-      synchronizer.synchronize(c, p);
-      cptr++;
-      pptr++;
-    }
-  }
-  while (pptr < patch.length) {
-    const x = patch[pptr++];
-    if (!deleted[x.id]) {
-      component.push(createComponent(synchronizer, x));
-    }
-  }
-  if (component.length !== numComponent) {
-    component.sort(compareId);
-  }
-}
+import { synchronizeComponent } from '@feather/protocol/bindings/component-sync';
 
 export function applyScriptEntityUpdates(
   updates: ScriptEntityUpdate,

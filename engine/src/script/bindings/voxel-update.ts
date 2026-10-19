@@ -2,11 +2,11 @@ import {
   ScriptVoxelResetSchema,
   ScriptVoxelPreTickSchema,
   ScriptVoxelReset,
-} from '../script-protocol';
+} from '@feather/protocol/script-protocol';
 import { GameServerState } from '../../game-server-schema';
 import { getServerChunkBoxes, VoxelServer } from '../../voxel/voxel-server';
 import { VoxelCollisionBoxListSchema } from '@box/schema/utils/rbush-schema';
-import { ScriptVoxelUpdateSchema } from './voxel-synchronizer';
+import { ScriptVoxelUpdateSchema } from '@feather/protocol/bindings/voxel-synchronizer';
 import { VoxelWriteSchema, VoxelWrite } from '@box/schema/voxel/voxel-protocol';
 import { VoxelWriteSequenceSchema } from '@box/schema/replica/replica-schema';
 

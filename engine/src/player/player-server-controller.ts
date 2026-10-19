@@ -36,7 +36,7 @@ import {
   GameConnectionSchema,
 } from '../game-server-schema';
 import { createEntityId, destroyEntityId } from '../entity/entity-controller';
-import { ServerPlayerSchema, ServerPlayer } from './player-server-schema';
+import { ServerPlayerSchema, ServerPlayer } from '@feather/protocol/player/player-server-schema';
 import {
   PLAYER_WIDTH,
   PLAYER_HEIGHT,
@@ -53,12 +53,12 @@ import {
   GamePrivateReplica,
   GamePrivateReplicaSchema,
 } from '@box/schema/replica/game-private-replica';
-import { GameScriptRunState, scriptRunState } from '../script/script-schema';
+import { GameScriptRunState, scriptRunState } from '@feather/protocol/script-schema';
 import {
   ServerPlayerEntitySoundEffect,
   ServerEntitySoundEffectSchema,
   ServerPlayerSoundEffectSchema,
-} from '../sound/server-sound-state';
+} from '@feather/protocol/sound/server-sound-state';
 import crypto from 'crypto';
 import { ModelServer } from '../mesh/server-model-controller';
 import { getConfigSync } from '../../config/server';

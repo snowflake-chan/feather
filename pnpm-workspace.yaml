@@ -1,4 +1,5 @@
 packages:
+  - protocol
   - shell
   - engine
   - vendor/*

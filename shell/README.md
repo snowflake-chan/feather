@@ -2,6 +2,8 @@
 
 > **Monorepo note**：`@box/*` 依赖统一在仓库根 `vendor/`，`shell/vendor` 已移除；
 > `pnpm install` 在仓库根执行，`pnpm --filter feather-shell build` 构建 shell。
+> 脚本协议/绑定/共享 schema 在 `@feather/protocol`；`shell/src/shell/script` 只保留
+> `script-shell.ts`、`safe-eval.ts`、`script-start.ts`、`pairing-heap.ts`。
 
 神岛（box3）script shell 的抽取工作区。
 

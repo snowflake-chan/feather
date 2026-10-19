@@ -15,7 +15,7 @@ import {
   RigidBodySetSchema,
 } from '@box/schema/physics/physics-schema';
 import { EnvironmentStateSchema } from '@box/schema/environment/environment-schema';
-import { ServerPlayerListSchema } from './player/player-server-schema';
+import { ServerPlayerListSchema } from '@feather/protocol/player/player-server-schema';
 import { MuRefSchema } from '@box/schema/utils/ref-schema';
 import { VoxelView } from '@box/utils/voxel';
 import { VoxelCollisionSchema } from '@box/schema/voxel/voxel-collision-schema';
@@ -46,7 +46,7 @@ import { compareId } from '@box/utils/id';
 import {
   GameServerScriptStateSchema,
   ScriptSrcSchema,
-} from './script/script-schema';
+} from '@feather/protocol/script-schema';
 import { EntityStateSchema } from '@box/schema/entity/entity-schema';
 import { Vec3Schema } from '@box/schema/utils/math-schema';
 import { ServerSettingsSchema } from './settings/server-settings-schema';
@@ -54,15 +54,15 @@ import {
   BlockInfoSchema,
   BlockIndexSchema,
 } from '@box/schema/voxel/block-schema';
-import { ServerParticleStateSchema } from './particle/particle-server-state';
+import { ServerParticleStateSchema } from '@feather/protocol/particle/particle-server-state';
 import { ServerModelStateSchema } from './mesh/server-model-schema';
-import { ServerSoundStateSchema } from './sound/server-sound-state';
-import { InteractServerStateSchema } from './interact/interact-server-state';
-import { DialogConnectionSchema } from './dialog/dialog-server-schema';
+import { ServerSoundStateSchema } from '@feather/protocol/sound/server-sound-state';
+import { InteractServerStateSchema } from '@feather/protocol/interact/interact-server-state';
+import { DialogConnectionSchema } from '@feather/protocol/dialog/dialog-server-schema';
 import { StorageSchema } from './storage/storage-schema';
 import { CollisionFilterSchema } from '@box/schema/physics/collision-filter';
 import { ServerPerfSchema } from './perf/perf-server-schema';
-import { ServerEnvironmentZoneSetSchema } from './zone/zone-server-state';
+import { ServerEnvironmentZoneSetSchema } from '@feather/protocol/zone/zone-server-state';
 import {
   PhysicsZoneSetSchema,
   ZoneSelectorGroupSetSchema,

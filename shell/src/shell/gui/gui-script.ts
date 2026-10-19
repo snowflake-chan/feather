@@ -1,7 +1,7 @@
 import { GamePlayerEntity } from '@box/schema/api/js/api';
 import { GameGUI, GameGUIEventListener } from '@box/schema/api/js/gui';
 import { MuClientProtocol } from '@box/mudb/client';
-import { GameUIDEntity } from '../script/bindings/entity-synchronizer';
+import { GameUIDEntity } from '@feather/protocol/bindings/entity-synchronizer';
 import { ScriptShell } from '../script/script-shell';
 import { GUIScriptProtocol } from './gui-script-protocol';
 import { PromiseWrapper } from '@box/utils/promise-wrapper';

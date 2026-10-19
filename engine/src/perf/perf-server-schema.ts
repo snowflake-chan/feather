@@ -1,5 +1,5 @@
 import { MuFloat64, MuStruct, MuVarint } from '@box/mudb/schema';
-import { ScriptPerfCounterSchema } from '../script/script-protocol';
+import { ScriptPerfCounterSchema } from '@feather/protocol/script-protocol';
 
 export const ServerPerfSchema = new MuStruct({
   // number of lines logged

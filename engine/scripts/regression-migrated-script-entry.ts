@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { resolveRuntimeScriptEntry } from '../src/script/script-entry';
+import { resolveRuntimeScriptEntry } from '@feather/protocol/script-entry';
 
 assert.equal(
   resolveRuntimeScriptEntry('_migrated_index.js', { 'index.js': {} }),

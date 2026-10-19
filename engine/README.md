@@ -92,6 +92,12 @@ dist/backendSocket.js
 13 个包、构建顺序、相对上游的本地修改见 [VENDOR.md](VENDOR.md)。
 shell 也使用同一份根 `vendor/`（不再维护裁剪版 schema）。
 
+## 共享协议（Phase 2）
+
+`ScriptProtocol`、状态 schema、绑定 schema 已抽到 `../protocol/`，engine 和 shell 都 import
+`@feather/protocol/*`。engine 侧只保留 `script-host.ts` 和 4 个 `bindings/*-update.ts`
+（把 patch 应用到 engine 状态）。
+
 ## 与 shell 的关系
 
 | | engine | shell |

@@ -5,8 +5,8 @@ import {
 } from '@box/schema/interact/interact-protocol';
 import { GameConnectionState, GameServerState } from '../game-server-schema';
 import { getById } from '@box/utils/id';
-import { InteractEventSchema } from './interact-server-state';
-import { GameScriptRunState, scriptRunState } from '../script/script-schema';
+import { InteractEventSchema } from '@feather/protocol/interact/interact-server-state';
+import { GameScriptRunState, scriptRunState } from '@feather/protocol/script-schema';
 
 export class InteractServer {
   public protocol: MuServerProtocol<typeof InteractProtocol>;

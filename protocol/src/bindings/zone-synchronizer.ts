@@ -35,8 +35,8 @@ import {
 import { ScriptSynchronizer, ScriptSyncPatch } from './synchronizer';
 import { ScriptResourceSync } from './resource';
 import { sortedArrayDelete } from '@box/utils/sorted-array-remove';
-import { synchronizeComponent } from './entity-update';
-import { MAX_ZONES, ServerEnvironmentZone } from '../../zone/zone-server-state';
+import { synchronizeComponent } from './component-sync';
+import { MAX_ZONES, ServerEnvironmentZone } from '../zone/zone-server-state';
 import { GameVector3 } from '@box/schema/api/js/math';
 import { ScriptPerfCounter } from '../script-protocol';
 import { ScriptScheduler } from '@box/utils/script/script-scheduler';

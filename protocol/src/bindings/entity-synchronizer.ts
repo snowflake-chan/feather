@@ -90,7 +90,7 @@ import { BodyPart } from '@box/schema/player/player-schema';
 import { HashSchema } from '@box/schema/content-server/index';
 import { Vec3Schema, QuatSchema } from '@box/schema/utils/math-schema';
 import { PlaySoundPosition } from '@box/schema/sound/sound-protocol';
-import { ServerPlayer } from '../../player/player-server-schema';
+import { ServerPlayer } from '../player/player-server-schema';
 import {
   ScriptPhysicsSelectorManager,
   ScriptPhysicsSelectorGroup,

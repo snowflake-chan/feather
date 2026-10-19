@@ -11,7 +11,7 @@ import {
   compareParticleParams,
   ServerParticleStateSchema,
   ServerParticleEntitySchema,
-} from './particle-server-state';
+} from '@feather/protocol/particle/particle-server-state';
 import { vec3 } from 'gl-matrix';
 import { compareId } from '@box/utils/id';
 import { MS_PER_TICK } from '@box/schema/clock/clock-schema';

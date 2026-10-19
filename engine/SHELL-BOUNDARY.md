@@ -103,3 +103,21 @@ anticheat / href / rtc / gui / http / navigator / channel / teleport / storage /
 - `utils/map-scripts.ts`、`mu-array-union.ts`
 
 没有删除，避免误删 feature。等 engine 真跑起来再做二次裁剪。
+
+
+## Phase 2：共享协议已抽到 `protocol/`
+
+以下内容已从 engine 移出，engine 和 shell 都改为 import `@feather/protocol/*`：
+
+- `script-protocol.ts`、`script-schema.ts`、`script-state-schema.ts`
+- `codegen.ts`、`parse-error.ts`、`script-entry.ts`
+- `bindings/*`（除 4 个 `*-update.ts`）
+- 共享 server-state schema：`player`、`particle`、`sound`、`zone`、`interact`、`dialog`
+
+engine 只保留：
+
+- `src/script/script-host.ts`
+- `src/script/bindings/{entity,voxel,world,zone}-update.ts`
+
+后者依赖 engine 的 `GameServerState` / `VoxelServer`，属于「把 patch 应用到 engine 状态」，
+不是协议。

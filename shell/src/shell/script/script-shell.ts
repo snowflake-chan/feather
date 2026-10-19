@@ -80,25 +80,25 @@ import { ModerationScript } from '../moderation/moderation-script';
 import { AnticheatScript } from '../anticheat/anticheat-script';
 import { warnDeprecate } from '../utils/deprecate';
 import { PromiseWrapper } from '../utils/script-promise';
-import { ScriptParserAPI } from './bindings/animations';
-import { createScriptAPI } from './bindings/api';
-import { WRAPPER_INDEX } from './bindings/binding-factory';
+import { ScriptParserAPI } from '@feather/protocol/bindings/animations';
+import { createScriptAPI } from '@feather/protocol/bindings/api';
+import { WRAPPER_INDEX } from '@feather/protocol/bindings/binding-factory';
 import {
   coerceBool,
   coerceRGBA,
   coerceString,
   coerceVec3,
-} from './bindings/coerce';
-import { unpackAxis } from './bindings/entity-bindings';
-import { ScriptEntityWrapper } from './bindings/entity-synchronizer';
-import { WRAPPER_PLAYER_INDEX } from './bindings/binding-factory';
-import { ScriptResourceSync } from './bindings/resource';
+} from '@feather/protocol/bindings/coerce';
+import { unpackAxis } from '@feather/protocol/bindings/entity-bindings';
+import { ScriptEntityWrapper } from '@feather/protocol/bindings/entity-synchronizer';
+import { WRAPPER_PLAYER_INDEX } from '@feather/protocol/bindings/binding-factory';
+import { ScriptResourceSync } from '@feather/protocol/bindings/resource';
 import {
   ScriptVoxelSync,
   VOXEL_TYPE_MASK,
-} from './bindings/voxel-synchronizer';
-import { ScriptWorldSync } from './bindings/world-synchronizer';
-import { ParsedErrorSchema, parseError } from './parse-error';
+} from '@feather/protocol/bindings/voxel-synchronizer';
+import { ScriptWorldSync } from '@feather/protocol/bindings/world-synchronizer';
+import { ParsedErrorSchema, parseError } from '@feather/protocol/parse-error';
 import { createSafeEval, createUnsafeEval } from './safe-eval';
 import { RemoteChannelScriptShell } from '../remote-channel/channel-script';
 import {
@@ -107,8 +107,8 @@ import {
   ScriptPostTickSchema,
   ScriptProtocol,
   ScriptTickSchema,
-} from './script-protocol';
-import { ScriptEvents, ScriptStateSnapshotSchema } from './script-state-schema';
+} from '@feather/protocol/script-protocol';
+import { ScriptEvents, ScriptStateSnapshotSchema } from '@feather/protocol/script-state-schema';
 
 const RESPAWN_TIME = 16;
 const MAX_LOGS_PER_TICK = 32;

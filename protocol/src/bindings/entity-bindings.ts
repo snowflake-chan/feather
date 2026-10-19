@@ -68,7 +68,7 @@ import { calcPlayerLookDirection } from '@box/schema/player/player-move';
 import {
   ServerPlayer,
   ServerPlayerSchema,
-} from '../../player/player-server-schema';
+} from '../player/player-server-schema';
 import {
   CameraMode,
   CameraFreezedAxis,
@@ -79,7 +79,7 @@ import {
   GameRGBColor,
   GameRGBAColor,
 } from '@box/schema/api/js/math';
-import { ServerParticleEntitySchema } from '../../particle/particle-server-state';
+import { ServerParticleEntitySchema } from '../particle/particle-server-state';
 import {
   InteractComponent,
   InteractComponentSchema,
@@ -93,14 +93,14 @@ import {
   ServerEntitySoundEffectSchema,
   ServerPlayerEntitySoundEffect,
   ServerPlayerSoundEffectSchema,
-} from '../../sound/server-sound-state';
+} from '../sound/server-sound-state';
 import {
   MIN_MASS,
   MAX_MASS,
   MAX_VELOCITY,
   MIN_RADIUS,
   MAX_RADIUS,
-} from '@box/schema/physics/physics-solve';
+} from '@box/schema/physics/def';
 import * as GameURL from '@box/schema/api/js/url';
 import { Vec3Schema } from '@box/schema/utils/math-schema';
 

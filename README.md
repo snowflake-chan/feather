@@ -6,6 +6,7 @@ engine + shell 的 monorepo。
 feather/
 ├── engine/          # 主线程：权威状态、物理、网络、内容
 ├── shell/           # Worker：执行用户代码
+├── protocol/        # engine/shell 共享的脚本协议、schema、golden vectors
 ├── vendor/          # 13 个 @box 包（全量 schema，engine/shell 共用）
 ├── tsconfig.base.json
 ├── pnpm-workspace.yaml
@@ -26,8 +27,9 @@ engine 不在主线程执行用户代码；shell 只通过 `ScriptProtocol` 和 
 
 ```bash
 pnpm install
-pnpm typecheck     # shell + engine，0 errors
-pnpm build         # shell dist + engine dist
+pnpm typecheck     # protocol + shell + engine，0 errors
+pnpm build         # protocol dist + shell dist + engine dist
+pnpm test:protocol # golden vectors（schema 指纹 + diff/patch 字节）
 ```
 
 ## Smoke
@@ -60,6 +62,7 @@ curl http://127.0.0.1:9977/api/health-check
 
 | 文档 | 内容 |
 |---|---|
+| [protocol/README.md](protocol/README.md) | 共享协议、构建顺序、golden vectors |
 | [engine/README.md](engine/README.md) | engine 抽取、worker 传输、构建 |
 | [engine/SMOKE.md](engine/SMOKE.md) | 已验证的 smoke 命令与输出 |
 | [engine/SHELL-BOUNDARY.md](engine/SHELL-BOUNDARY.md) | engine 里删了哪些 shell 执行代码 |
@@ -78,5 +81,5 @@ curl http://127.0.0.1:9977/api/health-check
 ## 阶段
 
 - **Phase 1（已完成）**：合并、统一 vendor、build + typecheck + smoke
-- **Phase 2**：抽 `protocol/`（`ScriptProtocol` + 共享 schema + golden vectors）
+- **Phase 2（已完成）**：抽 `protocol/`（`ScriptProtocol` + 共享 schema + golden vectors）
 - **Phase 3**：`daemon/`、`cli/`、CI

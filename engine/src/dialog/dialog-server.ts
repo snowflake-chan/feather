@@ -10,10 +10,10 @@ import {
   DialogConnectionSchema,
   PendingDialogSchema,
   DialogEventSchema,
-} from './dialog-server-schema';
+} from '@feather/protocol/dialog/dialog-server-schema';
 import { GameServerState } from '../game-server-schema';
 import { getById } from '@box/utils/id';
-import { GameScriptRunState, scriptRunState } from '../script/script-schema';
+import { GameScriptRunState, scriptRunState } from '@feather/protocol/script-schema';
 import { filterSwear } from '@box/utils/swears/index';
 import { getConfigSync } from '../../config/server';
 

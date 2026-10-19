@@ -14,7 +14,7 @@ import {
   ScriptCollisionSpecSchema,
   SciptCollisionFilterSpecSchema,
   ScriptPerfCounterSchema,
-} from './script-protocol';
+} from '@feather/protocol/script-protocol';
 import { ScriptServer } from '../utils/script-server/type';
 import { VoxelServer } from '../voxel/voxel-server';
 import { NetState, NetStateSchema } from '@box/schema/net/net-schema';
@@ -29,7 +29,7 @@ import {
   ScriptStateSnapshot,
   ScriptStateSnapshotSchema,
   ScriptEventsSchema,
-} from './script-state-schema';
+} from '@feather/protocol/script-state-schema';
 import { MuSchema } from '@box/mudb/schema';
 import { decodeUTF8 } from '@box/mudb/stream';
 import {
@@ -39,20 +39,20 @@ import {
 } from '@box/schema/events/physics-event-schema';
 import { ChatLogEventSchema } from '@box/schema/events/chat-event-schema';
 import { EngineVoxelSync } from './bindings/voxel-update';
-import { ServerPlayerListSchema } from '../player/player-server-schema';
+import { ServerPlayerListSchema } from '@feather/protocol/player/player-server-schema';
 import { ScriptNetInputSchema } from '@box/schema/events/net-events';
 import { ChatServer } from '../chat/chat-server';
 import {
   GameScriptRunState,
   scriptRunState,
   ScriptSrcSchema,
-} from './script-schema';
+} from '@feather/protocol/script-schema';
 import {
   formatError,
   ParsedError,
   parseError,
   ParsedErrorSchema,
-} from './parse-error';
+} from '@feather/protocol/parse-error';
 import { ScriptSentEventSchema } from '@box/schema/events/script-events';
 import { NetServer } from '../net/net-server-controller';
 import { respawnPlayer } from '../player/player-server-controller';
@@ -68,14 +68,14 @@ import { MuWriteStream } from '@box/mudb/stream';
 import {
   ScriptResourceEntrySchema,
   ScriptResourceSchema,
-} from './bindings/resource';
-import { ServerParticleSetSchema } from '../particle/particle-server-state';
+} from '@feather/protocol/bindings/resource';
+import { ServerParticleSetSchema } from '@feather/protocol/particle/particle-server-state';
 import { InteractComponentSetSchema } from '@box/schema/interact/interact-protocol';
 import { DialogServer } from '../dialog/dialog-server';
 import { StorageController } from '../storage/storage-controller';
 import { resolveGroupStorageNamespace } from '../storage/storage-namespace';
 import { CommonSQL } from '../storage/types';
-import { ServerSoundStateSchema } from '../sound/server-sound-state';
+import { ServerSoundStateSchema } from '@feather/protocol/sound/server-sound-state';
 import { SoundServer } from '../sound/server-sound-controller';
 import { MAX_BODIES } from '@box/schema/physics/physics-solve';
 import { filterSwear } from '@box/utils/swears/index';
@@ -109,7 +109,7 @@ import { ClientKeyboardEventSchema } from '@box/schema/events/client-keyboard-ev
 import { EntityNameComponentSetSchema } from '@box/schema/entity-name/entity-name';
 import { SCRIPT_OSS_CDN_PATH } from '@box/content-server/index';
 import { Vec3Schema } from '@box/schema/utils/math-schema';
-import { resolveRuntimeScriptEntry } from './script-entry';
+import { resolveRuntimeScriptEntry } from '@feather/protocol/script-entry';
 
 function appendSchema<T, Schema extends MuSchema<T>>(
   schema: Schema,

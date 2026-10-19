@@ -5,7 +5,7 @@ import {
   PlayerDisplaySchema,
   PlayerInputSchema,
 } from '@box/schema/player/player-schema';
-import { ServerPlayerSchema } from '../player/player-server-schema';
+import { ServerPlayerSchema } from '@feather/protocol/player/player-server-schema';
 import {
   RigidBodySchema,
   ContactRecordSchema,
@@ -14,7 +14,7 @@ import { NetModelSchema } from '@box/schema/mesh/model-schema';
 import { DamageSchema } from '@box/schema/damage/damage-schema';
 import { SeedLinkSchema } from '../seed/seed-schema';
 import { getById } from '@box/utils/id';
-import { ServerParticleEntitySchema } from '../particle/particle-server-state';
+import { ServerParticleEntitySchema } from '@feather/protocol/particle/particle-server-state';
 import {
   EntitySoundEffectSchema,
   PlayerSoundEffectSchema,
@@ -22,7 +22,7 @@ import {
 import {
   ServerEntitySoundEffectSchema,
   ServerPlayerSoundEffectSchema,
-} from '../sound/server-sound-state';
+} from '@feather/protocol/sound/server-sound-state';
 import { InteractComponentSchema } from '@box/schema/interact/interact-protocol';
 import { GamePrivateReplicaSchema } from '@box/schema/replica/game-private-replica';
 import { DeletedEntitiesSchema } from '@box/schema/entity/entity-schema';

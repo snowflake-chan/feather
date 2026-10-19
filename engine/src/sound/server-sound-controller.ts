@@ -20,7 +20,7 @@ import {
   ServerSoundStateSchema,
   ServerEntitySoundEffectSchema,
   ServerPlayerSoundEffectSchema,
-} from './server-sound-state';
+} from '@feather/protocol/sound/server-sound-state';
 import { compareId, getById } from '@box/utils/id';
 
 export class SoundServer {
