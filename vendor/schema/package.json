@@ -1,0 +1,31 @@
+{
+  "name": "@box/schema",
+  "version": "0.4.3",
+  "description": "box3 schema（从 box3-local-engine 裁剪，158 → 108 个文件）",
+  "license": "MIT",
+  "exports": {
+    "./*": "./build/*.js"
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["./build/*"]
+    }
+  },
+  "files": [
+    "build/**/*"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@box/mudb": "workspace:*",
+    "@box/script-api": "workspace:*",
+    "@box/utils": "workspace:*",
+    "debug": "4.3.4",
+    "gl-matrix": "3.4.3",
+    "pino": "8.19.0"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3"
+  }
+}

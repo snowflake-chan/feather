@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["dom", "es2015", "es2016.array.include"],
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "sourceMap": false,
+    "outDir": "build",
+    "removeComments": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noUnusedLocals": false,
+    "noImplicitReturns": false,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "baseUrl": "./src"
+  },
+  "exclude": ["node_modules/*", "build", "scripts"]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "mudo",
+  "version": "0.1.8",
+  "description": "Development framework for prototyping mudb applications",
+  "main": "mudo.js",
+  "bin": {
+    "mudo": "./bin/mudo.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikolalysenko/mudb.git"
+  },
+  "keywords": [
+    "mudb",
+    "prototyping",
+    "framework"
+  ],
+  "author": "Mikola Lysenko",
+  "license": "MIT",
+  "dependencies": {
+    "browserify": "^16.2.3",
+    "budo": "^11.6.0",
+    "minimist": "^1.2.8",
+    "mudb": "^0.13.0",
+    "temp": "^0.8.3"
+  }
+}

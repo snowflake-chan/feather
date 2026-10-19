@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "lib": ["es6", "dom"],
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationDir": "./dist/types",
+    "sourceMap": true,
+    "declarationMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@box/*": ["../../internals/*"]
+    }
+  },
+  "include": ["./src"]
+}

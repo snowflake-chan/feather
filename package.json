@@ -1,0 +1,32 @@
+{
+  "name": "feather-shell",
+  "version": "0.0.0",
+  "private": true,
+  "description": "神岛 script shell 抽取工作区（box3-local-engine v2026.1.4）",
+  "license": "MIT",
+  "packageManager": "pnpm@10.19.0",
+  "engines": {
+    "node": ">=22.17.0 <23.0.0"
+  },
+  "scripts": {
+    "build:schema": "pnpm --filter @box/schema build",
+    "build": "pnpm build:schema && tsc -p tsconfig.json --noEmit false --outDir dist",
+    "typecheck": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist vendor/schema/build"
+  },
+  "dependencies": {
+    "@box/content-server": "workspace:*",
+    "@box/mudb": "workspace:*",
+    "@box/schema": "workspace:*",
+    "@box/script-api": "workspace:*",
+    "@box/utils": "workspace:*",
+    "debug": "4.3.4",
+    "gl-matrix": "3.4.3",
+    "nanoid": "3.3.7",
+    "pino": "8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "typescript": "5.6.3"
+  }
+}

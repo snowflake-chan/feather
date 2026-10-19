@@ -1,0 +1,16 @@
+export declare const MAX_BODIES = 3500;
+export declare const MAX_VELOCITY = 128;
+export declare const VELOCITY_CUTOFF: number;
+export declare const MIN_MASS: number;
+export declare const MAX_MASS = 256;
+export declare const CONTACT_BLOCK_SIZE = 1024;
+export declare const MIN_RADIUS: number;
+export declare const MAX_RADIUS = 256;
+export declare const ACTIVE_ITER_COUNT = 2;
+export declare const FRICTION_CUTOFF: number;
+export declare const CONTACT_CUTOFF: number;
+export declare const VOXEL_EPSILON: number;
+export declare function combineFriction(mu0: number, mu1: number): number;
+export declare function combineRestitution(r0: number, r1: number): number;
+export declare function calcQuatByVelocity(out: [number, number, number, number], ax: number, ay: number, az: number, dt: number): void;
+export declare function clampVelocityAndSleep(v: number): number;

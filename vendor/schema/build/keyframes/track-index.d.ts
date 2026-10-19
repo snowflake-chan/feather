@@ -1,0 +1,27 @@
+import { MuArray } from '@box/mudb/schema/array';
+import { MuFloat64 } from '@box/mudb/schema/float64';
+import { MuQuantizedFloat } from '@box/mudb/schema/quantized-float';
+import { MuSchema } from '@box/mudb/schema/schema';
+import { MuStruct } from '@box/mudb/schema/struct';
+import { MuVarint } from '@box/mudb/schema/varint';
+import { AnimationPlaybackMode, GenericAnimation, KeyframeEaseMode } from './type';
+export declare const KeyframeTrackIndexSchema: MuStruct<{
+    targetId: MuArray<MuVarint>;
+    wrapMode: MuArray<MuSchema<AnimationPlaybackMode>>;
+    cycleLength: MuArray<MuFloat64>;
+    loopCount: MuArray<MuFloat64>;
+    loopPhase: MuArray<MuFloat64>;
+    tickOffset: MuArray<MuQuantizedFloat>;
+    tickScale: MuArray<MuFloat64>;
+    dataOffset: MuArray<MuVarint>;
+    data: MuArray<MuFloat64>;
+    inEasing: MuArray<MuSchema<KeyframeEaseMode>>;
+    outEasing: MuArray<MuSchema<KeyframeEaseMode>>;
+    prevFrame: MuArray<MuVarint>;
+    nextFrame: MuArray<MuVarint>;
+    prevWeight: MuArray<MuFloat64>;
+    nextWeight: MuArray<MuFloat64>;
+}>;
+export type KeyframeTrackIndex = typeof KeyframeTrackIndexSchema.identity;
+export declare function rebuildKeyframeTrackIndex(animations: GenericAnimation[], tracker: KeyframeTrackIndex): void;
+export declare function updateKeyframeTrackIndex(tracker: KeyframeTrackIndex, tick: number, deltaTick: number): void;
