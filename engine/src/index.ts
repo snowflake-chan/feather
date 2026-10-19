@@ -541,6 +541,10 @@ export class GameServer {
       );
     }
     this.server.destroy();
+    // Drop protocol handlers (GameAdminServer etc.) so they cannot retain this server.
+    const server: any = this.server;
+    server.protocols = [];
+    server._protocolSpecs = [];
     this.onReady.unsubAll();
     this.onPoll.unsubAll();
     this.onTick.unsubAll();

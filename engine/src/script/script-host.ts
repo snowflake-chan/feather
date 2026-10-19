@@ -1060,6 +1060,10 @@ export class ScriptHost {
   // stop all running scripts
   public async close() {
     await this.stop();
+    this.onConsoleLog.unsubAll();
+    this.onConsoleClear.unsubAll();
+    this.onException.unsubAll();
+    this.onScriptCrash.unsubAll();
     try {
       this.scriptServer.close();
     } catch (error) {
@@ -1069,6 +1073,9 @@ export class ScriptHost {
     }
     try {
       this.muServer.destroy();
+      const muServer: any = this.muServer;
+      muServer.protocols = [];
+      muServer._protocolSpecs = [];
     } catch (error) {
       this.logger.warn(
         `script mu server close failed: ${error instanceof Error ? error.message : String(error)}`,

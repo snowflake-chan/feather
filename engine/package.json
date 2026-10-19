@@ -28,7 +28,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:sqlite-storage": "node -r @swc-node/register scripts/check-sqlite-data-storage.ts",
     "check:game-close": "node -r @swc-node/register scripts/check-game-close.ts",
-    "check:two-games": "node -r @swc-node/register scripts/check-two-games.ts"
+    "check:two-games": "node -r @swc-node/register scripts/check-two-games.ts",
+    "check:gc": "node --expose-gc -r @swc-node/register scripts/check-gc.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1.0.28",

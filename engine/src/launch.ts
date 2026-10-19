@@ -3,8 +3,9 @@ import { rootLogger, setRootLogLevel } from './utils/logger'; // Logger 需要�
 import path from 'path';
 import { argv } from '../config';
 import { getConfig } from '../config/server';
-import { startServer } from './entry';
+import { installProcessErrorHandlers, startServer } from './entry';
 import { WorkerScriptServer } from '@feather/transport/worker-script-server';
+import { clearMemoryPool } from '@box/utils/pool';
 
 rootLogger.info('Start Game Server.');
 
@@ -83,6 +84,7 @@ async function go() {
   setRootLogLevel(serverConfig.LOG_LEVEL); // 拿到配置后更新 log level
 
   rootLogger.info('game server.  node' + process.version);
+  installProcessErrorHandlers(rootLogger);
 
   // 组合根：engine 只认 ScriptServer，不关心它是不是 worker
   const workerEntry =
@@ -91,6 +93,9 @@ async function go() {
   const scriptServer = new WorkerScriptServer({ workerEntry });
 
   await startServer(serverConfig, { scriptServer });
+
+  // Host-level pool compaction; not tied to a single map's startServer context.
+  setTimeout(clearMemoryPool, 1000);
 }
 
 go().catch(async (e) => {

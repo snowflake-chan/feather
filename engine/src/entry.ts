@@ -149,6 +149,22 @@ export interface StartServerResult {
   scriptServer: ScriptServer;
 }
 
+export function installProcessErrorHandlers(logger: {
+  error: (error: unknown, message?: string) => void;
+}) {
+  process.on('unhandledRejection', (reason) => {
+    if (reason instanceof Error) {
+      logger.error(reason, 'Unhandled rejection.');
+    } else {
+      logger.error(new Error(JSON.stringify(reason)), 'Unhandled rejection.');
+    }
+  });
+
+  process.on('uncaughtException', (err) => {
+    logger.error(err, 'Uncaught error.');
+  });
+}
+
 export async function startServer(
   spec: ServerRuntimeConfig,
   options: StartServerOptions,
@@ -178,19 +194,6 @@ export async function startServer(
   );
 
   const logger = rootLogger;
-
-  // install error handler
-  process.on('unhandledRejection', (reason) => {
-    if (reason instanceof Error) {
-      logger.error(reason, 'Unhandled rejection.');
-    } else {
-      logger.error(new Error(JSON.stringify(reason)), 'Unhandled rejection.');
-    }
-  });
-
-  process.on('uncaughtException', (err) => {
-    logger.error(err, 'Uncaught error.');
-  });
 
   // print a start up message
   if (isDevelopment) {
@@ -799,11 +802,6 @@ export async function startServer(
       2,
     )} seconds`,
   );
-
-  // clear memory pool after 1s
-  setTimeout(() => {
-    clearMemoryPool();
-  }, 1000);
 
   return { game: gameServer, httpServer, scriptServer };
 }
