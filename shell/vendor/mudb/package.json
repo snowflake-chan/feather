@@ -1,0 +1,71 @@
+{
+  "name": "@box/mudb",
+  "version": "1.0.4",
+  "description": "Real-time database for multiplayer games",
+  "keywords": [
+    "mudb",
+    "real-time",
+    "multiplayer",
+    "game",
+    "network",
+    "server",
+    "client",
+    "replicate",
+    "schema",
+    "binary",
+    "buffer",
+    "stream",
+    "websocket",
+    "tcp",
+    "udp"
+  ],
+  "license": "MIT",
+  "author": "Code Infinity",
+  "main": "index.js",
+  "browser": {
+    "rpc/http/client": "rpc/http/client-browser"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "npm run build",
+    "clean": "ls -F src | grep / | xargs rm -rf coverage *.d.ts *.js *.js.map",
+    "coverage": "f(){ nyc tape -r ts-node/register src/${1:-\\*}/test/*.ts; }; f",
+    "link": "npm link && npm run clean && npm run build",
+    "release": "npm run test-all && npm run clean && npm run build && npm publish",
+    "test": "f(){ tape -r ts-node/register src/${1:-\\*}/test/${2:-\\*}.ts; }; f",
+    "test-all": "npm test socket/\\* && npm test",
+    "watch": "tsc -w"
+  },
+  "nyc": {
+    "cache": true,
+    "extension": [
+      ".ts"
+    ],
+    "report-dir": "./coverage",
+    "reporter": [
+      "html"
+    ],
+    "temp-dir": "./coverage/.nyc_output"
+  },
+  "dependencies": {
+    "bufferutil": "4.0.8",
+    "content-type": "1.0.4",
+    "debug": "4.3.4",
+    "utf-8-validate": "5.0.10",
+    "ws": "7.5.13"
+  },
+  "devDependencies": {
+    "@types/debug": "4.1.7",
+    "@types/node": "20.16.15",
+    "@types/tape": "^4.2.32",
+    "browserify": "^16.2.3",
+    "nyc": "^15.0.0",
+    "tape": "^4.9.1",
+    "tape-run": "10.0.0",
+    "ts-node": "10.4.0",
+    "tsify": "3.0.4",
+    "tslint": "^5.11.0",
+    "typescript": "5.6.3",
+    "webworkify": "^1.5.0"
+  }
+}

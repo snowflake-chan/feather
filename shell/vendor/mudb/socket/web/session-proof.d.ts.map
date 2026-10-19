@@ -1,0 +1,1 @@
+{"version":3,"file":"session-proof.d.ts","sourceRoot":"","sources":["../../src/socket/web/session-proof.ts"],"names":[],"mappings":"AAGA,qBAAa,cAAc;IAEX,OAAO,CAAC,GAAG;IADvB,OAAO,CAAC,GAAG,CAAmB;gBACV,GAAG,GAAC,MAAM,MAAiB;IAC/C,OAAO,CAAC,SAAS;IAGjB,KAAK,CAAC,EAAE,EAAC,MAAM;IAIf,MAAM,CAAC,EAAE,EAAC,MAAM,EAAE,KAAK,EAAC,OAAO;IAO/B,OAAO,CAAC,QAAQ,EAAC,MAAM,EAAE,KAAK,EAAC,OAAO;CAIzC"}

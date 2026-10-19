@@ -1,0 +1,21 @@
+export declare const MIN_USERNAME_LENGTH = 3;
+export declare const MAX_USERNAME_LENGTH = 15;
+export declare const MIN_DISPLAYNAME_LENGTH = 3;
+export declare const MAX_DISPLAYNAME_LENGTH = 30;
+export declare const MAX_DESCRIPTION_LENGTH = 330;
+export declare const MIN_PASSWORD_LENGTH = 8;
+export declare const MAX_PASSWORD_LENGTH = 15;
+export declare const VALIDUNICODE: RegExp;
+export declare const StrByteLength: (s: string) => number;
+export declare function isEmail(email: string): boolean;
+export declare function isPhone(phone: string): boolean;
+export declare function isChinesePhone(phone: string): boolean;
+export declare function isChinesePhoneWithoutCode(phone: string): boolean;
+export declare function isCaptcha(value: string): boolean;
+export declare function isValidUsername(username: string): boolean;
+export declare function isValidDisplayname(displayname: string): boolean | null;
+export declare function isValidDescription(v: string): boolean;
+export declare function isLeapYear(year: number): boolean;
+export declare function isDate(year: number, month: number, day: number): boolean;
+export declare const isPasswordValid: (password: string) => boolean;
+//# sourceMappingURL=auth.d.ts.map

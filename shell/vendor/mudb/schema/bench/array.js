@@ -1,0 +1,23 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const __1 = require("../");
+const _do_1 = require("./_do");
+const array = new __1.MuArray(new __1.MuASCII(), Infinity);
+(0, _do_1.deltaByteLength)(array, [], ['a']);
+(0, _do_1.deltaByteLength)(array, [], ['a', 'b']);
+(0, _do_1.deltaByteLength)(array, [], ['a', 'b', 'c']);
+(0, _do_1.deltaByteLength)(array, ['a'], ['a', 'b']);
+(0, _do_1.deltaByteLength)(array, ['b'], ['a', 'b']);
+(0, _do_1.deltaByteLength)(array, ['a'], []);
+(0, _do_1.deltaByteLength)(array, ['a', 'b'], []);
+(0, _do_1.deltaByteLength)(array, ['a', 'b'], ['a']);
+(0, _do_1.deltaByteLength)(array, ['a', 'b', 'c'], ['a']);
+(0, _do_1.deltaByteLength)(array, ['a'], ['b']);
+(0, _do_1.deltaByteLength)(array, ['a', 'b'], ['b', 'c']);
+const a0 = [];
+const a1 = ['a', 'b', 'c', 'd', 'e'];
+(0, _do_1.diffPatchDuration)(array, a1, a1, 1e3, 'b=t');
+(0, _do_1.diffPatchDuration)(array, a0, a1, 1e3, 'b!=t');
+(0, _do_1.diffPatchDuration)(array, a0, a1, 1e4, 'b!=t');
+(0, _do_1.diffPatchDuration)(array, a0, a1, 1e5, 'b!=t');
+//# sourceMappingURL=array.js.map
