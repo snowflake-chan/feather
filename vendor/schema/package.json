@@ -1,0 +1,43 @@
+{
+  "name": "@box/schema",
+  "version": "0.4.3",
+  "license": "MIT",
+  "description": "",
+  "keywords": [],
+  "author": "Code Infinity",
+  "exports": {
+    "./*": "./build/*.js"
+  },
+  "main": "",
+  "types": "",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "build/**/*",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "rm -rf build && tsc --project tsconfig.build.json",
+    "build:watch": "npm run build"
+  },
+  "dependencies": {
+    "@box/mesher": "workspace:1.0.0",
+    "@box/mudb": "workspace:1.0.4",
+    "@box/script-api": "workspace:~0.3.0",
+    "@box/utils": "workspace:*",
+    "@types/node": "10.17.60",
+    "debug": "4.3.4",
+    "gl-matrix": "3.4.3",
+    "pino": "8.19.0",
+    "tslib": "2.3.1",
+    "typescript": "5.6.3"
+  },
+  "devDependencies": {
+    "@types/debug": "4.1.7"
+  }
+}

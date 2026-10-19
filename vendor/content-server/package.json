@@ -1,0 +1,43 @@
+{
+  "name": "@box/content-server",
+  "version": "1.0.7",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "exports": {
+    ".": "./build/index.js",
+    "./*": "./build/*.js"
+  },
+  "main": "build/index.js",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./build/*.d.ts",
+        "./build/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "build/**/*",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "rm -rf ./build && tsc",
+    "build:watch": "tsc",
+    "test:local-runtime-concurrency": "node scripts/regression-local-runtime-concurrency.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@box/mudb": "workspace:1.0.4",
+    "@box/utils": "workspace:*",
+    "@types/node": "10.17.60",
+    "bs58": "5.0.0",
+    "crypto": "~1.0.1",
+    "form-data": "4.0.6",
+    "mime": "3.0.0",
+    "pino": "8.19.0",
+    "typescript": "5.6.3"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "func": "buildBlocks",
+  "args": [
+    { "file": "voxel/block-spec.json" },
+    {
+      "func": "swapExtensions",
+      "args": [{ "dir": "voxel" }]
+    }
+  ],
+  "ret": "json"
+}

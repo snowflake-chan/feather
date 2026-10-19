@@ -1,0 +1,1 @@
+{"version":3,"file":"collision-filter-schema.d.ts","sourceRoot":"","sources":["../../physics/collision-filter-schema.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,aAAa,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAEpE,eAAO,MAAM,oBAAoB,yBAIhC,CAAC;AAEF,MAAM,MAAM,cAAc,GAAG,OAAO,oBAAoB,CAAC,QAAQ,CAAC;AAElE,eAAO,MAAM,qBAAqB,kCAGjC,CAAC;AAEF,MAAM,MAAM,eAAe,GAAG,OAAO,qBAAqB,CAAC,QAAQ,CAAC"}

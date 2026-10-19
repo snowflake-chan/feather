@@ -1,0 +1,1 @@
+{"version":3,"file":"image_data.d.ts","sourceRoot":"","sources":["../../squoosh/image_data.ts"],"names":[],"mappings":"AAAA,MAAM,CAAC,OAAO,OAAO,SAAS;IAEnB,IAAI,EAAE,iBAAiB;IACvB,KAAK,EAAE,MAAM;IACb,MAAM,EAAE,MAAM;gBAFd,IAAI,EAAE,iBAAiB,EACvB,KAAK,EAAE,MAAM,EACb,MAAM,EAAE,MAAM;CAExB"}

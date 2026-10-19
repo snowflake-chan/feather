@@ -1,0 +1,46 @@
+{
+  "name": "@box/apis",
+  "version": "0.2.0",
+  "license": "MIT",
+  "description": "OpenAPI contract and generated clients for BOX3 Local Engine",
+  "keywords": [],
+  "author": "Code Infinity",
+  "main": "dist/index.js",
+  "module": "dist/index.es.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "generate": "node scripts/generate-openapi.mjs && openapi-typescript openapi/openapi.json -o src/generated/openapi.ts && node scripts/generate-client.mjs",
+    "check:openapi": "node scripts/generate-openapi.mjs --check && node scripts/generate-client.mjs --check && node scripts/check-openapi.mjs",
+    "docs": "npm run generate && node scripts/serve-docs.mjs",
+    "test": "node --test test/*.test.mjs",
+    "build": "npm run generate && rm -rf dist && tsc --emitDeclarationOnly && rollup --config rollup.config.mjs",
+    "build:watch": "npm run build",
+    "dev": "rollup --config rollup.config.mjs -w"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "28.0.3",
+    "@rollup/plugin-node-resolve": "16.0.1",
+    "@rollup/plugin-swc": "0.4.0",
+    "@rollup/plugin-typescript": "12.1.2",
+    "@swc/core": "1.4.13",
+    "@swc/types": "0.1.21",
+    "openapi-typescript": "7.13.0",
+    "rollup": "4.59.0",
+    "swagger-ui-dist": "5.33.0",
+    "tslib": "2.3.1",
+    "typescript": "5.6.3"
+  }
+}

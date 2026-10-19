@@ -1,0 +1,1 @@
+{"version":3,"file":"sorted-array-remove.d.ts","sourceRoot":"","sources":["../src/sorted-array-remove.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,MAAM,CAAC;AAChC,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAE5C,wBAAgB,iBAAiB,CAC/B,CAAC,SAAS,QAAQ,EAClB,MAAM,SAAS,QAAQ,CAAC,CAAC,CAAC,EAC1B,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,CAAC,EAAE,EAAE,GAAG,EAAE,MAAM,EAAE,QA0B1C"}

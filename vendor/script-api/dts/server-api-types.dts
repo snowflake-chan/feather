@@ -1,0 +1,1020 @@
+/**
+ * 数据存储模块，管理游戏中的数据。
+ * @module 数据存储
+ */
+/**
+ * 数据存储模块，用于创建{@link GameDataStorage | 数据存储空间}。
+ */
+declare class GameStorage {
+    /**
+     * @internal
+     */
+    constructor();
+    /**
+     * 连接指定数据存储空间，如果不存在则创建一个新的空间。
+     *
+     *
+     * @param key - 指定空间的名称，长度不超过50个字符
+     * @returns 返回一个{@link GameDataStorage | 数据存储空间}对象
+     */
+    getDataStorage(key: string): GameDataStorage;
+    /**
+     * 连接指定组数据存储空间，如果不存在则创建一个新的空间。
+     *
+     *
+     * @param key - 指定空间的名称，长度不超过50个字符
+     * @returns 返回一个{@link GameDataStorage | 数据存储空间}对象
+     */
+    getGroupStorage(key: string): GameDataStorage | undefined;
+}
+/**
+ * 代表数据存储空间的类。仅能通过 {@link GameStorage.getDataStorage} 创建。能够以键值对的形式存储数据，提供方法处理空间内键值对相关的操作。
+ *
+ * #### 存储空间隔离
+ * - 存储空间按地图隔离，且编辑模式与游玩模式的空间默认隔离，即当游戏服务器尝试连接指定名称的空间时：
+ *   - 同一地图不同服务器，连接到的空间相同
+ *   - 不同地图的服务器，连接到的空间不同
+ *   - 编辑模式与游戏服务器连接的空间不同
+ */
+declare class GameDataStorage {
+    /**
+     * 空间名称
+     */
+    readonly key: string;
+    /**
+     * 传入指定键与值，无论该键是否存在，均将值设置到此键上。
+     * @param key - 需要设置的键
+     * @param value - 需要设置的值
+     * @returns 返回 Promise 对象，当设置完成时 resolve，否则 reject。
+     */
+    set(key: string, value: JSONValue): Promise<void>;
+    /**
+     * 使用传入的方法更新键值对。
+     * @param key - 需要更新的键
+     * @param handler - 处理更新的方法，接受一个参数，为当前键的值，返回一个更新后的值
+     * @returns 返回 Promise 对象，当更新完成时 resolve，否则 reject。
+     */
+    update(key: string, handler: (prevValue: ReturnValue) => JSONValue): Promise<void>;
+    /**
+     * 原子方式递增给定键的值，当对应键不存在时视作设置值，对应值不为数字时报错（Promise 被 reject，返回后端提供的错误信息）。
+     * 通过此方式修改值时不会触发锁定。
+     * @param key - 需要递增的键
+     * @param value - 递增量，默认为 1
+     */
+    increment: (key: string, value?: number) => Promise<number>;
+    /**
+     * 获取指定键对应的值
+     * @param key - 指定的键
+     * @returns 返回 Promise 对象，当获取完成时 resolve，否则 reject，resolve 时返回对应{@link ReturnValue | 键值对内容}。
+     */
+    get(key: string): Promise<ReturnValue>;
+    /**
+     * 批量获取键值对
+     * @param options - 批量获取键值对的配置项
+     * @returns 返回 Promise 对象，resolve 时返回{@link QueryList | 键值对查询表}。
+     */
+    list(options: ListPageOptions): Promise<QueryList>;
+    /**
+     * 删除指定键值对
+     * @param key - 指定的键
+     * @returns 返回 Promise 对象，resolve 时返回被删除的 {@link ReturnValue | 键值对内容}。
+     */
+    remove(key: string): Promise<ReturnValue>;
+    /**
+     * @internal
+     */
+    private constructor();
+}
+/**
+ * 键值对查询列表，用于批量获取键值对，通过 {@link GameDataStorage.list} 方法返回。
+ * 列表根据配置项被划分为一个或多个分页，每个分页最多包含 {@link ListPageOptions | pageSize} 个键值对。
+ */
+declare class QueryList {
+    /**
+     * 按 {@link ListPageOptions | pageSize} 获取当前页的键值对
+     * @returns 返回当前页的键值对内容
+     */
+    getCurrentPage(): ReturnValue[];
+    /**
+     * 翻到下一页，执行后 {@link QueryList.getCurrentPage} 将返回下一页的键值对内容
+     * @returns 返回 Promise 对象，resolve表示翻页成功，reject 后表示翻页失败
+     */
+    nextPage(): Promise<void>;
+    /**
+     * 是否为最后一页，如果翻过头了，也会为 true
+     */
+    readonly isLastPage: boolean;
+    /**
+     * @internal
+     */
+    constructor();
+}
+/**
+ * 允许存储的值类型
+ */
+type JSONValue = string | number | boolean | {
+    [x: string]: JSONValue;
+} | Array<JSONValue>;
+/**
+ * 键值对内容
+ */
+type ReturnValue = {
+    key: string;
+    value: JSONValue;
+    version: string;
+    updateTime: number;
+    createTime: number;
+} | undefined;
+/**
+ * 批量获取键值对的配置项
+ */
+type ListPageOptions = {
+    cursor: number;
+    pageSize?: number;
+    ascending?: boolean;
+    max?: number;
+    min?: number;
+    constraintTarget?: string;
+};
+
+/**
+ * 控制、处理事件流程的公共模块。有关具体事件的信息，请查阅对应功能模块。
+ * @module 事件
+ */
+/**
+ * You can subscribe to events coming from some object using an EventChannel.
+ *
+ * Event channels take an event handler as input and return a token which can be used to cancel the handler.
+ *
+ * **Example:**
+ * ```typescript
+ * const token = world.onTick(() => console.log("tick !"));
+ * setTimeout(() => {
+ *      console.log('cancel tick handler');
+ *      token.cancel();
+ *      // no more tick events will be logged
+ * }, 1000);
+ * ```
+ *
+ * @param handler The handler callback which is invoked whenever the event is fired
+ * @typeParam EventType The type of the event which is emitted by the channel
+ * @returns An event handler token which can be used to cancel the event handler
+
+ */
+type GameEventChannel<EventType> = (handler: (event: EventType) => void) => GameEventHandlerToken;
+/**
+ * Returned by a {@link GameEventChannel} whenever a handler is registered.  Can be used to cancel the handler.
+ */
+interface GameEventHandlerToken {
+    /**
+     * Cancels the event handler
+     */
+    cancel(): void;
+    /**
+     * Resumes listening with the event handler
+     */
+    resume(): void;
+    /**
+     * Checks if the handler is active
+     */
+    active(): boolean;
+}
+/**
+ * Promises give another way to work with events. You can use promises to organize long sequences of events
+ * with structured programming.  In some cases this can lead to much simpler and cleaner code, but you must
+ * use caution.  Asynchronous code can be interrupted when it is waiting, which means things in the world
+ * can change outside your code.  Also errors generated in asynchronous code do not get stack traces,
+ * which can complicate debugging.  Consider these things and use promises carefully
+ *
+ * **Example:**
+ * ```typescript
+ * // Wait for 2 players to enter the world
+ * async function waitForPlayers (count) {
+ *      while (world.querySelectorAll('player').length < 2) {
+ *          const { entity } = await world.nextPlayerJoin();
+ *          world.say(entity.player.name + ' joined');
+ *      }
+ * }
+ *
+ * waitForPlayers.then(() => world.say('game ready'));
+ * ```
+ *
+ * @param filter An optional function which checks the type of event.  If the filter is not true, then the event is not dispatched.  If no filter is supplied, then the future will fire on the next event.
+ * @typeParam EventType The type of the event which is emitted by the channel
+ * @returns A promise which resolves once an event which matches the filter fires
+ */
+type GameEventFuture<EventType> = (filter?: (event: EventType) => boolean) => Promise<EventType>;
+
+/**
+ * 实体动作相关
+ *
+ * ```js
+ * const entity = world.createEntity();
+ * const entityMotionControl = entity.motion; // MotionController
+ * const motion = entityMotionControl.loadByName('FirstMotion'); // MotionHandler
+ * motion.onFinish(() => {
+ *  console.log('Motion End');
+ * });
+ * motion.play()
+ *  .then(() => { console.log('Motion End with Promise')})
+ *  .catch((err) => {
+ *    console.log('Motion play error')
+ *  })
+ * ```
+ * @module 动作
+ */
+
+/**
+ * 动作控制器
+ */
+declare class GameMotionController {
+    /**
+     * @internal
+     */
+    private constructor();
+    /**
+     * 设置默认动作
+     * - 没有其他动作在播放的情况下，默认动作会在游戏运行时自动循环播放
+     * - 调用此函数时，如当前处于默认动作执行状态，则将打断旧默认动作，播放新的默认动作
+     * - 动作名不存在时，此方法不产生任何效果，并抛出包含实体、模型与动作信息的错误
+     *
+     * @param motionName 需要设置的动作名，传入 undefined 表示不会播放默认动作
+     *
+     * @example
+     *  const entity = world.createEntity();
+     *  entity.motion.setDefaultMotionByName('FirstMotion');
+     *  entity.motion.setDefaultMotionByName(''); // 报错，不存在对应动作
+     *  entity.motion.setDefaultMotionByName(); // 设置默认动作为空，即不播放默认动作
+     */
+    setDefaultMotionByName(motionName: string | undefined): void;
+    /**
+     * 加载特定动作或动作序列，并返回对应的动作对象
+     * - 加载使用模型动作名称作为依据，当尝试加载的动作名称没有对应动作时，会抛出包含实体、模型与动作信息的错误
+     *
+     * @param configs 特定动作配置
+     * @returns 用于处理动作播放、中断等后续行为
+     */
+    loadByName(configs: 'string' | MotionConfig[] | MotionClipConfig): GameMotionHandler;
+    /**
+     * 暂停实体上的动作播放
+     */
+    pause(): void;
+    /**
+     * 恢复实体上的动作播放
+     */
+    resume(): void;
+}
+/**
+ * 动作序列配置
+ */
+interface MotionClipConfig {
+    motions: (string | MotionConfig)[];
+    /**
+     * 循环次数
+     * - 输入Infinity就是无限循环，此时会覆盖掉默认动作
+     * - 能cancel或者播放新的动作覆盖
+     * - 可选项，默认 1 次
+     */
+    iterations?: number;
+}
+/**
+ * 动作配置
+ */
+interface MotionConfig {
+    /**
+     * 动作名字
+     */
+    name: string;
+    /**
+     * 循环次数
+     * - 输入Infinity就是无限循环，此时会覆盖掉默认动作
+     * - 能cancel或者播放新的动作覆盖
+     * - 可选项，默认 1 次
+     */
+    iterations?: number;
+}
+/**
+ * 动作播放的 Handler，用于处理动作中断等行为
+ */
+declare class GameMotionHandler {
+    readonly entity: GameEntity;
+    /**
+     * @internal
+     */
+    constructor();
+    /**
+     * 播放当前实体动作
+     * - 会打断当前动作，开始对应动作/序列动作的播放
+     * - 当配置中包含的动作播放结束时，触发 MotionPlayHandler 的 Finish 事件。
+     * - 播放过程中出现错误时，抛出包含实体、模型与动作信息的错误
+     * @return 返回结束状态的 Promise
+     * @example
+     *  const entity = world.createEntity();
+     *  const motion = entity.motion.loadByName('FirstMotion');
+     *  try {
+     *    await motion.play();
+     *  } catch (e) {
+     *    // 处理错误
+     *  }
+     *
+     */
+    play(): Promise<void>;
+    /**
+     * 响应结束状态的监听函数
+     * @group Event
+     */
+    onFinish(handler: (event: GameMotionEvent) => void): GameEventHandlerToken;
+    /**
+     * 中断此动作播放，并触发 end 事件。
+     */
+    cancel(): void;
+}
+/**
+ * @event
+ */
+interface GameMotionEvent {
+    cancelled: boolean;
+}
+
+/**
+ * @module Math
+ */
+/**
+
+ */
+declare class GameVector3 {
+    x: number;
+    y: number;
+    z: number;
+    private constructor();
+}
+
+/**
+ * @module 实体
+ */
+
+/**
+ * 代表游戏内的实体
+ */
+declare class GameEntity {
+    /**
+     * @internal
+     */
+    protected constructor();
+    /**
+     * 控制 Entity 动作
+     * @group Components
+     */
+    motion: GameMotionController;
+    /**
+     * @group Physics
+     */
+    position: GameVector3;
+}
+
+interface PlayerNavigator {
+    emitEvent(type: string, event: string): Promise<void>;
+}
+
+/**
+ * @module Players
+ */
+
+/**
+ * 实体的一种，比 GameEntity 多了一个控制玩家的组件
+ */
+declare class GamePlayerEntity extends GameEntity {
+    protected constructor();
+    /**
+
+     * @group Components
+     */
+    readonly player: GamePlayer;
+}
+/**
+ * 玩家组件，实体中负责控制玩家行为的组件，仅在玩家实体中存在
+ * 针对玩家的所有行为都会挂在这里
+ */
+declare class GamePlayer {
+    /**
+     * @internal
+     */
+    private constructor();
+    /**
+     * 将玩家传送到另一个游戏
+     *
+     * ```typescript
+     * const door = world.querySelector('#door');
+     * door.enableInteract = true;
+     * door.interactHint = `Go to XXX`;
+     * door.interactRadius = 3;
+     * door.onInteract(async ({entity}) => {
+     *    entity.player.transportToGame('CONTENT_ID')
+     *});
+     * ```
+     *
+     * @param contentID 目的地游戏的 Content ID
+     */
+    transportToGame(contentID: string): void;
+    browser: PlayerNavigator;
+    /**
+
+     * Camera behavior mode.
+     *  + `"FPS"` - First person camera
+     *  + `"FOLLOW"` - Third person follow camera (default)
+     *  + `"FIXED"` - Third person fixed camera
+     *  + `"RELATIVE"` - Third person camera relative to player position
+     * @group Camera
+     */
+    cameraMode: GameCameraMode;
+    /**
+
+     * In FPS or FOLLOW mode, the entity which the player's camera follows
+     * @group Camera
+     */
+    cameraEntity: GameEntity | null;
+    /**
+
+     * Target point for the camera in FIXED mode
+     * @group Camera
+     */
+    cameraTarget: GameVector3;
+    /**
+
+     * Up vector for camera in FIXED mode
+     * @group Camera
+     */
+    cameraUp: GameVector3;
+    /**
+
+     * Eye position of camera in FIXED mode
+     * @group Camera
+     */
+    cameraPosition: GameVector3;
+    /**
+     * [-PI/2, PI/2]
+     * @group Camera
+     */
+    readonly cameraPitch: number;
+    /**
+     * [0, 2PI)
+     * @group Camera
+     */
+    readonly cameraYaw: number;
+    /**
+     * 由于使用Uint8存值（性能考量），精度为 PI / 255
+     * @param pitch [-PI/2, PI/2] 超出范围以 PI 为周期取值
+     * @group Camera
+     */
+    setCameraPitch(pitch: number): void;
+    /**
+     * 由于使用Uint8存值（性能考量），精度为 2PI / 256（可能会出现差1度但存进去变成同一个值的情况）
+     * @param yaw [0, 2PI) 超出范围以 2PI 为周期取值
+     * @group Camera
+     */
+    setCameraYaw(yaw: number): void;
+    /**
+     * Called whenever player presses a button
+     * @group Input
+     */
+    onPress(handler: (event: GameInputEvent) => void): GameEventHandlerToken;
+    /**
+
+     * Called whenever a player releases a buttin
+     * @group Input
+     */
+    onRelease(handler: (event: GameInputEvent) => void): GameEventHandlerToken;
+}
+declare enum GameCameraMode {
+    FOLLOW = "follow",
+    FPS = "fps",
+    FIXED = "fixed",
+    RELATIVE = "relative"
+}
+
+/**
+ * 错误码规范：{status:T; code:number, msg: string}
+ * code: 错误码
+ * status: 错误类型
+ * msg: 错误描述
+ */
+type CommonError<T> = {
+    status: T;
+    code: number;
+    msg: string;
+};
+
+type ModerationErrorStatus = 'MODERATION_PARAMS_INVALID' | 'MODERATION_OPTIONS_INVALID' | 'MODERATION_TARGET_INVALID' | 'MODERATION_PAYLOAD_TOO_LARGE' | 'MODERATION_BATCH_TOO_LARGE' | 'MODERATION_REQUEST_ID_INVALID' | 'MODERATION_REASON_INVALID' | 'MODERATION_DURATION_INVALID' | 'MODERATION_BAN_ID_INVALID' | 'MODERATION_QUERY_INVALID' | 'MODERATION_ACTION_INVALID' | 'MODERATION_IP_INVALID' | 'MODERATION_DEVICE_UNAVAILABLE' | 'MODERATION_METHOD_NOT_ALLOWED' | 'MODERATION_AUTH_REQUIRED' | 'MODERATION_FORBIDDEN' | 'MODERATION_MAP_MISMATCH' | 'MODERATION_GRANT_INVALID' | 'MODERATION_LEGACY_GRANT_INVALID' | 'MODERATION_QUERY_FORBIDDEN' | 'MODERATION_ACTION_FORBIDDEN' | 'MODERATION_BAN_ACCESS_DENIED' | 'MODERATION_DURATION_LIMIT_EXCEEDED' | 'MODERATION_ADMIN_PROTECTED' | 'MODERATION_DEVICE_PROTECTED' | 'MODERATION_SERVER_BAN_FORBIDDEN' | 'MODERATION_GRANT_REQUIRED' | 'MODERATION_GRANT_EXPIRED' | 'MODERATION_GRANT_REVOKED' | 'MODERATION_PERMANENT_FORBIDDEN' | 'MODERATION_NOT_FOUND' | 'MODERATION_PLAYER_OFFLINE' | 'MODERATION_PLAYER_NOT_FOUND' | 'MODERATION_CONFLICT' | 'MODERATION_REQUEST_ID_CONFLICT' | 'MODERATION_BAN_ALREADY_EXISTS' | 'MODERATION_ACCOUNT_ALREADY_PUNISHED' | 'MODERATION_BAN_CHANGED' | 'MODERATION_RATE_LIMITED' | 'MODERATION_RESPONSE_INVALID' | 'MODERATION_INTERNAL_ERROR' | 'MODERATION_UNAVAILABLE' | 'MODERATION_RUNTIME_DISABLED' | 'MODERATION_RATE_LIMIT_UNAVAILABLE' | 'MODERATION_TIMEOUT'; /** 单次失败的 Error 和批量失败项使用相同结构；code 为独立业务码，非 HTTP 状态码，详见地图管理文档。 */
+type ModerationError = CommonError<ModerationErrorStatus>;
+/** 权限由服主在后台绑定，脚本不能设置管理员身份、地图 ID 或 IP。 */
+type ModerationOptions = {
+    /** 处罚原因，会写入后台审计。 */
+    reason: string;
+    /** 封禁秒数；0 表示永久，需要后台允许永久封禁。有限时长不能超过授权上限。 */
+    durationSeconds: number;
+    /** 可省略，由运行时自动生成；手动重试须显式指定并复用同一值。 */
+    requestId?: string;
+};
+type ModerationBan = {
+    id: string;
+    expiresAt: string | null;
+};
+/** 批量结果与输入数组顺序一致；失败项不会阻止后续项。 */
+type ModerationBatchResult = {
+    index: number;
+    success: true;
+    ban: ModerationBan;
+} | {
+    index: number;
+    success: false;
+    error: ModerationError;
+};
+type ModerationBanRecord = ModerationBan & {
+    kind: 'account' | 'ip' | 'device';
+    /** 目标账号 ID，不包含 IP、设备标识或管理员身份。 */
+    userId: string | null;
+    reason: string;
+    createdAt: string;
+    revokedAt: string | null;
+    status: 'active' | 'expired' | 'revoked';
+    /** 永久有效处罚为 null，已过期或已解除为 0。 */
+    remainingSeconds: number | null;
+};
+type ModerationBanQuery = {
+    /** 可选：筛选当前在线玩家的处罚记录。 */
+    player?: GamePlayer;
+    kind?: 'account' | 'ip' | 'device';
+    status?: 'active' | 'expired' | 'revoked' | 'all';
+    /** 页码，从 1 开始。 */
+    page?: number;
+    /** 每页 1–50 条，默认 20 条。 */
+    pageSize?: number;
+};
+interface GameModeration {
+    /** 封禁当前地图中的玩家账号，返回处罚 ID 和截止时间。 */
+    banPlayer: {
+        (player: GamePlayer, options: ModerationOptions): Promise<ModerationBan>;
+        /** 批量最多 100 个玩家，逐项返回结果；requestId 最长 72 字符，重试须保持数组顺序。 */
+        (players: readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBatchResult[]>;
+        (players: GamePlayer | readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBan | ModerationBatchResult[]>;
+    };
+    /** 封禁玩家当前连接的 IP。共享网络可能影响其他玩家，请谨慎使用。 */
+    banCurrentIP: {
+        (player: GamePlayer, options: ModerationOptions): Promise<ModerationBan>;
+        /** 批量最多 100 个玩家，逐项返回结果；requestId 最长 72 字符，重试须保持数组顺序。 */
+        (players: readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBatchResult[]>;
+        (players: GamePlayer | readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBan | ModerationBatchResult[]>;
+    };
+    /** 封禁玩家当前连接的设备身份，不向脚本暴露设备标识。设备身份由浏览器凭据识别，重置凭据后可能变化。 */
+    banCurrentDevice: {
+        (player: GamePlayer, options: ModerationOptions): Promise<ModerationBan>;
+        /** 批量最多 100 个玩家，逐项返回结果；requestId 最长 72 字符，重试须保持数组顺序。 */
+        (players: readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBatchResult[]>;
+        (players: GamePlayer | readonly GamePlayer[], options: ModerationOptions): Promise<ModerationBan | ModerationBatchResult[]>;
+    };
+    /** 解除同一授权在本图创建的处罚；原因必填，请求 ID 可省略。 */
+    revokeBan: (banId: string, options: {
+        reason: string;
+        requestId?: string;
+    }) => Promise<{
+        revoked: boolean;
+        id: string;
+    }>;
+    /** 分页查询当前地图发起的处罚记录，包括已过期、已解除记录。须由服主授予「查询处罚记录与详情」。 */
+    listBans: (query?: ModerationBanQuery) => Promise<{
+        items: ModerationBanRecord[];
+        total: number;
+        page: number;
+        pageSize: number;
+    }>;
+    /** 查询当前地图发起的指定处罚；不存在或属于其他地图时返回 null。须由服主授予「查询处罚记录与详情」。 */
+    getBan: (banId: string) => Promise<ModerationBanRecord | null>;
+    /** 查询当前玩家的账号状态和本图处罚。 */
+    getPlayerStatus: (player: GamePlayer) => Promise<{
+        status: string;
+        bans: ModerationBan[];
+    }>;
+}
+
+type MovementPosition = Readonly<{
+    x: number;
+    y: number;
+    z: number;
+}>;
+/** 客户端位置修正的预应用检查，不是客户端可信的移动证明。 */
+interface GameMovementEvent {
+    readonly player: GamePlayer;
+    /** 服务器认可的位置快照。 */
+    readonly from: MovementPosition;
+    /** 客户端上报、尚未应用的候选位置。 */
+    readonly to: MovementPosition;
+    /** 两次服务器处理采样的间隔；不是客户端时间，也不是物理模拟时长。 */
+    readonly elapsedMs: number;
+    /** 服务器当前速度与客户端候选速度，使用引擎物理数值单位。 */
+    readonly velocity: Readonly<{
+        from: MovementPosition;
+        to: MovementPosition;
+    }>;
+    readonly context: Readonly<{
+        source: 'client-correction';
+        inputTick: number;
+        serverTick: number;
+        mode: 'edit' | 'play';
+        /** 同步监听回调内调用。拒绝本次修正；可提供不超过 128 字符的审计原因，不包含凭据。 */
+        reject: (reason?: string) => void;
+    }>;
+}
+interface GameAnticheat {
+    /** 创建一份规则独享的服务端玩家记录；不自动订阅、拒绝、处罚或改变引擎权限。 */
+    readonly createTracker: (options?: GameAnticheatTrackerOptions) => GameAnticheatTracker;
+    /** 检查输入消息中的逐次主/副操作（点击、攻击、放置等），不是连续按键状态。仅服务端可用。 */
+    readonly onAction: GameEventChannel<GameAnticheatActionEvent>;
+    /** 连续移动控制：跳跃、奔跑、飞行等按键状态；拒绝会丢弃整个输入消息。 */
+    readonly onInput: GameEventChannel<GameAnticheatInputEvent>;
+    /** 键盘按下和松开的键码列表，发送者由服务器确定。 */
+    readonly onKeyboard: GameEventChannel<GameAnticheatKeyboardEvent>;
+    /** 玩家请求交互；target 是候选目标，不代表已通过距离等玩法校验。 */
+    readonly onInteract: GameEventChannel<GameAnticheatInteractEvent>;
+    /** 客户端脚本通过 remoteChannel 发送的已解析 JSON 数据。 */
+    readonly onCustomEvent: GameEventChannel<GameAnticheatCustomEvent>;
+    /** 自定义 GUI 按钮、表单等发来的事件名和已解析数据。 */
+    readonly onUIEvent: GameEventChannel<GameAnticheatUIEvent>;
+    /** 监听已认证玩家的全部游戏协议消息，在业务处理前同步决定是否拒绝。 */
+    readonly onMessage: GameEventChannel<GameClientMessageEvent>;
+    /**
+     * 检查客户端位置修正。监听器必须同步执行，不能 await。
+     * 多监听器中任意一个 reject 都会拒绝本次修正；回调异常或超时也拒绝。
+     * 不监听服务端脚本传送。返回的 token 支持 cancel、resume、active。
+     */
+    readonly onMovement: GameEventChannel<GameMovementEvent>;
+}
+type ClientMessageData = null | boolean | number | string | readonly ClientMessageData[] | {
+    readonly [key: string]: ClientMessageData;
+};
+interface GameAnticheatTrackerOptions {
+    /** 每位玩家保留的最新记录数，默认 32；允许 1～256，这是存储上限，不是玩法阈值。 */
+    readonly historySize?: number;
+    /** 每个服务端脚本 tick 扣减的分数；默认 0（不自动衰减）。只决定记分，不决定处罚。 */
+    readonly decayPerTick?: number;
+}
+interface GameAnticheatHistoryEntry {
+    /** 由服务端脚本时钟写入；record 不接受客户端 tick 参数。 */
+    readonly serverTick: number;
+    /** JSON 格式的独立只读快照；不是实际命中或作弊的证明。 */
+    readonly data: ClientMessageData;
+}
+interface GameAnticheatExemption {
+    /** 服务端脚本 tick 达到此值时失效，不受浏览器时间或客户端 tick 控制。 */
+    readonly untilTick: number;
+    readonly reason: string;
+}
+interface GameAnticheatTracker {
+    /** 当前服务端脚本 tick，不使用浏览器时间。 */
+    readonly serverTick: number;
+    /** 图主主动记录样本，不自动采集；只接受 JSON 数据，不传整个 player/entity/context。 */
+    readonly record: (player: GamePlayer, data: ClientMessageData) => GameAnticheatHistoryEntry;
+    /** 按时间顺序返回已保留的最新记录；有容量上限，不等于全部请求历史。 */
+    readonly getHistory: (player: GamePlayer) => readonly GameAnticheatHistoryEntry[];
+    /** 累计本规则的异常分数并返回当前值；amount 必须是非负有限数值，不会自动处罚。 */
+    readonly addScore: (player: GamePlayer, amount: number) => number;
+    /** 根据本规则的 decayPerTick 计算当前分数，最低 0。 */
+    readonly getScore: (player: GamePlayer) => number;
+    /** 只重置分数，保留历史和本规则的临时豁免。 */
+    readonly resetScore: (player: GamePlayer) => void;
+    /** 设置本规则的临时豁免；ticks 为正整数。只保存标记，图主自行决定跳过哪些检查。 */
+    readonly exempt: (player: GamePlayer, options: Readonly<{
+        ticks: number;
+        reason?: string;
+    }>) => void;
+    /** 查询本规则的豁免；绝不跳过引擎身份、所有权或消息一致性检查。 */
+    readonly isExempt: (player: GamePlayer) => boolean;
+    readonly getExemption: (player: GamePlayer) => GameAnticheatExemption | undefined;
+    readonly clearExemption: (player: GamePlayer) => void;
+    /** 清空某位玩家，或不传 player 清空本规则的历史、分数和豁免；不会撤销引擎检查。 */
+    readonly clear: (player?: GamePlayer) => void;
+}
+interface GameClientMessageEvent {
+    readonly player: GamePlayer;
+    /** 引擎注册的协议名和消息名，非客户端自报。 */
+    readonly protocol: string;
+    readonly message: string;
+    /** 解码后的只读副本。敏感字段被遮蔽，原始二进制只提供长度。 */
+    readonly data: ClientMessageData;
+    readonly unreliable: boolean;
+    readonly context: Readonly<{
+        source: 'client-message';
+        serverTick: number;
+        mode: 'edit' | 'play';
+        /** 拒绝当前消息的业务处理；不踢出玩家，不修改其他玩家的数据。 */
+        reject: (reason?: string) => void;
+    }>;
+}
+type AnticheatContext = GameClientMessageEvent['context'];
+/** 客户端候选操作，不是服务器确认的命中。距离、遮挡、冷却由地图规则验证。 */
+interface GameAnticheatAction {
+    /** 客户端输入 tick，不能当作可信的服务器时间。 */
+    readonly tick: number;
+    readonly button: 'action0' | 'action1';
+    /** 根据客户端上报的前后状态计算，不能证明物理按键确实按下。 */
+    readonly pressed: boolean;
+    /** 客户端自报的玩家位置；校验请使用事件的 serverPosition。 */
+    readonly position: MovementPosition;
+    /** 客户端声称的目标 ID，0 表示未指定实体；必须自行校验。 */
+    readonly targetId: number;
+    /** 从服务端实体表解析的候选目标；不存在或未指定时为 undefined，不代表命中合法。 */
+    readonly target: GameEntity | undefined;
+    readonly ray: Readonly<{
+        origin: MovementPosition;
+        direction: MovementPosition;
+        normal: MovementPosition;
+        voxel: MovementPosition;
+        /** 客户端自报的射线距离；-1 等负值表示未命中。 */
+        distance: number;
+    }>;
+}
+interface GameAnticheatActionEvent {
+    readonly player: GamePlayer;
+    /** 服务端脚本当前认可的实体位置快照；不是客户端 position，也不是历史回放位置。 */
+    readonly serverPosition: MovementPosition;
+    /** 一条输入消息中的所有主/副操作变化，包括松开；重复操作不会被合并。 */
+    readonly actions: readonly GameAnticheatAction[];
+    /** reject 拒绝整条输入消息（包括移动控制），不会踢出玩家。只在同步回调内有效。 */
+    readonly context: AnticheatContext;
+}
+interface GameAnticheatInputEvent {
+    readonly player: GamePlayer;
+    /** 客户端上报的输入 tick，不能当作可信的服务器时间。 */
+    readonly tick: number;
+    readonly buttons: Readonly<{
+        jump: boolean;
+        walk: boolean;
+        crouch: boolean;
+        run: boolean;
+        fly: boolean;
+        doubleJump: boolean;
+        action0: boolean;
+        action1: boolean;
+    }>;
+    readonly context: AnticheatContext;
+}
+interface GameAnticheatKeyboardEvent {
+    readonly player: GamePlayer;
+    /** 客户端上报的输入 tick。 */
+    readonly tick: number;
+    readonly pressed: readonly number[];
+    readonly released: readonly number[];
+    readonly context: AnticheatContext;
+}
+interface GameAnticheatInteractEvent {
+    readonly player: GamePlayer;
+    /** 客户端上报的交互 tick。 */
+    readonly tick: number;
+    readonly target: GameEntity | undefined;
+    readonly context: AnticheatContext;
+}
+interface GameAnticheatCustomEvent {
+    readonly player: GamePlayer;
+    /** 客户端上报的事件 tick。 */
+    readonly tick: number;
+    readonly data: ClientMessageData;
+    readonly context: AnticheatContext;
+}
+interface GameAnticheatUIEvent {
+    readonly player: GamePlayer;
+    readonly name: string;
+    readonly data: ClientMessageData;
+    readonly context: AnticheatContext;
+}
+
+/**
+ * @module World
+ */
+
+declare class GameWorld {
+    /**
+     * @internal
+     */
+    constructor();
+    /**
+     * 将玩家传送到同一地图组内的目标地图。默认创建一个私有房间；传入
+     * 上一次返回的 serverId 可加入同一房间，传入 `public` 则进入公共实例。
+     */
+    teleport(mapId: string, players: GamePlayerEntity[], serverId?: string): Promise<TeleportResult>;
+    /**
+     * 当前运行实例的稳定 ID。普通实例使用20 位永久地图 ID，传送创建的
+     * 独立房间使用房间 ID；修改地图访问 ID 不会改变此值。
+     */
+    readonly serverId: string;
+    /** 地图管理能力，须先由服主在后台授权。 */
+    readonly moderation: GameModeration;
+    /** 客户端移动修正检查，拒绝本次修正但不踢出玩家。 */
+    readonly anticheat: GameAnticheat;
+    /**
+     * Shared scene-light intensity. This updates the existing renderer uniform
+     * for every player; valid values are from `0` (dark) through `0.6`.
+     *
+     * @example
+     * world.globalLight = 0.12;
+     * @category rendering
+     */
+    globalLight: number;
+    /**
+     * Gamma used by the final render pass. This changes the displayed image
+     * without recompiling shaders; valid values are from `0.1` through `3`.
+     *
+     * @example
+     * world.gamma = 1.8;
+     * @category rendering
+     */
+    gamma: number;
+    /**
+
+     * The entities in game can be searched using a jQuery selector-like syntax.
+     * For more examples see {@link GameSelectorString}
+     *
+     * @param selector a selector search pattern
+     * @returns the first entity which matches the selector/
+     * @group Entity
+     */
+    querySelector<T extends GameSelectorString>(selector: T): EntitySelectorType[T] | null;
+    /**
+
+     * The entities in game can be searched using a jQuery selector-like syntax.
+     * For more examples see {@link GameSelectorString}
+     *
+     * @param selector a selector search pattern
+     * @returns All entities which match the selector
+     * @group Entity
+     */
+    querySelectorAll<T extends GameSelectorString>(selector: T): EntitySelectorType[T][];
+    /**
+     * Called whenever a player pushes a button
+     * @category player
+     */
+    onPress: GameEventChannel<GameInputEvent>;
+    nextPress: GameEventFuture<GameInputEvent>;
+    /**
+     * Called whenever a player releases a button
+     * @category player
+     */
+    onRelease: GameEventChannel<GameInputEvent>;
+    nextRelease: GameEventFuture<GameInputEvent>;
+    /**
+     * An event handler called each tick
+     * @group Event
+     */
+    onTick: GameEventChannel<GameTickEvent>;
+    /**
+     * An event handler called each tick
+     * @group Event
+     */
+    nextTick: GameEventFuture<GameTickEvent>;
+}
+type TeleportResult = {
+    serverId: string;
+};
+/**
+ * @ignore
+ * @event
+ */
+type WorldEventMap = {
+    tick: GameTickEvent;
+};
+/**
+ * Selectors are a powerful syntax for searching all of the objects in a game.  The interface for selectors in game is modeled after the DOM APIs.
+ * 通过 {@link GameWorld.querySelector} 等方法来使用
+ * ```javascript
+ * const entities = world.querySelector('*');           // all entities in the world
+ * const players = world.querySelectorAll('player');    // all players in the game
+ * const localPlayer = world.querySelector('local-player');    // local player on the client (client-script only)
+ * const theChair = world.querySelector('#chair');      // the first entity whose id is "chair"
+ * const boxes = world.querySelectorAll('.box');        // all entities tagged with "box"
+ * const boxChair = world.querySelector('.box .red');
+ * ```
+ */
+type GameSelectorString = keyof EntitySelectorType;
+type EntitySelectorType = {
+    '*': GameEntity | GamePlayerEntity;
+    'player': GamePlayerEntity;
+    'local-player': GamePlayerEntity;
+    [key: string]: GameEntity;
+};
+/**
+ * An event which is fired each tick by {@link GameWorld.onTick}.
+ * @event
+ */
+declare class GameTickEvent {
+    /**
+     * Tick at which the event was fired
+     */
+    tick: number;
+    /**
+     * Last tick which was handled
+     */
+    prevTick: number;
+    /**
+     * If we had to skip any ticks due to the scripts lagging
+     */
+    skip: boolean;
+    /**
+     * Wall clock time between ticks
+     */
+    elapsedTimeMS: number;
+    /**
+     * @internal
+     */
+    constructor();
+}
+/**
+ * Input events are generated whenever a player presses a button.
+ * The tick of an event occurs at the exact instant the button was pressed by the player.
+ * Triggered by {@link GameWorld.onPress}, {@link GameWorld.onRelease}, {@link GamePlayer.onPress}, {@link GamePlayer.onRelease}
+ */
+declare class GameInputEvent {
+    /**
+     * @ignore
+     */
+    constructor();
+    /**
+     * The time the button was pressed
+     */
+    tick: number;
+    /**
+     * A reference to the player which pressed the button
+     */
+    entity: GamePlayerEntity;
+    /**
+     * The position of the entity at the time the pressed the button
+     */
+    position: GameVector3;
+    /**
+     * The button which was input by the player
+     */
+    button: GameButtonType;
+    /**
+     * If true; then this is a press event.  Otherwise if false this is a release event
+     */
+    pressed: boolean;
+    /**
+     * The result of a raycast query initiated by the player at the exact instant they pressed the button from the perspective of their camera.
+     */
+    raycast: GameRaycastResult;
+}
+/**
+ * Type of a button pressed by a player
+ */
+declare enum GameButtonType {
+    WALK = "walk",
+    RUN = "run",
+    CROUCH = "crouch",
+    JUMP = "jump",
+    DOUBLE_JUMP = "jump2",
+    FLY = "fly",
+    ACTION0 = "action0",
+    ACTION1 = "action1"
+}
+/**
+ * Result of performing a raycast.  Contains information about the raycast and what it hit.
+ */
+declare class GameRaycastResult {
+    /**
+     * @ignore
+     */
+    constructor();
+    /**
+     * If true; raycast hit an object
+     */
+    hit: boolean;
+    /**
+     * The entity hit by the raycast
+     */
+    hitEntity: GameEntity | null;
+    /**
+     * The voxel id hit by the raycast (0 if no voxel was hit)
+     */
+    hitVoxel: number;
+    /**
+     * Start point of the ray cast
+     */
+    origin: GameVector3;
+    /**
+     * Direction of the raycast
+     */
+    direction: GameVector3;
+    /**
+     * Distance traveled along the ray
+     */
+    distance: number;
+    /**
+     * Position of the ray intersection
+     */
+    hitPosition: GameVector3;
+    /**
+     * Normal vector on surface at point of intersection
+     */
+    normal: GameVector3;
+    /**
+     * If a voxel was hit; the grid coordinates of the hit voxel
+     */
+    voxelIndex: GameVector3;
+}

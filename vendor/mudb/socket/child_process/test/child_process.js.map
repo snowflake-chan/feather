@@ -1,0 +1,1 @@
+{"version":3,"file":"child_process.js","sourceRoot":"","sources":["../../../src/socket/child_process/test/child_process.ts"],"names":[],"mappings":";;AAAA,4CAA2C;AAC3C,sCAAuD;AAEvD,MAAM,CAAC,OAAO,GAAG,GAAG,EAAE;IAClB,MAAM,YAAY,GAAG,IAAI,mCAA0B,EAAE,CAAC;IACtD,MAAM,QAAQ,GAAG,IAAI,iBAAQ,CAAC,YAAY,CAAC,CAAC;IAE5C,QAAQ,CAAC,KAAK,EAAE,CAAC;AACrB,CAAC,CAAC"}

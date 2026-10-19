@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noImplicitAny": false, // 历史包袱……
+    "allowJs": true, // 同上
+    "rootDir": ".", // 修正 .d.ts 的输出路径
+    "outDir": "./build"
+  },
+  "include": ["./**/*.ts", "./**/*.js"]
+}

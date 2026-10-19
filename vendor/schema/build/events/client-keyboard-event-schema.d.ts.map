@@ -1,0 +1,1 @@
+{"version":3,"file":"client-keyboard-event-schema.d.ts","sourceRoot":"","sources":["../../events/client-keyboard-event-schema.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAExE,eAAO,MAAM,yBAAyB;;;;;EAKpC,CAAC;AAEH,eAAO,MAAM,0BAA0B;;;;;GAGtC,CAAC;AAEF,oBAAY,iBAAiB;IAC3B,OAAO,IAAA;IACP,KAAK,IAAA;CACN"}

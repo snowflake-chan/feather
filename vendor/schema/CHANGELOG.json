@@ -1,0 +1,459 @@
+{
+  "name": "@box/schema",
+  "entries": [
+    {
+      "version": "0.4.3",
+      "tag": "@box/schema_v0.4.3",
+      "date": "Wed, 03 Sep 2025 07:32:05 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.1.0`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.4.2",
+      "tag": "@box/schema_v0.4.2",
+      "date": "Thu, 22 May 2025 08:40:52 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "optimize MuRDATextStore"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.2.0` to `0.3.0`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.4.1",
+      "tag": "@box/schema_v0.4.1",
+      "date": "Mon, 10 Mar 2025 07:42:46 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add group script support"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.4.0",
+      "tag": "@box/schema_v0.4.0",
+      "date": "Mon, 03 Mar 2025 06:15:30 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Upgrade UI RDA with rotation"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.23",
+      "tag": "@box/schema_v0.3.23",
+      "date": "Fri, 27 Dec 2024 02:32:18 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix prepareFixedBodies"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.22",
+      "tag": "@box/schema_v0.3.22",
+      "date": "Wed, 25 Dec 2024 07:21:20 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update modelSchema"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.21",
+      "tag": "@box/schema_v0.3.21",
+      "date": "Fri, 13 Dec 2024 02:06:14 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix keyframe binding"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.20",
+      "tag": "@box/schema_v0.3.20",
+      "date": "Mon, 02 Dec 2024 07:48:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add a new oss path"
+          },
+          {
+            "comment": "update hot project"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.9` to `0.2.0`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.19",
+      "tag": "@box/schema_v0.3.19",
+      "date": "Thu, 21 Nov 2024 07:21:05 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update hotProject"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.18",
+      "tag": "@box/schema_v0.3.18",
+      "date": "Wed, 20 Nov 2024 02:59:09 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add editLock for EntitySeedRDA"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.17",
+      "tag": "@box/schema_v0.3.17",
+      "date": "Mon, 18 Nov 2024 07:05:53 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add richText for game u"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.8` to `~0.1.9`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.16",
+      "tag": "@box/schema_v0.3.16",
+      "date": "Fri, 15 Nov 2024 08:16:55 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix murda-tree undefined"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.15",
+      "tag": "@box/schema_v0.3.15",
+      "date": "Tue, 05 Nov 2024 09:10:20 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update font of game ui"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.7` to `~0.1.8`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.14",
+      "tag": "@box/schema_v0.3.14",
+      "date": "Thu, 31 Oct 2024 07:50:33 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update project rda 0.3.28"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.6` to `~0.1.7`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.13",
+      "tag": "@box/schema_v0.3.13",
+      "date": "Wed, 30 Oct 2024 07:50:04 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "upgrade schema version"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.12",
+      "tag": "@box/schema_v0.3.12",
+      "date": "Tue, 29 Oct 2024 09:57:36 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update project rda (UIImageRDA)"
+          },
+          {
+            "comment": "upgrade project version"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.5` to `~0.1.6`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.11",
+      "tag": "@box/schema_v0.3.11",
+      "date": "Thu, 24 Oct 2024 02:46:59 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update project and group project rda"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.10",
+      "tag": "@box/schema_v0.3.10",
+      "date": "Fri, 27 Sep 2024 08:35:34 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update voxelReset protocol"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.9",
+      "tag": "@box/schema_v0.3.9",
+      "date": "Mon, 09 Sep 2024 14:38:11 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update groupProject schema"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.8",
+      "tag": "@box/schema_v0.3.8",
+      "date": "Fri, 06 Sep 2024 10:31:38 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.4` to `~0.1.5`"
+          },
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.0.3`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.7",
+      "tag": "@box/schema_v0.3.7",
+      "date": "Tue, 03 Sep 2024 02:47:44 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "group project"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.6",
+      "tag": "@box/schema_v0.3.6",
+      "date": "Mon, 02 Sep 2024 06:51:13 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.3` to `~0.1.4`"
+          },
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.0.2`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.5",
+      "tag": "@box/schema_v0.3.5",
+      "date": "Thu, 29 Aug 2024 02:53:34 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update versions"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.4",
+      "tag": "@box/schema_v0.3.4",
+      "date": "Thu, 22 Aug 2024 05:16:35 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add debug log"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.3",
+      "tag": "@box/schema_v0.3.3",
+      "date": "Wed, 17 Jul 2024 02:36:34 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update hot project version to v0.0.16"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.2",
+      "tag": "@box/schema_v0.3.2",
+      "date": "Fri, 28 Jun 2024 11:01:43 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update hotproject version"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.1",
+      "tag": "@box/schema_v0.3.1",
+      "date": "Tue, 18 Jun 2024 08:03:11 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Upgrade hotProject version"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.0",
+      "tag": "@box/schema_v0.3.0",
+      "date": "Fri, 10 May 2024 07:02:16 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "add log protocol for pino"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/mudb\" from `1.0.3` to `1.0.4`"
+          },
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `~0.1.1` to `~0.1.2`"
+          },
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.0.1`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.6",
+      "tag": "@box/schema_v0.2.6",
+      "date": "Thu, 25 Jan 2024 07:55:47 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "implements UIScrollBox"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.5",
+      "tag": "@box/schema_v0.2.5",
+      "date": "Fri, 19 Jan 2024 10:06:42 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Upgrade ProjectRDA to v0.3.22"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.4",
+      "tag": "@box/schema_v0.2.4",
+      "date": "Fri, 12 Jan 2024 05:40:58 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "upgrade project to v0.3.21"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.3",
+      "tag": "@box/schema_v0.2.3",
+      "date": "Mon, 25 Dec 2023 07:23:55 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/script-api\" from `0.1.0` to `0.1.1`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.0",
+      "tag": "@box/schema_v0.2.0",
+      "date": "Thu, 14 Dec 2023 09:45:52 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "增加 DebuggerConsole 使用的 Schema 与 Protocol"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.0.0`"
+          }
+        ]
+      }
+    }
+  ]
+}

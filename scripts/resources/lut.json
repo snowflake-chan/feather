@@ -1,0 +1,31 @@
+{
+  "func": "swapExtensions",
+  "args": [
+    {
+      "func": "optimizeDir",
+      "args": [
+        {
+          "table": {
+            "lut": {
+              "dir": "lut",
+              "ret": "json"
+            },
+            "preview": {
+              "func": "applyLutDir",
+              "args": [
+                { "file": "img_scene.png" },
+                { "dir": "lut" },
+                { "json": false, "ret": "json" }
+              ],
+              "ret": "json"
+            },
+            "nonePreview.jpg": {
+              "file": "img_scene.png"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "ret": "json"
+}

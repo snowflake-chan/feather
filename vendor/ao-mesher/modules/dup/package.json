@@ -1,0 +1,73 @@
+{
+  "_args": [
+    [
+      "dup@0.0.0",
+      "/Users/mac/Desktop/编程猫/Box3-new/Box3"
+    ]
+  ],
+  "_from": "dup@0.0.0",
+  "_id": "dup@0.0.0",
+  "_inBundle": false,
+  "_integrity": "sha1-aAxMUazmq5/jvG5I2cqybAOWq9c=",
+  "_location": "/ao-mesher/dup",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "dup@0.0.0",
+    "name": "dup",
+    "escapedName": "dup",
+    "rawSpec": "0.0.0",
+    "saveSpec": null,
+    "fetchSpec": "0.0.0"
+  },
+  "_requiredBy": [
+    "/ao-mesher/typedarray-pool"
+  ],
+  "_resolved": "http://registry.npm.taobao.org/dup/download/dup-0.0.0.tgz",
+  "_spec": "0.0.0",
+  "_where": "/Users/mac/Desktop/编程猫/Box3-new/Box3",
+  "author": {
+    "name": "Mikola Lysenko"
+  },
+  "bugs": {
+    "url": "https://github.com/mikolalysenko/dup/issues"
+  },
+  "dependencies": {},
+  "description": "Initialize an array of arrays to a constant",
+  "devDependencies": {
+    "tap": "~0.4.1"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "gitHead": "66f747c219c492e9450d2d5b7bf8fb5c74d57dc2",
+  "homepage": "https://github.com/mikolalysenko/dup#readme",
+  "keywords": [
+    "dup",
+    "initialize",
+    "array",
+    "constant",
+    "numeric",
+    "rep",
+    "zeros",
+    "matlab",
+    "clear",
+    "ndarray",
+    "grid",
+    "matrix",
+    "vector",
+    "tensor"
+  ],
+  "license": "MIT",
+  "main": "dup.js",
+  "name": "dup",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikolalysenko/dup.git"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "version": "0.0.0"
+}

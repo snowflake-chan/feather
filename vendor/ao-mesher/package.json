@@ -1,0 +1,36 @@
+{
+  "name": "@box/ao-mesher",
+  "version": "0.2.10",
+  "description": "Voxel ambient occlusion mesher",
+  "main": "mesh.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "greedy-mesher": "~1.0.0",
+    "ndarray": "1.0.19",
+    "typedarray-pool": "~0.1.1",
+    "uniq": "1.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "tap test/*.js",
+    "build": "",
+    "build:watch": ""
+  },
+  "keywords": [
+    "voxel",
+    "ambient",
+    "occlusion",
+    "mesher",
+    "ndarray"
+  ],
+  "author": "Code Infinity",
+  "contributors": [
+    {
+      "name": "Greendou",
+      "email": "hezhuning@codemao.cn"
+    }
+  ],
+  "license": "MIT"
+}

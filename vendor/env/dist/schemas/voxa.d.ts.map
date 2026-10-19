@@ -1,0 +1,1 @@
+{"version":3,"file":"voxa.d.ts","sourceRoot":"","sources":["../../src/schemas/voxa.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,eAAe,CAAC;AAEnD,MAAM,WAAW,iBAAiB;IAChC,IAAI,CAAC,EAAE,MAAM,CAAC;CACf;AAED,eAAO,MAAM,WAAW,EAAE,aAAa,CAAC,iBAAiB,CAO/C,CAAC"}
