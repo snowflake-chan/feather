@@ -1,4 +1,4 @@
-# feather-engine
+# engine
 
 从 `box3-local-engine/services/game-server` 抽出来的 **engine（游戏本体）**。
 **不含 shell 执行运行时**：用户脚本在 worker 里跑，engine 只负责权威状态、物理、网络、内容。
@@ -46,7 +46,7 @@ engine 只通过 `ScriptProtocol` 和 shell 通信；不在主线程执行用户
 engine 不包含 shell 的 worker 入口；入口由 **feather-shell** 提供：
 
 ```
-feather-shell/tools/worker-entry/worker-entry.js
+../shell/tools/worker-entry/worker-entry.js
 ```
 
 （additive 文件，不改 `src/shell/**`；engine 通过 `SCRIPT_WORKER_ENTRY` 指过去。）
@@ -72,7 +72,7 @@ scriptServer = new WorkerScriptServer({ workerEntry });
 
 ## 依赖（vendor）
 
-`@box/*` 已 vendor 到 `vendor/`（13 个包），pnpm workspace 链接，**已可独立构建**：
+`@box/*` 已 vendor 到 monorepo 根 `vendor/`（13 个包），pnpm workspace 链接，**已可独立构建**：
 
 ```bash
 pnpm install
@@ -90,10 +90,11 @@ dist/backendSocket.js
 ```
 
 13 个包、构建顺序、相对上游的本地修改见 [VENDOR.md](VENDOR.md)。
+shell 也使用同一份根 `vendor/`（不再维护裁剪版 schema）。
 
-## 与 feather-shell 的关系
+## 与 shell 的关系
 
-| | feather-engine | feather-shell |
+| | engine | shell |
 |---|---|---|
 | 角色 | 权威状态 / 游戏逻辑 | 执行用户代码 |
 | 进程 | 主线程 | Worker |

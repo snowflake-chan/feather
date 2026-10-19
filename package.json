@@ -1,0 +1,10 @@
+{
+  "name": "feather",
+  "version": "0.0.0",
+  "private": true,
+  "description": "feather monorepo：engine（主线程）+ shell（Worker）+ 共享 @box vendor",
+  "scripts": {
+    "typecheck": "pnpm --filter feather-shell typecheck && pnpm --filter feather-engine typecheck",
+    "build": "pnpm --filter feather-shell build && pnpm --filter feather-engine build"
+  }
+}

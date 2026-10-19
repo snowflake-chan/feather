@@ -5,14 +5,14 @@
 ## 命令
 
 ```bash
-cd /Users/lawrencebi/Projects/feather-engine
+cd /Users/lawrencebi/Projects/feather/engine
 
 BOX_LOCAL_CONFIG_PATH=/Users/lawrencebi/Projects/box3-local-engine/apps/local-engine/config/local.config.json \
 BOX_BUNDLED_CONTENT_PATH=/Users/lawrencebi/Projects/box3-local-engine/apps/local-engine/data/blobs \
 METHOD=local MODE=play IS_HTTPS=false PORT=9977 \
 STORAGE_PATH=/tmp/feather-engine-smoke \
 VM=worker \
-SCRIPT_WORKER_ENTRY=/Users/lawrencebi/Projects/feather-shell/tools/worker-entry/worker-entry.js \
+SCRIPT_WORKER_ENTRY=../shell/tools/worker-entry/worker-entry.js \
 NODE_ENV=development \
 node dist/src/launch.js
 ```
@@ -85,6 +85,6 @@ get local VOXA mesh assets error: connect ECONNREFUSED 127.0.0.1:3001
 ## 复现注意
 
 - 先 `pnpm install && pnpm build`
-- `feather-shell` 需要先构建：`pnpm build`（生成 `dist/script/script-shell.js`）
-- worker 入口在 **feather-shell**：`tools/worker-entry/worker-entry.js`
+- `shell` 需要先构建：在仓库根 `pnpm --filter feather-shell build`（生成 `shell/dist/script/script-shell.js`）
+- worker 入口在 **shell**：`../shell/tools/worker-entry/worker-entry.js`
 - 端口被占用时改 `PORT`

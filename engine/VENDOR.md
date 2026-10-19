@@ -1,7 +1,7 @@
 # Vendor 说明
 
-engine 的 `@box/*` 依赖以源码形式放在 `vendor/`，由 `pnpm-workspace.yaml` 链接。
-这样 `feather-engine` 不依赖 sibling 仓库，可独立 `pnpm install` / `pnpm build`。
+engine 和 shell 的 `@box/*` 依赖以源码形式放在 **monorepo 根** `vendor/`，由根 `pnpm-workspace.yaml` 链接。
+这样 monorepo 不依赖 sibling 仓库，可独立 `pnpm install` / `pnpm build`。
 
 ## 包清单（13 个）
 
@@ -34,10 +34,10 @@ apis（跳过 generate）
 命令：
 
 ```bash
-cd vendor/script-api && pnpm run build
-cd vendor/schema     && pnpm run build
-cd vendor/env        && pnpm run build
-cd vendor/apis       && rm -rf dist && pnpm exec tsc --emitDeclarationOnly && pnpm exec rollup --config rollup.config.mjs
+cd ../vendor/script-api && pnpm run build
+cd ../vendor/schema     && pnpm run build
+cd ../vendor/env        && pnpm run build
+cd ../vendor/apis       && rm -rf dist && pnpm exec tsc --emitDeclarationOnly && pnpm exec rollup --config rollup.config.mjs
 ```
 
 其余包自带产物，不需要重建。
@@ -46,13 +46,13 @@ cd vendor/apis       && rm -rf dist && pnpm exec tsc --emitDeclarationOnly && pn
 
 | 文件 | 修改 | 原因 |
 |---|---|---|
-| `tsconfig.base.json` | 从上游根目录拷入 | schema/apis/env 的 tsconfig `extends ../../tsconfig.base.json` |
+| 根 `tsconfig.base.json` | 从上游根目录拷入 | schema/apis/env 的 tsconfig `extends ../../tsconfig.base.json` |
 | `vendor/script-api/tsconfig.json` | `skipLibCheck: true` | `@types/node` 的 `undici-types` 在 pnpm 严格布局下解析失败 |
 | `vendor/script-api/scripts/sync-moderation-types.js` | `../../internals/schema/` → `../../schema/` | vendor 目录层级与上游不同 |
 | `vendor/apis` | 构建时跳过 `npm run generate` | `generate` 会扫描上游 monorepo 的 `apps/game`、`apps/voxa`、`services/game-server` 等路由源码来重建 `openapi.json`；vendor 里没有这些目录。`src/generated/*` 已提交，直接用它构建 |
-| `package.json` | 删除 `isolated-vm` | ivmp/ivm2 已移除，不再需要 |
+| `engine/package.json` | 删除 `isolated-vm` | ivmp/ivm2 已移除，不再需要 |
 | `package.json` | `build` 拆成 `tsc` + `build:assets` | 资源生成依赖内容服务配置，和编译解耦 |
-| `tsconfig.json` | `exclude: node_modules/dist/vendor` | 不把 vendor 源码当程序根文件 |
+| `engine/tsconfig.json` | `exclude: node_modules/dist/vendor` | 不把 vendor 源码当程序根文件 |
 
 ## 重新同步上游
 

@@ -1,9 +1,0 @@
-{
-  "extends": ["typedoc/tsdoc.json"],
-  "tagDefinitions": [
-    {
-      "tagName": "@version",
-      "syntaxKind": "block"
-    }
-  ]
-}

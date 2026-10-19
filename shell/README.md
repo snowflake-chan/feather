@@ -1,5 +1,8 @@
 # feather-shell
 
+> **Monorepo note**：`@box/*` 依赖统一在仓库根 `vendor/`，`shell/vendor` 已移除；
+> `pnpm install` 在仓库根执行，`pnpm --filter feather-shell build` 构建 shell。
+
 神岛（box3）script shell 的抽取工作区。
 
 **定位：代码暂存区 + 可编译验证环境。** 存放从上游挑出来的 shell 代码，已配置好依赖与类型检查，但不产出构建物。目的是为后续「Bun/Node + Worker」改造提供一份自洽、可编译的基座。

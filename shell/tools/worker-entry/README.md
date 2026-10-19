@@ -13,10 +13,10 @@ engine 通过 `SCRIPT_WORKER_ENTRY` 指向这个文件，把 shell 跑在 `worke
 ## 用法
 
 ```bash
-SCRIPT_WORKER_ENTRY=/Users/lawrencebi/Projects/feather-shell/tools/worker-entry/worker-entry.js \
+SCRIPT_WORKER_ENTRY=/Users/lawrencebi/Projects/feather/shell/tools/worker-entry/worker-entry.js \
 VM=worker \
 node /Users/lawrencebi/Projects/feather-engine/dist/src/launch.js
 ```
 
 完整的 engine smoke 命令见
-[feather-engine/SMOKE.md](../../../feather-engine/SMOKE.md)。
+[feather-engine/SMOKE.md](../../../engine/SMOKE.md)。
