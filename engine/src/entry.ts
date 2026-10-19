@@ -73,7 +73,6 @@ import { BuildSystemRemote } from './service/build-system-remote';
 import { FrameskipsManager } from './utils/frameskips-manager';
 import { LOGGER_HOST_UUID, rootLogger } from './utils/logger';
 import { ScriptServer } from './utils/script-server/type';
-import { WorkerScriptServer } from './utils/script-server/worker/worker-script-server';
 
 function localNetworkAddress(): string {
   for (const addresses of Object.values(os.networkInterfaces())) {
@@ -139,7 +138,15 @@ function localAssetContentType(fileName: string, content: Uint8Array) {
   return undefined;
 }
 
-export async function startServer(spec: ServerRuntimeConfig) {
+export interface StartServerOptions {
+  /** 由组合根（launch.ts / app/index.ts）注入的脚本执行宿主 */
+  scriptServer: ScriptServer;
+}
+
+export async function startServer(
+  spec: ServerRuntimeConfig,
+  options: StartServerOptions,
+) {
   const isLocal = spec.method === 'local';
   const httpsConfig =
     spec.httpsCert && spec.httpsKey
@@ -441,7 +448,7 @@ export async function startServer(spec: ServerRuntimeConfig) {
   // load resources
   let contentId = spec.contentId;
   let prebake = PrebakeCacheSchema.identity;
-  let scriptServer: ScriptServer;
+  let scriptServer: ScriptServer = options.scriptServer;
   let storageMode = spec.storageMode;
 
   const mapIdString = contentId.toString();
@@ -644,15 +651,6 @@ export async function startServer(spec: ServerRuntimeConfig) {
 
         logger.info('Project loaded.');
         storageMode = storageMode || prebake.coldProject.storageMode;
-      },
-      async () => {
-        // set up script server
-        // Script execution runs in worker_threads. The worker entry is owned by
-        // the shell package (feather-shell); the engine only provides the transport.
-        const workerEntry =
-          process.env.SCRIPT_WORKER_ENTRY ||
-          path.resolve(__dirname, './assets/worker/worker-script-entry.js');
-        scriptServer = new WorkerScriptServer({ workerEntry });
       },
     ].map((f) => f()),
   );

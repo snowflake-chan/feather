@@ -1,8 +1,10 @@
 import { rootLogger, setRootLogLevel } from './utils/logger'; // Logger 需要放在第一位加载来为其他模块提供日志
 
+import path from 'path';
 import { argv } from '../config';
 import { getConfig } from '../config/server';
 import { startServer } from './entry';
+import { WorkerScriptServer } from './utils/script-server/worker/worker-script-server';
 
 rootLogger.info('Start Game Server.');
 
@@ -82,7 +84,13 @@ async function go() {
 
   rootLogger.info('game server.  node' + process.version);
 
-  await startServer(serverConfig);
+  // 组合根：engine 只认 ScriptServer，不关心它是不是 worker
+  const workerEntry =
+    process.env.SCRIPT_WORKER_ENTRY ||
+    path.resolve(__dirname, './assets/worker/worker-script-entry.js');
+  const scriptServer = new WorkerScriptServer({ workerEntry });
+
+  await startServer(serverConfig, { scriptServer });
 }
 
 go().catch(async (e) => {
