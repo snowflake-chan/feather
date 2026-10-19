@@ -10,3 +10,5 @@ protocol/dist/
 transport/dist/
 
 daemon/dist/
+
+cli/dist/

@@ -4,6 +4,7 @@ engine + shell 的 monorepo。
 
 ```
 feather/
+├── cli/             # feather load / up（workspace CLI）
 ├── engine/          # 主线程：权威状态、物理、网络、内容
 ├── daemon/          # 本地管理面契约（Docker-like；暂只有类型）
 ├── shell/           # Worker：执行用户代码
@@ -67,6 +68,7 @@ curl http://127.0.0.1:9977/api/health-check
 | [docs/API-DESIGN.md](docs/API-DESIGN.md) | Game API（玩家入口）、engine 契约 |
 | [docs/DAEMON-API.md](docs/DAEMON-API.md) | Daemon API（本地管理面，Docker-like） |
 | [docs/STORAGE.md](docs/STORAGE.md) | 数据存储：SQLite / PostgreSQL / 本地 JSON |
+| [docs/WORKSPACE.md](docs/WORKSPACE.md) | workspace 布局、`feather load`、`.boxplay` / `.boxproject` |
 | [protocol/README.md](protocol/README.md) | 共享协议、构建顺序、golden vectors |
 | [engine/README.md](engine/README.md) | engine 抽取、worker 传输、构建 |
 | [engine/SMOKE.md](engine/SMOKE.md) | 已验证的 smoke 命令与输出 |
