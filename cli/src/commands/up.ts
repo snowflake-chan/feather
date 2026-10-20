@@ -1,0 +1,47 @@
+import path from 'node:path';
+
+import { ApiError } from '../client';
+import { ensureDaemon } from '../daemon-process';
+import { findWorkspaceRoot, loadWorkspace } from '../workspace-spec';
+
+export async function upCommand(options: { root?: string; foreground?: boolean } = {}) {
+  const root = options.root ? path.resolve(options.root) : findWorkspaceRoot();
+  const workspace = loadWorkspace(root);
+  const client = await ensureDaemon(root, options.foreground);
+  const existing = new Map((await client.listMaps()).map((map) => [map.id, map]));
+  // Create every map first so daemon shard assignment sees the full workspace.
+  for (const spec of workspace.maps) {
+    if (!existing.has(spec.id)) {
+      const status = await client.createMap(spec);
+      existing.set(spec.id, status);
+    }
+  }
+  for (const spec of workspace.maps) {
+    const status = existing.get(spec.id)!;
+    if (spec.autoStart !== false && status.state !== 'running') {
+      await ensureRunning(client, spec.id);
+    }
+    const current = await client.getMap(spec.id);
+    process.stdout.write(
+      `${current.id}\t${current.state}\t${current.url || '-'}\tshard=${current.shardId || '-'}\n`,
+    );
+  }
+  process.stdout.write(`workspace: ${workspace.root}\n`);
+}
+
+async function ensureRunning(client: import('../client').DaemonClient, id: string) {
+  const deadline = Date.now() + 60_000;
+  for (;;) {
+    try {
+      await client.startMap(id);
+      return;
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.code !== 'OPERATION_IN_PROGRESS') throw error;
+      if (Date.now() > deadline) throw error;
+      const map = await client.getMap(id);
+      if (map.state === 'running') return;
+      if (map.state === 'error') throw new Error(map.error || `map ${id} failed`);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+}

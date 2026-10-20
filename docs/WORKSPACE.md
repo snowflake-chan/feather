@@ -60,8 +60,51 @@ auto_start = true
 
 `.boxproject` 需要 import + publish 才能生成 release；当前只做解包，不假装可玩。
 
-## 下一步
+## 运行
 
-- `feather up`：读 `feather.toml`，起 engine 进程，生成 SQLite/logs
-- `feather ps/down/logs`
-- 多图 + 反代
+```bash
+cd my-server
+feather up          # 启动 daemon + shard worker + map
+feather ps
+feather logs <id> -f
+feather stop <id>
+feather down
+```
+
+`feather up` 会：
+
+1. 读 `feather.toml`
+2. 没有 daemon 就 detached 启动 `<workspace>/.feather/daemon.sock`
+3. 创建缺失的 map
+4. 启动 `auto_start` 的 map
+5. 打印 `map -> http://127.0.0.1:<port>`
+
+daemon 状态：
+
+```
+.feather/
+  daemon.sock
+  daemon.pid
+  state.json          # map specs，daemon 重启后恢复
+  config/local.json   # @box/env 本地配置
+  sqlite/<group>.sqlite
+  data/<mapId>/
+  logs/daemon.log
+  logs/<mapId>.log
+  storage/
+```
+
+D2 的 shard 行为：
+
+- 默认 `target_maps_per_shard = 10`
+- 2 张图会进入同一个 shard worker
+- 每张图仍有自己的 script worker
+- 停一张图不会停 shard
+- `MapStatus` 里的 `shardId` 可见
+
+## 已知限制（D2）
+
+- 一个 shard 内多图仍各自调用一次 `startServer`，content/build 每图一份；共享 HostContext 在 D3
+- map logs 目前是 shard 级 stdout/stderr，未按图打标
+- 不做热迁移；shard 崩溃按 map 重启策略恢复
+- 不做反代；端口直接暴露

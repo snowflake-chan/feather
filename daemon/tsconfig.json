@@ -3,7 +3,10 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "ES2017",
-    "lib": ["es2018"],
+    "lib": [
+      "es2018",
+      "dom"
+    ],
     "declaration": true,
     "outDir": "dist",
     "rootDir": "src",
@@ -14,7 +17,12 @@
     "strictFunctionTypes": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }

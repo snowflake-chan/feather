@@ -20,8 +20,11 @@ export interface MapLimits {
 export interface MapSpec {
   id: string;
   name?: string;
+  workspaceId?: string;
   projectHash?: string;
   projectStatePath?: string;
+  contentDir?: string;
+  localConfigPath?: string;
   port?: number;
   scriptWorkerEntry?: string;
   env?: Record<string, string>;
@@ -29,18 +32,30 @@ export interface MapSpec {
   restartPolicy?: RestartPolicy;
   autoStart?: boolean;
   dataDir?: string;
+  mode?: 'play' | 'edit';
+  method?: 'local';
+  databaseUrl?: string;
+  groupNamespace?: string;
+  dataStorageNamespace?: string;
+  contentId?: number;
   labels?: Record<string, string>;
 }
 
 export interface MapStatus {
   id: string;
   name?: string;
+  workspaceId?: string;
   state: MapState;
+  runtime: 'worker';
+  shardId?: string;
   port?: number;
+  url?: string;
   pid?: number;
   startedAt?: string;
   engine?: EngineStatus;
   error?: string;
+  restartPolicy?: RestartPolicy;
+  autoStart?: boolean;
   labels?: Record<string, string>;
 }
 
@@ -93,8 +108,11 @@ export interface DaemonInfo {
   apiVersion: string;
   runtime: string;
   maps: number;
+  shards: number;
+  cores: number;
   uptimeMs: number;
   dataDir?: string;
+  socketPath?: string;
 }
 
 export interface StopOptions {
@@ -143,12 +161,16 @@ export interface DaemonHandle {
 }
 
 export interface CreateDaemonOptions {
-  /** 默认 /var/run/feather/daemon.sock */
+  /** workspace 根目录；daemon 默认 socket/data 都在 <workspace>/.feather */
+  workspaceRoot?: string;
+  /** 默认 <workspace>/.feather/daemon.sock */
   socketPath?: string;
   /** 显式开启 TCP 时才用 */
   host?: string;
   port?: number;
   dataDir?: string;
+  token?: string;
+  tcp?: boolean;
 }
 
 /**

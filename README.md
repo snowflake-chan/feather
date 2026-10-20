@@ -6,7 +6,7 @@ engine + shell 的 monorepo。
 feather/
 ├── cli/             # feather load / up（workspace CLI）
 ├── engine/          # 主线程：权威状态、物理、网络、内容
-├── daemon/          # 本地管理面契约（Docker-like；暂只有类型）
+├── daemon/          # 本地 supervisor + UDS API（Docker-like）
 ├── shell/           # Worker：执行用户代码
 ├── protocol/        # engine/shell 共享的脚本协议、schema、golden vectors
 ├── transport/       # Node worker_threads 传输层（server/client）
@@ -19,12 +19,16 @@ feather/
 ## 拓扑
 
 ```
-Node 主进程（engine）
-├── HTTP/WS + 游戏逻辑 + 权威状态 + 内容
-└── ScriptHost ── MessagePort ──> Worker 1..N（shell）
+feather CLI
+   │ HTTP over Unix socket
+daemon（main）
+   ├── shard worker 0
+   │     ├── GameServer A + script worker A
+   │     └── GameServer B + script worker B
+   └── shard worker 1 ...
 ```
 
-engine 不在主线程执行用户代码；shell 只通过 `ScriptProtocol` 和 engine 通信。
+engine 不跑用户脚本；script worker 一图一个，严格隔离。daemon 只做 supervisor。
 
 ## 命令
 
@@ -33,6 +37,17 @@ pnpm install
 pnpm typecheck     # protocol + transport + shell + engine，0 errors
 pnpm build         # protocol + transport + shell + engine
 pnpm test:protocol # golden vectors（schema 指纹 + diff/patch 字节）
+pnpm test:daemon   # shard + daemon API E2E（需要 BOX_BUNDLED_CONTENT_PATH）
+```
+
+workspace：
+
+```bash
+node cli/bin/feather load map.boxplay --dir ./my-server
+cd my-server
+node ../feather/cli/bin/feather up
+node ../feather/cli/bin/feather ps
+node ../feather/cli/bin/feather down
 ```
 
 ## Smoke
@@ -90,4 +105,5 @@ curl http://127.0.0.1:9977/api/health-check
 
 - **Phase 1（已完成）**：合并、统一 vendor、build + typecheck + smoke
 - **Phase 2（已完成）**：抽 `protocol/`（`ScriptProtocol` + 共享 schema + golden vectors）
-- **Phase 3**：`daemon/`、`cli/`、CI
+- **Phase 3（D2 已完成）**：daemon shard supervisor + UDS API + `feather up/ps/stop/logs/down`
+- **Phase 4**：共享 HostContext（C2，content/build 复用）、反代、CI

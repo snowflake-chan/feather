@@ -1,4 +1,4 @@
-# Daemon API 设计（Docker-like）
+# Daemon API（Docker-like）
 
 本地管理面。只给管理员 / CLI / daemon 自己用，和玩家入口（Game API）完全分开。
 
@@ -52,7 +52,7 @@ stopped / error → starting（restart）
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
-| GET | `/_ping` | liveness；`OK` |
+| GET | `/_ping` | liveness；`OK`；不需要认证 |
 | GET | `/v1/version` | `{ version, apiVersion }` |
 | GET | `/v1/info` | daemon 信息、runtime、地图数、uptime |
 | GET | `/v1/maps` | 列出 map |
@@ -67,6 +67,7 @@ stopped / error → starting（restart）
 | GET | `/v1/events` | NDJSON 生命周期事件；`since=` |
 | GET | `/v1/operations/:id` | 异步操作状态 |
 | POST | `/v1/maps/:id/exec` | 管理命令（谨慎；默认关闭） |
+| POST | `/v1/shutdown` | 关闭 daemon；仅本地/已认证 |
 | GET | `/v1/metrics` | Prometheus（可选） |
 
 ### 4.1 创建地图
@@ -160,7 +161,30 @@ GET /v1/events?since=...
 - 列表未来支持 `?limit=&cursor=`；当前地图数量小，先全量
 - 未来更新 spec 用 `If-Match` / generation 做乐观并发
 
-## 7. Daemon 契约
+## 7. D2 实现状态
+
+- daemon 运行时已落地：`createDaemon()` + UDS/TCP API
+- 目前一个 **shard worker** 可跑多张图（`mapsPerShard` 默认 10）；script 仍一图一个 worker
+- map 状态含 `shardId` / `runtime: "worker"`
+- `feather up/ps/stop/logs/down` 已接入
+- `feather-daemon` 默认 `<workspace>/.feather/daemon.sock`
+- daemon 重启会从 `.feather/state.json` 读取 spec，`autoStart` 的图自动拉起
+
+Postman 可直接调 UDS：
+
+```text
+http://unix:/abs/workspace/.feather/daemon.sock:/v1/maps
+```
+
+Windows named pipe：
+
+```text
+http://unix://./pipe/feather-daemon:/v1/maps
+```
+
+注意：D2 的 map logs 暂时是 shard 级日志（worker stdout/stderr），还没有按图打标；per-map 日志在 D3 补。
+
+## 8. Daemon 契约
 
 `@feather/daemon/contract`：
 
@@ -189,32 +213,33 @@ interface DaemonHandle {
 
 - `MapSpec` / `MapStatus` / `MapStats` / `LogEntry` / `DaemonEvent` / `Operation` 见契约文件
 - 类型只描述 supervisor；单图 engine 仍是 `EngineHandle`
-- daemon 可以**先单图 in-process**，再演进到多图/多进程
+- D2 已实现 shard worker 多图；共享 HostContext 在 D3
 
-## 8. CLI 映射
+## 9. CLI 映射
 
 | CLI | API |
 |---|---|
 | `feather ps` | `GET /v1/maps` |
-| `feather up <spec>` | `POST /v1/maps` |
-| `feather start <id>` | `POST /v1/maps/:id/start` |
+| `feather up` | 读 `feather.toml` → `POST /v1/maps` + `/start` |
+| `feather down` | stop all → `POST /v1/shutdown` |
+| `feather start <id>`（planned） | `POST /v1/maps/:id/start` |
 | `feather stop <id>` | `POST /v1/maps/:id/stop` |
-| `feather restart <id>` | `POST /v1/maps/:id/restart` |
-| `feather rm <id>` | `DELETE /v1/maps/:id` |
+| `feather restart <id>`（planned） | `POST /v1/maps/:id/restart` |
+| `feather rm <id>`（planned） | `DELETE /v1/maps/:id` |
 | `feather logs <id> -f` | `GET /v1/maps/:id/logs?follow=1` |
-| `feather stats <id>` | `GET /v1/maps/:id/stats` |
-| `feather events` | `GET /v1/events` |
-| `feather exec <id> -- cmd` | `POST /v1/maps/:id/exec` |
+| `feather stats <id>`（planned） | `GET /v1/maps/:id/stats` |
+| `feather events`（planned） | `GET /v1/events` |
+| `feather exec <id> -- cmd`（planned） | `POST /v1/maps/:id/exec` |
 
-## 9. 迁移
+## 10. 迁移
 
 - **D1（本次）**：`@feather/daemon` 只放契约类型；不实现
-- **D2**：单图 in-process supervisor + 本地 socket server；`ps/up/stop/logs`
-- **D3**：多图；每图一个 engine 实例（后续 worker pool）
+- **D2（已完成）**：shard worker supervisor + 本地 UDS API；`ps/up/stop/logs/down`
+- **D3**：共享 HostContext（content/build/brpc/redis），减少每图重复
 - **D4**：多进程 / 独立 game runtime；daemon 只负责进程与 socket
 - **D5**：events/metrics/exec，CLI 完整
 
-## 10. 明确不做
+## 11. 明确不做
 
 - 不把 daemon 暴露到公网
 - 不在 daemon 上做玩家 session
