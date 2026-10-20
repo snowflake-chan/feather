@@ -116,6 +116,7 @@ export class ShardRuntime {
     this._worker.postMessage({ type: 'stopMap', id });
     await stopped;
     state.ready = false;
+    this.maps.delete(id);
   }
 
   public async stopAll(timeoutMs = 15_000): Promise<void> {

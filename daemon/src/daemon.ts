@@ -183,6 +183,10 @@ export class Daemon implements DaemonHandle {
       operation.finishedAt = now();
       this._event({ type: 'map.stopped', mapId: id, time: now() });
       this._persist();
+      if (shard && shard.maps.size === 0) {
+        await shard.stopAll();
+        this._shards.delete(shard.shardId);
+      }
       return operation;
     } catch (error) {
       record.status.state = 'error';
