@@ -170,6 +170,8 @@ GET /v1/events?since=...
 - `feather-daemon` 默认 `<workspace>/.feather/daemon.sock`
 - daemon 重启会从 `.feather/state.json` 读取 spec，`autoStart` 的图自动拉起
 
+Postman Collection：[docs/postman/feather-daemon.postman_collection.json](postman/feather-daemon.postman_collection.json)（导入后改 `daemonSocket` 变量）。
+
 Postman 可直接调 UDS：
 
 ```text
