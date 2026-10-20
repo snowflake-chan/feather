@@ -1,6 +1,6 @@
 // feather-shell 的 worker 入口（非侵入：不 import/modify src/shell 的任何逻辑）
 'use strict';
-process.stderr.write('[worker-entry] boot\n');
+process.stdout.write('[worker-entry] boot\n');
 const path = require('path');
 const { parentPort } = require('worker_threads');
 const { randomUUID } = require('crypto');
@@ -19,10 +19,12 @@ const sysLog = (level, object, message, ...args) => {
   }
   if (message !== undefined) parts.push(String(message));
   for (const a of args) parts.push(String(a));
-  process.stderr.write(`[shell:${level}] ${parts.join(' ')}\n`);
+  const line = `[shell:${level}] ${parts.join(' ')}\n`;
+  if (level === 'error' || level === 'warn') process.stderr.write(line);
+  else process.stdout.write(line);
 };
 
 const { ScriptShell } = require(path.resolve(__dirname, '../../dist/script/script-shell'));
 
 new ScriptShell(socket, false, sysLog);
-process.stderr.write('[worker-entry] ScriptShell constructed\n');
+process.stdout.write('[worker-entry] ScriptShell constructed\n');
