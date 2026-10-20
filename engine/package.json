@@ -29,7 +29,8 @@
     "check:sqlite-storage": "node -r @swc-node/register scripts/check-sqlite-data-storage.ts",
     "check:game-close": "node -r @swc-node/register scripts/check-game-close.ts",
     "check:two-games": "node -r @swc-node/register scripts/check-two-games.ts",
-    "check:gc": "node --expose-gc -r @swc-node/register scripts/check-gc.ts"
+    "check:gc": "node --expose-gc -r @swc-node/register scripts/check-gc.ts",
+    "check:map-context": "node -r @swc-node/register scripts/check-map-context.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1.0.28",
@@ -95,6 +96,14 @@
     "./contract": {
       "types": "./dist/src/engine-contract.d.ts",
       "require": "./dist/src/engine-contract.js"
+    },
+    "./entry": {
+      "types": "./dist/src/entry.d.ts",
+      "require": "./dist/src/entry.js"
+    },
+    "./config": {
+      "types": "./dist/config/server.d.ts",
+      "require": "./dist/config/server.js"
     }
   },
   "typesVersions": {
@@ -104,6 +113,12 @@
       ],
       "*": [
         "dist/src/*"
+      ],
+      "entry": [
+        "dist/src/entry.d.ts"
+      ],
+      "config": [
+        "dist/config/server.d.ts"
       ]
     }
   }

@@ -138,9 +138,21 @@ function localAssetContentType(fileName: string, content: Uint8Array) {
   return undefined;
 }
 
+export interface EngineMapPaths {
+  projectStatePath?: string;
+  groupProjectStatePath?: string;
+  bundledContentPath?: string;
+  groupContentPath?: string;
+  derivedStoragePath?: string;
+  storagePath?: string;
+  containerName?: string;
+}
+
 export interface StartServerOptions {
   /** 由组合根（launch.ts / app/index.ts）注入的脚本执行宿主 */
   scriptServer: ScriptServer;
+  /** 同一进程/worker 内多图时，按图覆盖 project/content/storage 路径 */
+  paths?: EngineMapPaths;
 }
 
 export interface StartServerResult {
@@ -181,6 +193,16 @@ export async function startServer(
   const isHttps = spec.isHttps && !!httpsConfig;
   const isDevelopment = spec.env === 'development';
   const startTime = Date.now();
+  const projectStatePath =
+    options.paths?.projectStatePath ?? process.env.BOX_PROJECT_STATE_PATH;
+  const groupProjectStatePath =
+    options.paths?.groupProjectStatePath ??
+    process.env.BOX_GROUP_PROJECT_STATE_PATH;
+  const containerName =
+    spec.containerName ||
+    options.paths?.containerName ||
+    process.env.CONTAINER_NAME ||
+    '';
 
   // create logger
   const legacyLogger = new Logger(
@@ -238,7 +260,7 @@ export async function startServer(
     path.join(spec.storagePath, 'blobs'),
   );
   const derivedStoragePath = isLocal
-    ? String(process.env.BOX_DERIVED_STORAGE_PATH || '').trim()
+    ? String(options.paths?.derivedStoragePath ?? process.env.BOX_DERIVED_STORAGE_PATH ?? '').trim()
     : '';
   const localContentServer = derivedStoragePath
     ? new LocalDerivedContentServer({
@@ -248,11 +270,13 @@ export async function startServer(
         ),
       })
     : sourceLocalContentServer;
-  const bundledContentPath = process.env.BOX_BUNDLED_CONTENT_PATH || '';
+  const bundledContentPath =
+    options.paths?.bundledContentPath ?? process.env.BOX_BUNDLED_CONTENT_PATH ?? '';
   const bundledContentServer = bundledContentPath
     ? new FileSystemContentServer(bundledContentPath)
     : undefined;
-  const groupContentPath = process.env.BOX_GROUP_CONTENT_PATH || '';
+  const groupContentPath =
+    options.paths?.groupContentPath ?? process.env.BOX_GROUP_CONTENT_PATH ?? '';
   const groupContentServer = groupContentPath
     ? new FileSystemContentServer(groupContentPath)
     : undefined;
@@ -353,7 +377,7 @@ export async function startServer(
       logger.child({ caller: 'build' }),
     );
   } else {
-    const storagePath = process.env.STORAGE_PATH || '';
+    const storagePath = options.paths?.storagePath ?? process.env.STORAGE_PATH ?? '';
     const buildCacheRoot = derivedStoragePath || storagePath;
     const persistentBuildCache = isLocal && buildCacheRoot
       ? new LocalBuildCache(
@@ -423,7 +447,7 @@ export async function startServer(
     },
   };
   if (isLocal) {
-    const storagePath = process.env.STORAGE_PATH || '';
+    const storagePath = options.paths?.storagePath ?? process.env.STORAGE_PATH ?? '';
     const privateBlobManifest = path.join(storagePath, 'private-blobs.json');
     let deniedHashes = new Set<string>();
     if (spec.mode === 'play' && fs.existsSync(privateBlobManifest)) {
@@ -463,7 +487,7 @@ export async function startServer(
         return;
       }
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify(getLocalProjectSkinPreviews()));
+      res.end(JSON.stringify(getLocalProjectSkinPreviews(projectStatePath)));
     };
   }
 
@@ -531,7 +555,7 @@ export async function startServer(
         // Editable projects persist their latest root hash. Published play
         // worlds are intentionally mounted read-only and must never be mutated.
         if (isLocal && spec.mode === 'edit') {
-          persistLocalProjectState(hash);
+          persistLocalProjectState(hash, undefined, projectStatePath);
         }
 
         // get the prebake hash for this project
@@ -540,11 +564,11 @@ export async function startServer(
         // get extra project info
         const embeddedExtraProject =
           isLocal &&
-          (getLocalExtraProjectMode() === 'embedded' ||
-            Boolean(process.env.BOX_GROUP_PROJECT_STATE_PATH));
+          (getLocalExtraProjectMode(projectStatePath) === 'embedded' ||
+            Boolean(groupProjectStatePath));
         const persistedExtraProjectHash =
           isLocal && (spec.mode === 'play' || embeddedExtraProject)
-            ? getLocalExtraProjectStateHash()
+            ? getLocalExtraProjectStateHash(projectStatePath)
             : '';
         let extraProject;
         let extraProjectHash = persistedExtraProjectHash;
@@ -563,11 +587,12 @@ export async function startServer(
               contentId,
               spec.mode,
               logger,
+              containerName,
             );
             extraProject = mergeExtraProjectInfo(
               extraProject,
               localExtraProject,
-              new Set(getDeletedLocalProjectModelPaths()),
+              new Set(getDeletedLocalProjectModelPaths(projectStatePath)),
             );
             const stream = new MuWriteStream(1);
             ExtraProjectInfoSchema.diff(
@@ -586,6 +611,7 @@ export async function startServer(
             contentId,
             spec.mode,
             logger,
+            containerName,
           );
           const stream = new MuWriteStream(1);
           ExtraProjectInfoSchema.diff(
@@ -598,7 +624,7 @@ export async function startServer(
         }
 
         if (isLocal && spec.mode === 'edit') {
-          persistLocalProjectState(hash, extraProjectHash);
+          persistLocalProjectState(hash, extraProjectHash, projectStatePath);
         }
 
         // get extra project hash
@@ -614,7 +640,7 @@ export async function startServer(
          * - play
          *   - 直接请求后端，获取哈希数据（groupProjectMetaData）
          */
-        groupProjectMetaData = getLocalGroupProjectMetaData();
+        groupProjectMetaData = getLocalGroupProjectMetaData(projectStatePath);
         if (groupProjectMetaData) {
           logger.info(
             `Has groupProject metaData ${JSON.stringify(groupProjectMetaData)}`,
@@ -782,8 +808,17 @@ export async function startServer(
   } else {
     httpServer.listen(spec.port, spec.playerLimit * 10);
   }
-  logger.info('HTTP server address: ', httpServer.address());
-  const realPort = spec.port || (<AddressInfo>httpServer.address()).port;
+  if (!httpServer.listening) {
+    await new Promise<void>((resolve, reject) => {
+      httpServer.once('listening', () => resolve());
+      httpServer.once('error', (error) => reject(error));
+    });
+  }
+  const serverAddress = httpServer.address();
+  logger.info('HTTP server address: ', serverAddress);
+  const realPort =
+    spec.port ||
+    (serverAddress && typeof serverAddress === 'object' ? serverAddress.port : 0);
   let serverName = `${spec.mode}/${spec.method}`;
   if (spec.method === 'local') {
     serverName = 'local';

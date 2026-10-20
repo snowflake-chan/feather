@@ -154,15 +154,11 @@ export async function getExtraProject(
   mapId: number,
   _mode: Mode,
   logger: Logger,
+  containerName = process.env.CONTAINER_NAME || '',
 ) {
   const voxaURL =
     process.env.VOXA_INTERNAL_URL ||
     process.env.VOXA_URL ||
     'http://127.0.0.1:3001';
-  return getLocalExtraProject(
-    voxaURL,
-    mapId,
-    logger,
-    process.env.CONTAINER_NAME || '',
-  );
+  return getLocalExtraProject(voxaURL, mapId, logger, containerName);
 }

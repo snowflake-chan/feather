@@ -92,7 +92,18 @@ async function go() {
     path.resolve(__dirname, './assets/worker/worker-script-entry.js');
   const scriptServer = new WorkerScriptServer({ workerEntry });
 
-  await startServer(serverConfig, { scriptServer });
+  await startServer(serverConfig, {
+    scriptServer,
+    paths: {
+      projectStatePath: process.env.BOX_PROJECT_STATE_PATH,
+      groupProjectStatePath: process.env.BOX_GROUP_PROJECT_STATE_PATH,
+      bundledContentPath: process.env.BOX_BUNDLED_CONTENT_PATH,
+      groupContentPath: process.env.BOX_GROUP_CONTENT_PATH,
+      derivedStoragePath: process.env.BOX_DERIVED_STORAGE_PATH,
+      storagePath: process.env.STORAGE_PATH,
+      containerName: process.env.CONTAINER_NAME,
+    },
+  });
 
   // Host-level pool compaction; not tied to a single map's startServer context.
   setTimeout(clearMemoryPool, 1000);
