@@ -30,7 +30,8 @@
     "check:game-close": "node -r @swc-node/register scripts/check-game-close.ts",
     "check:two-games": "node -r @swc-node/register scripts/check-two-games.ts",
     "check:gc": "node --expose-gc -r @swc-node/register scripts/check-gc.ts",
-    "check:map-context": "node -r @swc-node/register scripts/check-map-context.ts"
+    "check:map-context": "node -r @swc-node/register scripts/check-map-context.ts",
+    "check:script-timeout": "node -r @swc-node/register scripts/check-script-timeout.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1.0.28",

@@ -157,6 +157,9 @@ export class ScriptHost {
   // called when scripts timeout
   public onScriptCrash = new EventBus<void>();
 
+  private _lastScriptTickAt = Date.now();
+  private _scriptTimedOut = false;
+
   private _state: GameServerState;
 
   private _handleCounter: number = 0;
@@ -540,6 +543,7 @@ export class ScriptHost {
 
         postTick: (client, data) => {
           if (this._scriptReady(client.sessionId)) {
+            this._lastScriptTickAt = Date.now();
             ScriptPerfCounterSchema.assign(this._state.perf.script, data.perf);
             this._state.script.scriptSync.push(
               ScriptPostTickSchema.clone(data),
@@ -841,7 +845,34 @@ export class ScriptHost {
     this.logger.info('Script server started.');
   }
 
+  private _enforceScriptTimeout() {
+    if (this._scriptTimedOut) return;
+    if (scriptRunState(this._state.script) !== GameScriptRunState.RUNNING) return;
+    if (!this._state.script.activeScriptId) return;
+    const timeout = Number(this._state.settings.scriptTimeout);
+    if (!Number.isFinite(timeout) || timeout <= 0) return;
+    const elapsed = Date.now() - this._lastScriptTickAt;
+    if (elapsed <= timeout) return;
+    this._scriptTimedOut = true;
+    this.logger.error(
+      `User script tick timeout: ${elapsed}ms > ${timeout}ms; terminating worker.`,
+    );
+    const scriptServer = this.scriptServer as ScriptServer & {
+      terminateWorkers?: () => void;
+    };
+    if (scriptServer.terminateWorkers) {
+      scriptServer.terminateWorkers();
+    } else {
+      try {
+        scriptServer.close();
+      } catch (error) {
+        this.logger.error(error, 'Failed to terminate timed-out script server.');
+      }
+    }
+  }
+
   public preTickApplyScriptUpdates() {
+    this._enforceScriptTimeout();
     const state = this._state;
 
     // if script is blocked or suspended, defer handling any updates
@@ -1012,6 +1043,8 @@ export class ScriptHost {
 
     // clear active script id
     this._state.script.activeScriptId = '';
+    this._scriptTimedOut = false;
+    this._lastScriptTickAt = Date.now();
     this.anticheat?.reset();
 
     // wait for baton
@@ -1059,6 +1092,12 @@ export class ScriptHost {
 
   // stop all running scripts
   public async close() {
+    // Map shutdown must not wait for a user script that is stuck in a tick.
+    try {
+      (this.scriptServer as ScriptServer & { terminateWorkers?: () => void }).terminateWorkers?.();
+    } catch {
+      // Best effort; the script server close below also tears down workers.
+    }
     await this.stop();
     this.onConsoleLog.unsubAll();
     this.onConsoleClear.unsubAll();

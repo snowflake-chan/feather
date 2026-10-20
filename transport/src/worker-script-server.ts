@@ -49,14 +49,18 @@ export class WorkerScriptServer implements ScriptServer {
 
   private _closing = false;
 
-  public close() {
-    this._closing = true;
+  public terminateWorkers() {
     for (const worker of this._workers) {
       try {
         worker.terminate();
       } catch (e) {}
     }
     this._workers.clear();
+  }
+
+  public close() {
+    this._closing = true;
+    this.terminateWorkers();
     this._socketServer.close();
   }
 

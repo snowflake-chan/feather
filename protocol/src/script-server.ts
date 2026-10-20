@@ -8,6 +8,8 @@ import type { ParsedError } from '@box/schema/debugger-console/schema';
  */
 export interface ScriptServer extends MuSocketServer {
   launch(script: number | string, _module: any): Promise<void>;
+  /** Terminate script workers but keep the socket server alive for relaunch. */
+  terminateWorkers?(): void;
   /**
    * HACK: 用于从外部传入 VM 接收到的但脚本中未捕获到的错误。
    */
