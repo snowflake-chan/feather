@@ -159,6 +159,7 @@ export class ScriptHost {
 
   private _lastScriptTickAt = Date.now();
   private _scriptTimedOut = false;
+  private _closing = false;
 
   private _state: GameServerState;
 
@@ -775,7 +776,10 @@ export class ScriptHost {
           }
         }
 
-        if (client.sessionId === this._state.script.activeScriptId) {
+        if (
+          !this._closing &&
+          client.sessionId === this._state.script.activeScriptId
+        ) {
           this.logger.error(new Error('User script terminated unexpectedly'));
           this.onScriptCrash.notify();
         }
@@ -1044,6 +1048,7 @@ export class ScriptHost {
     // clear active script id
     this._state.script.activeScriptId = '';
     this._scriptTimedOut = false;
+    this._closing = false;
     this._lastScriptTickAt = Date.now();
     this.anticheat?.reset();
 
@@ -1092,6 +1097,7 @@ export class ScriptHost {
 
   // stop all running scripts
   public async close() {
+    this._closing = true;
     // Map shutdown must not wait for a user script that is stuck in a tick.
     try {
       (this.scriptServer as ScriptServer & { terminateWorkers?: () => void }).terminateWorkers?.();
