@@ -20,6 +20,7 @@ interface MapHandle {
   startedAt: number;
   previousCpu: NodeJS.CpuUsage;
   previousTime: number;
+  previousTick: number;
 }
 
 const port = parentPort;
@@ -56,6 +57,7 @@ async function startMap(spec: MapSpec) {
       startedAt: now,
       previousCpu: process.cpuUsage(),
       previousTime: now,
+      previousTick: Number(result.game.state?.clock?.tick ?? 0),
     });
     send({ type: 'mapReady', id: spec.id, port: actualPort });
   } catch (error) {
@@ -111,9 +113,11 @@ async function main() {
         startedAt: handle.startedAt,
         previousCpu: handle.previousCpu,
         previousTime: handle.previousTime,
+        previousTick: handle.previousTick,
       });
       handle.previousCpu = collected.previousCpu;
       handle.previousTime = collected.previousTime;
+      handle.previousTick = collected.previousTick;
       send({ type: 'stats', id, stats: collected.stats });
     }
   }, 1000);
