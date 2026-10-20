@@ -44,7 +44,14 @@ name = "起床战争"
 path = "maps/cloud-4e84.../worlds/cloud-4e84..."
 port = 3001
 auto_start = true
+memory_mb = 512       # 单图脚本 worker 的内存上限；不填用全局 SCRIPT_MEMORY_LIMIT
+player_limit = 32
 ```
+
+- `memory_mb` 落到 `MapSpec.limits.memoryMb`，最终变成 shell worker 的
+  `resourceLimits.maxOldGenerationSizeMb`。撞上限时只有这张图的 worker 被 abort，
+  daemon 和同 shard 其他图不受影响。不填则继承 `SCRIPT_MEMORY_LIMIT`（本地默认 512）。
+- shard worker **不设**内存上限——一个 shard 承载多图，撞上限会一次带走整批图。
 
 - `mode = "shared"`：所有 map 共用一个 SQLite + group namespace
 - 每图 `BOX_DATA_STORAGE_NAMESPACE` 用 map id，project 数据隔离
@@ -94,13 +101,17 @@ daemon 状态：
   storage/
 ```
 
-D2 的 shard 行为：
+shard 行为（按核数分配）：
 
-- 默认 `target_maps_per_shard = 10`
-- 2 张图会进入同一个 shard worker
-- 每张图仍有自己的 script worker
-- 停一张图不会停 shard
+- 预算 = `os.availableParallelism()`，可用 `FEATHER_MAX_SHARDS=<n>` 覆盖
+- 预算没用完：一张图一个 shard worker（一图一线程，tick 互不排队）
+- 预算用完：新图塞进最闲的 shard；`ceil(图数 / 核数)` 是单个 shard 的上限
+- 1 核机器自然退化成「全部打包进一个 shard」，代码页与 engine 模块图只留一份
+- 每张图仍有自己的 script worker（不受 shard 策略影响）
+- 停一张图不会停 shard；shard 空了才回收
 - `MapStatus` 里的 `shardId` 可见
+
+只数 `running` / `starting` 的图，`created` / `stopped` 的图不占核预算。
 
 ## 已知限制（D2）
 

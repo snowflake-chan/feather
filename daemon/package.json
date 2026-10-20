@@ -36,6 +36,9 @@
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:shard": "node dist/check-shard.js",
+    "check:shard-policy": "node dist/check-shard-policy.js",
+    "check:map-config": "node dist/check-map-config.js",
+    "check:stats": "node dist/check-stats.js",
     "check:daemon": "node dist/check-daemon.js"
   },
   "dependencies": {

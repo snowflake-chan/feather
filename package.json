@@ -7,6 +7,6 @@
     "typecheck": "pnpm --filter @feather/protocol typecheck && pnpm --filter @feather/transport typecheck && pnpm --filter feather-shell typecheck && pnpm --filter feather-engine typecheck && pnpm --filter @feather/daemon typecheck && pnpm --filter @feather/cli typecheck",
     "build": "pnpm --filter @feather/protocol build && pnpm --filter @feather/transport build && pnpm --filter feather-shell build && pnpm --filter feather-engine build && pnpm --filter @feather/daemon build && pnpm --filter @feather/cli build",
     "test:protocol": "pnpm --filter @feather/protocol build && pnpm --filter @feather/protocol test:golden",
-    "test:daemon": "pnpm --filter @feather/daemon build && pnpm --filter @feather/daemon check:shard && pnpm --filter @feather/daemon check:daemon"
+    "test:daemon": "pnpm --filter @feather/daemon build && pnpm --filter @feather/daemon check:shard-policy && pnpm --filter @feather/daemon check:map-config && pnpm --filter @feather/daemon check:stats && pnpm --filter @feather/daemon check:shard && pnpm --filter @feather/daemon check:daemon"
   }
 }

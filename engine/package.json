@@ -31,7 +31,8 @@
     "check:two-games": "node -r @swc-node/register scripts/check-two-games.ts",
     "check:gc": "node --expose-gc -r @swc-node/register scripts/check-gc.ts",
     "check:map-context": "node -r @swc-node/register scripts/check-map-context.ts",
-    "check:script-timeout": "node -r @swc-node/register scripts/check-script-timeout.ts"
+    "check:script-timeout": "node -r @swc-node/register scripts/check-script-timeout.ts",
+    "check:script-memory": "node -r @swc-node/register scripts/check-script-memory.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1.0.28",

@@ -15,13 +15,15 @@ import type {
   MapStats,
   MapStatus,
   Operation,
+  ShardStats,
   StopOptions,
 } from './contract';
+import { resolveShardBudget, shouldCreateShard } from './runtime/shard-policy';
+import { NOMINAL_TICK_RATE } from './runtime/stats';
 import { ShardRuntime } from './runtime/shard-runtime';
 
 const VERSION = '0.1.0';
 const API_VERSION = 'v1';
-const TARGET_MAPS_PER_SHARD = 10;
 const MAX_LOG_LINES = 2000;
 const MAX_EVENTS = 2000;
 
@@ -55,6 +57,7 @@ export class Daemon implements DaemonHandle {
   private readonly _events: DaemonEvent[] = [];
   private readonly _shardLogs = new Map<string, LogEntry[]>();
   private readonly _stateFile: string;
+  private _shardSeq = 0;
   private _closed = false;
 
   constructor(private readonly _options: CreateDaemonOptions) {
@@ -84,7 +87,7 @@ export class Daemon implements DaemonHandle {
       maps: this._records.size,
       shards: this._shards.size,
       cores: os.availableParallelism(),
-      uptimeMs: Date.now() - this._startedAt,
+      uptime: Date.now() - this._startedAt,
       dataDir: this._options.dataDir,
       socketPath: this._options.socketPath,
     };
@@ -222,8 +225,42 @@ export class Daemon implements DaemonHandle {
 
   public async stats(id: string): Promise<MapStats> {
     const record = this._requireMap(id);
-    if (record.stats) return { ...record.stats };
-    return { tick: 0, players: 0, uptimeMs: 0, tickRate: 64 };
+    const shardId = record.shardId;
+    const shard = shardId ? this._shards.get(shardId) : undefined;
+    const usage = shard ? await shard.sampleUsage() : undefined;
+    // 还没采到样本：报标称值，别报 0（会让人以为已经挂了）
+    const base: MapStats = record.stats
+      ? { ...record.stats }
+      : { tick: 0, players: 0, uptime: 0, tickRate: NOMINAL_TICK_RATE };
+    return { ...base, shardId, shard: usage };
+  }
+
+  /**
+   * 按 shard 报资源占用。
+   *
+   * 这是唯一有意义的资源口径：engine 一个 shard 可以打包多图，CPU / 堆摊不到单图上。
+   * `rssBytes` 是例外——线程共享地址空间，RSS 只有进程口径，每个 shard 报的都一样。
+   */
+  public async listShards(): Promise<ShardStats[]> {
+    const rssBytes = process.memoryUsage().rss;
+    return Promise.all(
+      Array.from(this._shards.values()).map(async (shard): Promise<ShardStats> => {
+        const usage = await shard.sampleUsage();
+        return {
+          shardId: shard.shardId,
+          maps: Array.from(shard.maps.keys()),
+          mapCount: shard.maps.size,
+          rssBytes,
+          uptime: Date.now() - shard.startedAt,
+          cpuPercent: usage?.cpuPercent,
+          heapUsedBytes: usage?.heapUsedBytes,
+          heapTotalBytes: usage?.heapTotalBytes,
+          heapLimitBytes: usage?.heapLimitBytes,
+          externalBytes: usage?.externalBytes,
+          sampledAt: usage?.sampledAt ?? new Date().toISOString(),
+        };
+      }),
+    );
   }
 
   public async *logs(id: string, opts: LogOptions = {}): AsyncIterable<LogEntry> {
@@ -287,23 +324,39 @@ export class Daemon implements DaemonHandle {
         return existing;
       }
     }
-    const total = Math.max(1, this._records.size);
-    const target = Math.min(
+    // 核预算没用完 → 一图一 shard；用完了 → 塞进最闲的 shard。
+    const budget = resolveShardBudget(
       os.availableParallelism(),
-      Math.max(1, Math.ceil(total / TARGET_MAPS_PER_SHARD)),
+      process.env.FEATHER_MAX_SHARDS,
     );
-    const capacity = Math.ceil(total / target);
-    const candidates = Array.from(this._shards.values()).filter(
-      (shard) => shard.maps.size < capacity,
-    );
-    const existing = candidates.sort((a, b) => a.maps.size - b.maps.size)[0];
-    if (existing) {
-      record.shardId = existing.shardId;
-      record.status.shardId = existing.shardId;
-      await existing.addMap(record.spec);
-      return existing;
+    if (!shouldCreateShard(this._activeMapCount(), this._shards.size, budget)) {
+      const existing = this._leastLoadedShard();
+      if (existing) {
+        record.shardId = existing.shardId;
+        record.status.shardId = existing.shardId;
+        await existing.addMap(record.spec);
+        return existing;
+      }
     }
-    const shardId = `shard-${this._shards.size}`;
+    return this._createShard(record);
+  }
+
+  /** 只数 running/starting 的图；created/stopped 的图不该占核预算。 */
+  private _activeMapCount(): number {
+    let count = 0;
+    for (const record of this._records.values()) {
+      if (record.status.state === 'running' || record.status.state === 'starting') count++;
+    }
+    return count;
+  }
+
+  private _leastLoadedShard(): ShardRuntime | undefined {
+    return Array.from(this._shards.values()).sort((a, b) => a.maps.size - b.maps.size)[0];
+  }
+
+  private async _createShard(record: MapRecord): Promise<ShardRuntime> {
+    // 单调递增的序号：shard 回收后不能复用旧 id，否则会覆盖仍然存活的 shard。
+    const shardId = `shard-${this._shardSeq++}`;
     const shard = new ShardRuntime({
       shardId,
       workspaceRoot: this._options.workspaceRoot!,

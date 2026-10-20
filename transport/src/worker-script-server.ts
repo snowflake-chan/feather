@@ -13,6 +13,14 @@ export interface WorkerScriptServerOptions {
   workerEntry: string;
   /** 传给 worker 的 workerData */
   workerData?: Record<string, unknown>;
+  /**
+   * 脚本 worker 的 V8 老生代上限（MB），对应 `SCRIPT_MEMORY_LIMIT` / `MapSpec.limits.memoryMb`。
+   * 不传或非正数表示不限制。
+   *
+   * 注意：这是**单图**的上限，作用在 shell worker 上，不要给 shard worker 设
+   * ——一个 shard 承载多图，撞上限会一次带走整批图。
+   */
+  memoryLimitMb?: number;
 }
 
 /**
@@ -65,8 +73,12 @@ export class WorkerScriptServer implements ScriptServer {
   }
 
   public async launch(_script: unknown, _module: unknown): Promise<void> {
+    const limitMb = this._options.memoryLimitMb;
+    const bounded = typeof limitMb === 'number' && Number.isFinite(limitMb) && limitMb > 0;
     const worker = new NodeWorker(this._options.workerEntry, {
       workerData: this._options.workerData,
+      // 单图内存上限：撞上限时只有这个 worker 被 V8 abort，daemon 和同 shard 其他图不受影响。
+      resourceLimits: bounded ? { maxOldGenerationSizeMb: Math.floor(limitMb) } : undefined,
       // 让 worker 的 stdout/stderr 直接进主进程，shell 的 sysLog 才看得见
       stdout: true,
       stderr: true,
@@ -79,6 +91,12 @@ export class WorkerScriptServer implements ScriptServer {
       this._workers.delete(worker);
     });
     worker.on('error', (err) => {
+      if ((err as NodeJS.ErrnoException).code === 'ERR_WORKER_OUT_OF_MEMORY') {
+        console.error(
+          `[WorkerScriptServer] script worker out of memory (limit ${bounded ? limitMb : 'none'}MB)`,
+        );
+        return;
+      }
       console.error('[WorkerScriptServer] worker error:', err);
     });
     this._socketServer.attach(worker);

@@ -62,7 +62,8 @@ stopped / error → starting（restart）
 | POST | `/v1/maps/:id/start` | start；异步返回 operation |
 | POST | `/v1/maps/:id/stop` | stop；`?timeout=10&force=1` |
 | POST | `/v1/maps/:id/restart` | restart |
-| GET | `/v1/maps/:id/stats` | tick / players / memory / cpu |
+| GET | `/v1/maps/:id/stats` | `tickRate`（TPS）/ `tickDuration`（每帧计算耗时，MC 的 MSPT）/ players / 所在 shard 的资源快照 |
+| GET | `/v1/shards` | 按 shard 报 CPU / V8 堆 / 承载的图；资源指标唯一有意义的口径 |
 | GET | `/v1/maps/:id/logs` | NDJSON；`follow=1&since=&tail=` |
 | GET | `/v1/events` | NDJSON 生命周期事件；`since=` |
 | GET | `/v1/operations/:id` | 异步操作状态 |
@@ -70,7 +71,59 @@ stopped / error → starting（restart）
 | POST | `/v1/shutdown` | 关闭 daemon；仅本地/已认证 |
 | GET | `/v1/metrics` | Prometheus（可选） |
 
-### 4.1 创建地图
+### 4.1 指标口径（`stats` / `shards`）
+
+资源指标**只有 shard 口径**。engine 允许一个 shard 打包多图，CPU 和 V8 堆是整条线程 / 整个 isolate 共享的，摊不到单张图上。
+
+| 字段 | 口径 | 说明 |
+|---|---|---|
+| `tickRate` | per-map | 实测 TPS。标称 15.625（`1000/64`），掉到标称以下说明已经跟不上 |
+| `tickDuration` | per-map | 上一采样窗口内每帧的平均**计算耗时**（ms，MC 的 MSPT）。**不是** `1000/tickRate` |
+| `maxTickDuration` | per-map | 启动以来最慢的一帧 |
+| `cpuPercent` | per-shard | `worker.cpuUsage()` 窗口差值，单位 %。单核满载 = 100，塞了多图可超过 100 |
+| `heapUsedBytes` / `heapTotalBytes` / `heapLimitBytes` | per-shard | `worker.getHeapStatistics()`，该 isolate 的 V8 堆 |
+| `rssBytes` | 进程级 | 线程共享地址空间，RSS 没有 per-thread 口径。每个 shard 报的都是同一个数 |
+
+单位命名约定（全契约统一）：
+
+- **时间默认 ms，不加后缀**：`uptime`、`tickDuration`、`maxTickDuration`
+- **字节必须带后缀**：`heapUsedBytes`、`rssBytes` —— 裸数字不会默认被理解成字节
+- 百分比带 `Percent`，频率带 `Rate`
+
+`GET /v1/maps/:id/stats` 只返回图自己能测的东西，资源以 `shardId` + `shard` 子对象附上：
+
+```json
+{
+  "tick": 594, "players": 0, "uptime": 38046,
+  "tickRate": 15, "tickDuration": 0.43, "maxTickDuration": 148.79,
+  "shardId": "shard-0",
+  "shard": {
+    "cpuPercent": 2.8,
+    "heapUsedBytes": 60761080, "heapTotalBytes": 67747840,
+    "heapLimitBytes": 4345298944, "externalBytes": 21078111,
+    "sampledAt": "2026-10-20T14:52:15.218Z"
+  }
+}
+```
+
+`GET /v1/shards` 是权威视角：
+
+```json
+[
+  {"shardId":"shard-0","maps":["a"],"mapCount":1,"rssBytes":207290368,
+   "uptime":70726,"cpuPercent":2.8,"heapUsedBytes":60761080,
+   "heapTotalBytes":67747840,"heapLimitBytes":4345298944,
+   "externalBytes":21078111,"sampledAt":"2026-10-20T14:52:15.218Z"},
+  {"shardId":"shard-1","maps":["b"],"mapCount":1,"rssBytes":207290368,
+   "uptime":38172,"cpuPercent":3.9,"heapUsedBytes":93776872,
+   "heapTotalBytes":126844928,"heapLimitBytes":4345298944,
+   "externalBytes":20005763,"sampledAt":"2026-10-20T14:52:15.219Z"}
+]
+```
+
+采样是**按需**的：请求进来才向 worker 要一次数，`cpuPercent` 在 1s 内复用上次结果（窗口太短会被启动抖动主导）。所以 daemon 空闲时这块零开销。
+
+### 4.2 创建地图
 
 ```http
 POST /v1/maps
@@ -93,7 +146,7 @@ Content-Type: application/json
 
 返回 `201` + `MapStatus`。`id` 由客户端提供；同一个 `Idempotency-Key` 重放返回同一个结果。
 
-### 4.2 停止
+### 4.3 停止
 
 ```http
 POST /v1/maps/bedwars-s2/stop?timeout=10
@@ -103,7 +156,7 @@ POST /v1/maps/bedwars-s2/stop?timeout=10
 - `force=1`：直接 terminate
 - 超时返回 `202` + operation；CLI 轮询 `/v1/operations/:id`
 
-### 4.3 日志
+### 4.4 日志
 
 ```http
 GET /v1/maps/bedwars-s2/logs?follow=1&tail=200
@@ -117,7 +170,7 @@ NDJSON，每行一条：
 
 `stream`: `stdout` | `stderr` | `engine` | `script`。
 
-### 4.4 事件
+### 4.5 事件
 
 ```http
 GET /v1/events?since=...
@@ -164,8 +217,9 @@ GET /v1/events?since=...
 ## 7. D2 实现状态
 
 - daemon 运行时已落地：`createDaemon()` + UDS/TCP API
-- 目前一个 **shard worker** 可跑多张图（`mapsPerShard` 默认 10）；script 仍一图一个 worker
+- shard 按核数分配：预算 = `availableParallelism()`（`FEATHER_MAX_SHARDS` 可覆盖），预算没用完就一图一 shard，用完才打包；script 仍一图一个 worker
 - map 状态含 `shardId` / `runtime: "worker"`
+- 资源指标按 shard 采（`worker.cpuUsage()` / `worker.getHeapStatistics()`），不再用 `process.*` —— 后者在 worker 里读的是整个进程，多 shard 会串号
 - `feather up/ps/stop/logs/down` 已接入
 - `feather-daemon` 默认 `<workspace>/.feather/daemon.sock`
 - daemon 重启会从 `.feather/state.json` 读取 spec，`autoStart` 的图自动拉起
@@ -205,6 +259,7 @@ interface DaemonHandle {
   destroyMap(id: string, opts?: DestroyOptions): Promise<void>;
 
   stats(id: string): Promise<MapStats>;
+  listShards(): Promise<ShardStats[]>;
   logs(id: string, opts?: LogOptions): AsyncIterable<LogEntry>;
   events(opts?: EventOptions): AsyncIterable<DaemonEvent>;
 
@@ -213,7 +268,7 @@ interface DaemonHandle {
 }
 ```
 
-- `MapSpec` / `MapStatus` / `MapStats` / `LogEntry` / `DaemonEvent` / `Operation` 见契约文件
+- `MapSpec` / `MapStatus` / `MapStats` / `ShardStats` / `LogEntry` / `DaemonEvent` / `Operation` 见契约文件
 - 类型只描述 supervisor；单图 engine 仍是 `EngineHandle`
 - D2 已实现 shard worker 多图；共享 HostContext 在 D3
 

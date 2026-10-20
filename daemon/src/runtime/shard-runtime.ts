@@ -1,8 +1,12 @@
 import path from 'node:path';
 import { Worker } from 'node:worker_threads';
 
-import type { MapSpec, MapStats } from '../contract';
+import type { MapSpec, MapStats, ShardUsage } from '../contract';
 import { ensureLocalConfig } from './local-config';
+import { type CpuSnapshot, deriveCpuPercent, toShardUsage } from './shard-usage';
+
+/** 两次 CPU 采样之间的最小窗口：太短的窗口会被启动抖动主导，出来一串离谱数字 */
+const MIN_CPU_WINDOW_MS = 1000;
 
 export interface ShardMapState {
   spec: MapSpec;
@@ -27,10 +31,14 @@ export interface ShardRuntimeOptions {
 export class ShardRuntime {
   public readonly shardId: string;
   public readonly maps = new Map<string, ShardMapState>();
+  public readonly startedAt = Date.now();
   private _worker?: Worker;
   private _ready?: Promise<void>;
   private _resolveReady?: () => void;
   private _rejectReady?: (error: Error) => void;
+  private _cpuBaseline?: CpuSnapshot;
+  private _usage?: ShardUsage;
+  private _usageAt = 0;
   private readonly _mapReadyWaiters = new Map<string, { resolve: (port: number) => void; reject: (error: Error) => void }>();
   private readonly _mapStopWaiters = new Map<string, { resolve: () => void; reject: (error: Error) => void }>();
 
@@ -83,7 +91,59 @@ export class ShardRuntime {
       this._options.onExit?.(this.shardId, code);
       if (code !== 0) this._rejectReady?.(new Error(`shard ${this.shardId} exited ${code}`));
     });
+    // `new Worker()` 返回时线程还没真正跑起来，此时 cpuUsage() 会报
+    // ERR_WORKER_NOT_RUNNING，所以要等 'online'。基线越早抓，第一次采样越准。
+    this._worker.on('online', () => this._primeCpuBaseline());
     return this._ready;
+  }
+
+  /**
+   * 采一次该 shard 的资源占用。
+   *
+   * 走的是 per-thread 口子（`worker.cpuUsage()` / `worker.getHeapStatistics()`），
+   * 不是 `process.*` —— 后者在 worker 里读的是整个进程，多 shard 会串号。
+   *
+   * `minWindowMs` 内重复调用直接返回上次结果：CPU% 需要足够长的窗口才有意义，
+   * 而调用方（HTTP 请求）可能连打。窗口越长越平滑，这是有意的。
+   */
+  public async sampleUsage(minWindowMs = MIN_CPU_WINDOW_MS): Promise<ShardUsage | undefined> {
+    const worker = this._worker;
+    if (!worker) return this._usage;
+    const now = Date.now();
+    if (this._usage && now - this._usageAt < minWindowMs) return this._usage;
+
+    let heap: Awaited<ReturnType<Worker['getHeapStatistics']>>;
+    let cpu: NodeJS.CpuUsage;
+    try {
+      [heap, cpu] = await Promise.all([worker.getHeapStatistics(), worker.cpuUsage()]);
+    } catch {
+      // worker 正在退出 / 已终止：给最后一次成功的样本，别抛
+      return this._usage;
+    }
+    if (this._worker !== worker) return this._usage;
+
+    const current: CpuSnapshot = { user: cpu.user, system: cpu.system, at: now };
+    const cpuPercent = deriveCpuPercent(this._cpuBaseline, current);
+    this._cpuBaseline = current;
+    this._usage = toShardUsage(heap, cpuPercent, new Date(now).toISOString());
+    // 缺 CPU 的样本（还没有基线）不进缓存，让下一次调用立刻重算，而不是把 undefined
+    // 钉住一整个窗口。
+    this._usageAt = cpuPercent === undefined ? 0 : now;
+    return this._usage;
+  }
+
+  private _primeCpuBaseline() {
+    const worker = this._worker;
+    if (!worker) return;
+    worker
+      .cpuUsage()
+      .then((usage) => {
+        if (this._worker !== worker) return;
+        this._cpuBaseline = { user: usage.user, system: usage.system, at: Date.now() };
+      })
+      .catch(() => {
+        // worker 还没起来就退了，下次采样会自己补基线
+      });
   }
 
   public async addMap(spec: MapSpec, timeoutMs = 30_000): Promise<number> {

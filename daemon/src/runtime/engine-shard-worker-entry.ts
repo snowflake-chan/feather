@@ -18,9 +18,10 @@ interface MapHandle {
   spec: MapSpec;
   result: Awaited<ReturnType<typeof startServer>>;
   startedAt: number;
-  previousCpu: NodeJS.CpuUsage;
   previousTime: number;
   previousTick: number;
+  previousTickTimeSum: number;
+  previousTickCounter: number;
 }
 
 const port = parentPort;
@@ -40,7 +41,11 @@ async function startMap(spec: MapSpec) {
     const config = buildMapConfig(base, spec, data.workspaceRoot);
     const paths = resolveMapPaths(data.workspaceRoot, spec);
     if (!spec.scriptWorkerEntry) throw new Error(`missing scriptWorkerEntry for ${spec.id}`);
-    const scriptServer = new WorkerScriptServer({ workerEntry: spec.scriptWorkerEntry });
+    const scriptServer = new WorkerScriptServer({
+      workerEntry: spec.scriptWorkerEntry,
+      // 单图上限；shard 本身不设限，否则会一次带走同 shard 的所有图。
+      memoryLimitMb: config.SCRIPT_MEMORY_LIMIT,
+    });
     const result = await startServer(config, { scriptServer, paths });
     if (!result.httpServer.listening) {
       await new Promise<void>((resolve, reject) => {
@@ -55,9 +60,10 @@ async function startMap(spec: MapSpec) {
       spec,
       result,
       startedAt: now,
-      previousCpu: process.cpuUsage(),
       previousTime: now,
       previousTick: Number(result.game.state?.clock?.tick ?? 0),
+      previousTickTimeSum: Number(result.game.state?.perf?.avgTickTime ?? 0),
+      previousTickCounter: Number(result.game.state?.perf?.tickCounter ?? 0),
     });
     send({ type: 'mapReady', id: spec.id, port: actualPort });
   } catch (error) {
@@ -111,13 +117,15 @@ async function main() {
       const collected = collectStats({
         game: handle.result.game,
         startedAt: handle.startedAt,
-        previousCpu: handle.previousCpu,
         previousTime: handle.previousTime,
         previousTick: handle.previousTick,
+        previousTickTimeSum: handle.previousTickTimeSum,
+        previousTickCounter: handle.previousTickCounter,
       });
-      handle.previousCpu = collected.previousCpu;
       handle.previousTime = collected.previousTime;
       handle.previousTick = collected.previousTick;
+      handle.previousTickTimeSum = collected.previousTickTimeSum;
+      handle.previousTickCounter = collected.previousTickCounter;
       send({ type: 'stats', id, stats: collected.stats });
     }
   }, 1000);

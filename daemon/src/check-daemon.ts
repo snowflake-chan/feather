@@ -63,6 +63,40 @@ async function main() {
     await request(socketPath, 'POST', '/v1/maps', makeMap('b'));
     await request(socketPath, 'POST', '/v1/maps/a/start');
     await request(socketPath, 'POST', '/v1/maps/b/start');
+    // 等一个 stats 采样窗口（shard 侧 1s 一次）
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    const stats = await request(socketPath, 'GET', '/v1/maps/a/stats');
+    process.stdout.write(`stats=${JSON.stringify(stats)}\n`);
+    if (!(stats.tickRate > 0)) throw new Error(`tickRate missing: ${JSON.stringify(stats)}`);
+    if (!(stats.tickDuration > 0)) throw new Error(`tickDuration missing: ${JSON.stringify(stats)}`);
+    if (!(stats.tickDuration < 1000)) throw new Error(`tickDuration implausible: ${stats.tickDuration}`);
+    // 资源指标必须是 shard 口径，不能还挂在 map 上
+    if ('cpuPercent' in stats || 'heapUsedBytes' in stats || 'rssBytes' in stats) {
+      throw new Error(`process-level metrics leaked into map stats: ${JSON.stringify(stats)}`);
+    }
+    if (!stats.shardId) throw new Error('map stats missing shardId');
+    if (!stats.shard?.sampledAt) throw new Error(`map stats missing shard usage: ${JSON.stringify(stats)}`);
+
+    const shards = await request(socketPath, 'GET', '/v1/shards');
+    process.stdout.write(`shards=${JSON.stringify(shards)}\n`);
+    if (!Array.isArray(shards) || shards.length === 0) throw new Error('no shards reported');
+    const covered = shards.flatMap((s: any) => s.maps);
+    if (covered.length !== 2 || !covered.includes('a') || !covered.includes('b')) {
+      throw new Error(`shard->map mapping wrong: ${JSON.stringify(covered)}`);
+    }
+    for (const shard of shards) {
+      if (!(shard.heapUsedBytes > 0)) throw new Error(`shard heap not sampled: ${JSON.stringify(shard)}`);
+      if (!(shard.heapLimitBytes > 0)) throw new Error(`shard heap limit missing: ${JSON.stringify(shard)}`);
+      if (!(shard.mapCount >= 1)) throw new Error(`shard mapCount wrong: ${JSON.stringify(shard)}`);
+      // per-thread CPU：基线在 shard 启动时就抓了，等了 2.5s 一定算得出来
+      if (!Number.isFinite(shard.cpuPercent) || shard.cpuPercent < 0) {
+        throw new Error(`shard cpuPercent not sampled: ${JSON.stringify(shard)}`);
+      }
+    }
+    const owning = shards.find((s: any) => s.maps.includes('a'));
+    if (owning.shardId !== stats.shardId) {
+      throw new Error(`stats.shardId=${stats.shardId} but a lives on ${owning.shardId}`);
+    }
     const maps = await request(socketPath, 'GET', '/v1/maps');
     process.stdout.write(`maps=${JSON.stringify(maps.map((m: any) => [m.id, m.state, m.shardId]))}\n`);
     if (maps.length !== 2 || maps.some((m: any) => m.state !== 'running')) throw new Error('maps not running');

@@ -75,6 +75,9 @@ export async function startApiServer(
         const status = await daemon.createMap(body);
         return json(res, 201, status);
       }
+      if (url.pathname === '/v1/shards' && req.method === 'GET') {
+        return json(res, 200, await daemon.listShards());
+      }
       if (url.pathname === '/v1/events' && req.method === 'GET') {
         res.writeHead(200, {
           'Content-Type': 'application/x-ndjson',

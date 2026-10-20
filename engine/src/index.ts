@@ -293,14 +293,20 @@ export class GameServer {
     const tickTime =
       (endTime[0] - startTime[0]) * 1e3 + (endTime[1] - startTime[1]) * 1e-6;
 
-    this.state.perf.minTickTime = Math.min(
-      this.state.perf.minTickTime,
-      tickTime,
-    );
-    this.state.perf.maxTickTime = Math.min(
-      this.state.perf.maxTickTime,
-      tickTime,
-    );
+    // 首帧没有历史值，直接赋值；否则 min/max 会被 0 初值钉死
+    if (this.state.perf.tickCounter === 0) {
+      this.state.perf.minTickTime = tickTime;
+      this.state.perf.maxTickTime = tickTime;
+    } else {
+      this.state.perf.minTickTime = Math.min(
+        this.state.perf.minTickTime,
+        tickTime,
+      );
+      this.state.perf.maxTickTime = Math.max(
+        this.state.perf.maxTickTime,
+        tickTime,
+      );
+    }
     this.state.perf.avgTickTime += tickTime;
     this.state.perf.tickCounter += 1;
   };

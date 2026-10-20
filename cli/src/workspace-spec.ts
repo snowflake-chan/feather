@@ -14,6 +14,10 @@ interface MapToml {
   database_url?: string;
   env?: Record<string, string>;
   mode?: 'play' | 'edit';
+  /** 单图脚本 worker 的内存上限（MB）；不填则用全局 SCRIPT_MEMORY_LIMIT */
+  memory_mb?: number;
+  /** 单图玩家上限 */
+  player_limit?: number;
 }
 
 interface WorkspaceToml {
@@ -100,6 +104,10 @@ export function loadWorkspace(root: string): LoadedWorkspace {
       dataStorageNamespace: id,
       contentId: manifest.contentId ?? 0,
       env: entry.env,
+      limits: {
+        memoryMb: entry.memory_mb,
+        players: entry.player_limit,
+      },
       autoStart: entry.auto_start !== false,
       labels: { workspace: workspaceName },
     });

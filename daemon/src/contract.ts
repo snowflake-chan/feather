@@ -59,14 +59,71 @@ export interface MapStatus {
   labels?: Record<string, string>;
 }
 
+/**
+ * shard 级资源快照。
+ *
+ * engine 允许一个 shard 打包多图，所以 CPU / 堆这类资源天然只有 shard 口径，
+ * 摊不到单张图上——同 shard 的图读到的是同一份数。
+ */
+export interface ShardUsage {
+  /** 该 worker 线程的 CPU 占用，单位 %（单核满载 = 100，塞了多图可超过 100） */
+  cpuPercent?: number;
+  /** 该 isolate 的 V8 堆已用量 */
+  heapUsedBytes?: number;
+  /** 该 isolate 的 V8 堆总量 */
+  heapTotalBytes?: number;
+  /** 该 isolate 的堆上限（`--max-old-space-size` 生效后的值） */
+  heapLimitBytes?: number;
+  /** 该 isolate 的 external + malloced 内存 */
+  externalBytes?: number;
+  /** 采样时刻（ISO 8601） */
+  sampledAt: string;
+}
+
+/** `/v1/shards` 的返回项 */
+export interface ShardStats extends ShardUsage {
+  shardId: string;
+  /** 该 shard 承载的图 id */
+  maps: string[];
+  mapCount: number;
+  /**
+   * 进程级 RSS。worker 线程共享同一地址空间，RSS 没有 per-thread 口径，
+   * 所以每个 shard 报的都是同一个数，只能当「整个 daemon 占多少」看。
+   */
+  rssBytes: number;
+  /** 该 shard 已存活时长（ms） */
+  uptime: number;
+}
+
+/**
+ * 单图的运行时指标。
+ *
+ * 注意这里**只有图自身能测的东西**：tick / 玩家 / 帧率 / 帧耗时。
+ * 内存和 CPU 不放这里——它们属于 shard（见 `shard` 字段），一张图摊不出来。
+ *
+ * 单位约定（全 daemon 契约统一）：
+ * - 时间默认 ms，不加后缀：`uptime`、`tickDuration`、`maxTickDuration`
+ * - 字节必须带后缀：`heapUsedBytes`、`rssBytes`（裸数字不会默认理解成字节）
+ * - 百分比带 `Percent`，频率带 `Rate`
+ */
 export interface MapStats {
   tick: number;
   players: number;
-  uptimeMs: number;
+  /** 该图已运行时长（ms） */
+  uptime: number;
+  /** 实测 TPS（每秒实际完成的帧数）。标称 15.625（1000/64），掉到标称以下说明已经跟不上 */
   tickRate: number;
-  rssBytes?: number;
-  heapUsedBytes?: number;
-  cpuPercent?: number;
+  /**
+   * 上一采样窗口内每帧的平均**计算耗时**（ms），对应 MC 的 MSPT。
+   * 注意不是 `1000 / tickRate`——那是帧周期（含等待）。空闲图耗时远小于周期。
+   */
+  tickDuration?: number;
+  /** 启动以来最慢的一帧的计算耗时（ms） */
+  maxTickDuration?: number;
+  /** 该图所在 shard */
+  shardId?: string;
+  /** 所在 shard 的资源快照；同 shard 的图拿到的是同一份数 */
+  shard?: ShardUsage;
 }
 
 export interface LogEntry {
@@ -110,7 +167,8 @@ export interface DaemonInfo {
   maps: number;
   shards: number;
   cores: number;
-  uptimeMs: number;
+  /** daemon 已运行时长（ms） */
+  uptime: number;
   dataDir?: string;
   socketPath?: string;
 }
@@ -153,6 +211,7 @@ export interface DaemonHandle {
   destroyMap(id: string, opts?: DestroyOptions): Promise<void>;
 
   stats(id: string): Promise<MapStats>;
+  listShards(): Promise<ShardStats[]>;
   logs(id: string, opts?: LogOptions): AsyncIterable<LogEntry>;
   events(opts?: EventOptions): AsyncIterable<DaemonEvent>;
 

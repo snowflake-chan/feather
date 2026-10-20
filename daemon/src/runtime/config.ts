@@ -22,6 +22,19 @@ export function resolveMapPaths(workspaceRoot: string, spec: MapSpec): EngineMap
   };
 }
 
+/**
+ * 单图脚本内存上限（MB）。
+ * `MapSpec.limits.memoryMb` 覆盖全局 `SCRIPT_MEMORY_LIMIT`；都没有则返回 undefined（不限制）。
+ */
+export function resolveScriptMemoryLimitMb(
+  spec: MapSpec,
+  base: EngineConfig,
+): number | undefined {
+  const value = spec.limits?.memoryMb ?? base.SCRIPT_MEMORY_LIMIT;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return undefined;
+  return Math.floor(value);
+}
+
 export function buildMapConfig(
   base: EngineConfig,
   spec: MapSpec,
@@ -44,5 +57,6 @@ export function buildMapConfig(
     dataStorageNamespace: spec.dataStorageNamespace ?? spec.id,
     groupStorageNamespace: spec.groupNamespace ?? spec.id,
     playerLimit: spec.limits?.players ?? base.playerLimit,
+    SCRIPT_MEMORY_LIMIT: resolveScriptMemoryLimitMb(spec, base),
   };
 }

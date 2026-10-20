@@ -90,7 +90,10 @@ async function go() {
   const workerEntry =
     process.env.SCRIPT_WORKER_ENTRY ||
     path.resolve(__dirname, './assets/worker/worker-script-entry.js');
-  const scriptServer = new WorkerScriptServer({ workerEntry });
+  const scriptServer = new WorkerScriptServer({
+    workerEntry,
+    memoryLimitMb: serverConfig.SCRIPT_MEMORY_LIMIT,
+  });
 
   await startServer(serverConfig, {
     scriptServer,
