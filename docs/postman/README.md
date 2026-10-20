@@ -44,5 +44,10 @@ Authorization: Bearer dev-token
 ## 注意
 
 - `create map` 的 body 里 `ABS`、`projectHash` 是占位符，按 workspace 实际值改。
-- `logs?follow=1` 是 NDJSON；Postman 会保持流式响应，点取消结束。
+- `logs?follow=1` 是 NDJSON。**Postman 会缓冲流式响应**，可能直到断开才一次性显示；实时 follow 用 `curl -N` 或 `feather logs -f`：
+
+```bash
+curl -N --unix-socket /abs/workspace/.feather/daemon.sock \
+  'http://localhost/v1/maps/<id>/logs?follow=1'
+```
 - 目前没有 OpenAPI；这份 collection 是手写调试入口。

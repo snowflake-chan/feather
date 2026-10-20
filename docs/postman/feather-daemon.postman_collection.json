@@ -146,7 +146,7 @@
             "method": "GET",
             "header": [],
             "url": "http://unix:{{daemonSocket}}:/v1/maps/{{mapId}}/logs?follow=1&tail=10",
-            "description": "NDJSON stream. Disconnect in Postman to stop."
+            "description": "NDJSON stream. Postman may buffer the response until disconnect; use curl -N or feather logs -f for live output."
           }
         },
         {

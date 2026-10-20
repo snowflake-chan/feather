@@ -80,6 +80,8 @@ export async function startApiServer(
           'Content-Type': 'application/x-ndjson',
           'Cache-Control': 'no-store',
         });
+        res.flushHeaders?.();
+        res.socket?.setNoDelay(true);
         for await (const event of daemon.events()) res.write(`${JSON.stringify(event)}\n`);
         return res.end();
       }
@@ -134,6 +136,8 @@ export async function startApiServer(
             'Content-Type': 'application/x-ndjson',
             'Cache-Control': 'no-store',
           });
+          res.flushHeaders?.();
+          res.socket?.setNoDelay(true);
           const follow = url.searchParams.get('follow') === '1';
           const tail = Number(url.searchParams.get('tail') || 0) || undefined;
           let closed = false;
