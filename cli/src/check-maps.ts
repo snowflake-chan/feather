@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import { hashContent, writeFmapManifest } from './fmap';
 import { loadMaps } from './workspace-spec';
 
 let failures = 0;
@@ -14,20 +15,22 @@ function check(label: string, condition: boolean, detail: string) {
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'feather-maps-'));
 const dataRoot = path.join(root, 'data');
 function map(id: string, volume?: string): string {
-  const dir = path.join(root, id);
-  fs.mkdirSync(path.join(dir, 'data', 'blobs'), { recursive: true });
-  fs.writeFileSync(path.join(dir, 'data', 'project-state.json'), '{"formatVersion":1}');
-  fs.writeFileSync(
-    path.join(dir, 'feather.toml'),
-    [
-      'schema_version = 1',
-      '[map]',
-      `id = "${id}"`,
-      '[storage]',
-      volume === undefined ? '' : `volume = "${volume}"`,
-      '',
-    ].join('\n'),
-  );
+  const dir = path.join(dataRoot, 'maps', id);
+  fs.mkdirSync(path.join(dir, 'content', 'blobs'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'content', 'project-state.json'), '{"formatVersion":1}');
+  writeFmapManifest(dir, {
+    format: 'feather.map',
+    formatVersion: 1,
+    map: { id, name: id, version: '1.0.0' },
+    content: {
+      state: 'content/project-state.json',
+      blobs: 'content/blobs',
+      hash: hashContent(path.join(dir, 'content')),
+    },
+    storage: volume === undefined ? undefined : { volume },
+    runtime: { port: 0, autoStart: true },
+    requires: { feather: '>=0.1.0', format: 1 },
+  });
   return dir;
 }
 
@@ -45,6 +48,12 @@ try {
   );
   check('显式 group 共享 DB', loaded.maps[1].databaseUrl === loaded.maps[2].databaseUrl, 'not shared');
   check('显式 group namespace', loaded.maps[1].groupNamespace === 'group', String(loaded.maps[1].groupNamespace));
+  const projectStatePath = loaded.maps[0].projectStatePath || '';
+  check(
+    'content 路径正确',
+    projectStatePath.endsWith('/content/project-state.json'),
+    projectStatePath,
+  );
 
   let duplicate = false;
   try {
@@ -54,16 +63,20 @@ try {
   }
   check('重复 map id 被拒绝', duplicate, 'accepted duplicate');
 
-  let legacy = false;
-  const legacyDir = path.join(root, 'legacy');
-  fs.mkdirSync(legacyDir, { recursive: true });
-  fs.writeFileSync(path.join(legacyDir, 'feather.toml'), '[[maps]]\nid = "old"\npath = "."\n');
+  let traversal = false;
+  const bad = map('bad');
+  writeFmapManifest(bad, {
+    format: 'feather.map',
+    formatVersion: 1,
+    map: { id: 'bad' },
+    content: { state: '../../escape.json', blobs: 'content/blobs' },
+  });
   try {
-    loadMaps([legacyDir], dataRoot);
+    loadMaps([bad], dataRoot);
   } catch {
-    legacy = true;
+    traversal = true;
   }
-  check('旧 [[maps]] 不被接受', legacy, 'accepted legacy');
+  check('content 路径穿越被拒绝', traversal, 'accepted traversal');
 } finally {
   fs.rmSync(root, { recursive: true, force: true });
 }

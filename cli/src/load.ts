@@ -5,12 +5,16 @@ import path from 'node:path';
 import { resolveDataRoot } from './data-root';
 import { withTempExtract } from './archive';
 import {
-  ensureEmptyDir,
+  FmapManifest,
+  hashContent,
+  readFmapManifest,
+  writeFmapManifest,
+} from './fmap';
+import {
   MapGroupDescriptor,
   PlayBundle,
   readJson,
   safeName,
-  tomlString,
 } from './workspace';
 
 export interface LoadOptions {
@@ -25,85 +29,104 @@ function sha256(file: string) {
   return hash.digest('hex');
 }
 
-function copyPlayBundle(
-  temp: string,
-  dataRoot: string,
-  bundle: PlayBundle,
-  force: boolean,
-): string[] {
-  const mapsRoot = path.join(dataRoot, 'maps');
-  fs.mkdirSync(mapsRoot, { recursive: true });
-  const dirs: string[] = [];
-  const seen = new Set<string>();
-  for (const member of bundle.members) {
-    const dirName = safeName(member.id, 'map');
-    if (seen.has(dirName)) throw new Error(`duplicate map directory: ${dirName}`);
-    seen.add(dirName);
-    const mapDir = path.join(mapsRoot, dirName);
-    if (fs.existsSync(mapDir)) {
-      if (!force) throw new Error(`map already exists: ${mapDir} (use --force)`);
-      fs.rmSync(mapDir, { recursive: true, force: true });
-    }
-    fs.cpSync(path.join(temp, 'worlds', member.id), mapDir, {
-      recursive: true,
-      dereference: true,
-    });
-    const lines: string[] = [];
-    lines.push('schema_version = 1');
-    lines.push('');
-    lines.push('[map]');
-    lines.push(`id = ${tomlString(member.id)}`);
-    if (member.name) lines.push(`name = ${tomlString(member.name)}`);
-    lines.push('');
-    lines.push('[storage]');
-    // group 成员共享同一个 volume；单图也会得到 <groupId>.db
-    lines.push(`volume = ${tomlString(bundle.mapGroupId)}`);
-    lines.push('');
-    fs.writeFileSync(path.join(mapDir, 'feather.toml'), lines.join('\n'));
-    dirs.push(mapDir);
+function targetMapDir(dataRoot: string, id: string, force: boolean): string {
+  const dir = path.join(dataRoot, 'maps', safeName(id, 'map'));
+  if (fs.existsSync(dir)) {
+    if (!force) throw new Error(`map already exists: ${dir} (use --force)`);
+    fs.rmSync(dir, { recursive: true, force: true });
   }
-  return dirs;
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
 }
 
-function writePlayWorkspace(
-  mapDir: string,
+function copyContent(source: string, target: string) {
+  if (!fs.existsSync(source)) throw new Error(`missing content: ${source}`);
+  fs.cpSync(source, target, { recursive: true, dereference: true });
+}
+
+function installFmap(
+  temp: string,
   archive: string,
-  bundle: PlayBundle,
+  options: LoadOptions,
 ) {
-  fs.writeFileSync(
-    path.join(mapDir, 'feather.lock'),
-    JSON.stringify(
-      {
-        format: 'boxplay',
-        source: path.basename(archive),
-        sha256: sha256(archive),
-        mapGroupId: bundle.mapGroupId,
-        version: bundle.version || '',
-        createdAt: new Date().toISOString(),
-      },
-      null,
-      2,
-    ) + '\n',
-  );
+  const manifest = readFmapManifest(temp);
+  const dataRoot = resolveDataRoot(options.dataDir);
+  const mapDir = targetMapDir(dataRoot, manifest.map.id, !!options.force);
+  const sourceContent = path.resolve(temp, 'content');
+  copyContent(sourceContent, path.join(mapDir, 'content'));
+  const installed: FmapManifest = {
+    ...manifest,
+    content: {
+      ...manifest.content,
+      hash: hashContent(path.join(mapDir, 'content')),
+    },
+    source: {
+      ...manifest.source,
+      hash: manifest.source?.hash || sha256(archive),
+    },
+  };
+  writeFmapManifest(mapDir, installed);
+  console.log(`data:      ${dataRoot}`);
+  console.log(`map:       ${installed.map.id} ${installed.map.version || ''}`);
+  console.log(`volume:    ${installed.storage?.volume || installed.map.id}`);
+  console.log('');
+  console.log('next:');
+  console.log(`  feather up ${safeName(installed.map.id, 'map')}`);
 }
 
-function loadPlayBundle(
+function installPlayBundle(
   temp: string,
   archive: string,
   options: LoadOptions,
 ) {
   const bundle = readJson<PlayBundle>(path.join(temp, 'bundle.json'));
   const dataRoot = resolveDataRoot(options.dataDir);
-  const mapDirs = copyPlayBundle(temp, dataRoot, bundle, !!options.force);
-  for (const mapDir of mapDirs) writePlayWorkspace(mapDir, archive, bundle);
+  const archiveHash = sha256(archive);
+  const ids: string[] = [];
+  for (const member of bundle.members) {
+    const mapDir = targetMapDir(dataRoot, member.id, !!options.force);
+    const source = path.join(temp, 'worlds', member.id, 'data');
+    copyContent(source, path.join(mapDir, 'content'));
+    const contentDir = path.join(mapDir, 'content');
+    const manifest: FmapManifest = {
+      format: 'feather.map',
+      formatVersion: 1,
+      map: {
+        id: member.id,
+        name: member.name,
+        version: bundle.version || undefined,
+      },
+      content: {
+        state: 'content/project-state.json',
+        blobs: 'content/blobs',
+        hash: hashContent(contentDir),
+      },
+      // 只做 storage 映射：group 的成员共享这个 volume。
+      storage: { volume: bundle.mapGroupId },
+      runtime: {
+        port: 0,
+        autoStart: true,
+        memoryMb: null,
+        playerLimit: null,
+      },
+      source: {
+        kind: 'boxplay',
+        version: bundle.version,
+        hash: archiveHash,
+      },
+      requires: { feather: '>=0.1.0', format: 1 },
+    };
+    writeFmapManifest(mapDir, manifest);
+    ids.push(safeName(member.id, 'map'));
+  }
 
   console.log(`data:      ${dataRoot}`);
-  console.log(`format:    boxplay (${bundle.version || 'unversioned'})`);
+  console.log(`format:    boxplay -> feather.map (${bundle.version || 'unversioned'})`);
   console.log(`group:     ${bundle.mapGroupId}`);
   console.log(`maps:      ${bundle.members.map((m) => m.id).join(', ')}`);
   console.log('');
   console.log('next:');
-  console.log(`  feather up ${bundle.members.map((m) => safeName(m.id, 'map')).join(' ')}`);
+  console.log(`  feather up ${ids.join(' ')}`);
 }
 
 function loadProjectArchive(
@@ -113,40 +136,24 @@ function loadProjectArchive(
 ) {
   const group = readJson<MapGroupDescriptor>(path.join(temp, 'group.json'));
   const workspace = path.join(resolveDataRoot(options.dataDir), 'projects');
-  fs.mkdirSync(workspace, { recursive: true });
-  const target = path.join(workspace, group.mapGroupId);
+  const target = path.join(workspace, safeName(group.mapGroupId, 'project'));
   if (fs.existsSync(target) && !options.force) {
     throw new Error(`project already exists: ${target} (use --force)`);
   }
   if (fs.existsSync(target)) fs.rmSync(target, { recursive: true, force: true });
   fs.mkdirSync(target, { recursive: true });
-  fs.cpSync(path.join(temp, 'projects'), path.join(target, 'projects'), {
+  fs.cpSync(path.join(temp, 'projects'), target, {
     recursive: true,
     dereference: true,
   });
   fs.copyFileSync(path.join(temp, 'group.json'), path.join(target, 'group.json'));
-  fs.writeFileSync(
-    path.join(target, 'feather.lock'),
-    JSON.stringify(
-      {
-        format: 'boxproject',
-        source: path.basename(archive),
-        sha256: sha256(archive),
-        mapGroupId: group.mapGroupId,
-        createdAt: new Date().toISOString(),
-      },
-      null,
-      2,
-    ) + '\n',
-  );
 
-  console.log(`workspace: ${workspace}`);
+  console.log(`projects:  ${workspace}`);
   console.log(`format:    boxproject (source archive)`);
   console.log(`group:     ${group.mapGroupId}`);
-  console.log(`source:    ${target}`);
   console.log('');
   console.log('note: .boxproject is editable source, not a playable release.');
-  console.log('      use a .boxplay for `feather up`; project import/publish is TODO.');
+  console.log('      use a .boxplay to produce feather.map packages.');
   process.exitCode = 2;
 }
 
@@ -156,14 +163,18 @@ export async function loadCommand(options: LoadOptions) {
     throw new Error(`archive not found: ${archive}`);
   }
   await withTempExtract(archive, async (temp) => {
+    if (fs.existsSync(path.join(temp, 'feather.json'))) {
+      installFmap(temp, archive, options);
+      return;
+    }
     if (fs.existsSync(path.join(temp, 'bundle.json'))) {
-      loadPlayBundle(temp, archive, options);
+      installPlayBundle(temp, archive, options);
       return;
     }
     if (fs.existsSync(path.join(temp, 'group.json'))) {
       loadProjectArchive(temp, archive, options);
       return;
     }
-    throw new Error('unknown archive: expected bundle.json (.boxplay) or group.json (.boxproject)');
+    throw new Error('unknown archive: expected feather.json, bundle.json, or group.json');
   });
 }

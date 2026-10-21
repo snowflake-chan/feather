@@ -1,42 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { parse } from 'smol-toml';
 
 import type { MapSpec } from '@feather/daemon/contract';
 
-interface MapFileToml {
-  schema_version?: number;
-  map?: {
-    id?: string;
-    name?: string;
-    port?: number;
-    data_dir?: string;
-    mode?: 'play' | 'edit';
-    memory_mb?: number;
-    player_limit?: number;
-    env?: Record<string, string>;
-  };
-  storage?: {
-    /** 逻辑 SQLite 卷名；默认 map id，显式同名共享同一个 .db */
-    volume?: string;
-    path?: string;
-    database_url?: string;
-    group_namespace?: string;
-  };
-  runtime?: { script_worker_entry?: string };
-}
+import { FmapManifest, readFmapManifest } from './fmap';
 
 export interface LoadedMaps {
   maps: MapSpec[];
-}
-
-function readManifest(mapDir: string): { permissionHash?: string; contentId?: number } {
-  const file = path.join(mapDir, 'manifest.json');
-  if (!fs.existsSync(file)) return {};
-  return JSON.parse(fs.readFileSync(file, 'utf8')) as {
-    permissionHash?: string;
-    contentId?: number;
-  };
 }
 
 function sqliteUrl(file: string) {
@@ -53,21 +23,20 @@ function normalizeVolume(value: string | undefined, fallback: string): string {
   return name;
 }
 
-function readToml<T>(file: string): T {
-  return parse(fs.readFileSync(file, 'utf8')) as unknown as T;
+function assertContentPath(root: string, relative: string): string {
+  const resolved = path.resolve(root, relative);
+  const rel = path.relative(root, resolved);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`content path escapes package: ${relative}`);
+  }
+  return resolved;
 }
 
-function loadMap(mapDir: string, dataRoot: string): MapSpec {
-  const mapFile = path.join(mapDir, 'feather.toml');
-  if (!fs.existsSync(mapFile)) {
-    throw new Error(`map config not found: ${mapFile}`);
-  }
-  const parsed = readToml<MapFileToml>(mapFile);
-  const id = String(parsed.map?.id || '').trim();
-  if (!id) throw new Error(`missing [map].id: ${mapFile}`);
-
-  const projectStatePath = path.join(mapDir, 'data', 'project-state.json');
-  const contentDir = path.join(mapDir, 'data', 'blobs');
+function loadOne(mapDir: string, dataRoot: string): MapSpec {
+  const manifest: FmapManifest = readFmapManifest(mapDir);
+  const id = manifest.map.id;
+  const projectStatePath = assertContentPath(mapDir, manifest.content.state);
+  const contentDir = assertContentPath(mapDir, manifest.content.blobs);
   if (!fs.existsSync(projectStatePath)) {
     throw new Error(`map ${id}: missing ${projectStatePath}`);
   }
@@ -75,45 +44,37 @@ function loadMap(mapDir: string, dataRoot: string): MapSpec {
     throw new Error(`map ${id}: missing ${contentDir}`);
   }
 
-  const manifest = readManifest(mapDir);
-  const storage = parsed.storage || {};
-  const volume = normalizeVolume(storage.volume, id);
-  const databaseRoot = storage.path
-    ? path.resolve(mapDir, storage.path)
-    : path.join(dataRoot, 'volumes');
-  const databaseUrl = storage.database_url
-    ? storage.database_url
-    : sqliteUrl(path.join(databaseRoot, `${volume}.db`));
-  const scriptWorkerEntry = parsed.runtime?.script_worker_entry
-    ? path.resolve(mapDir, parsed.runtime.script_worker_entry)
-    : path.resolve(__dirname, '../../shell/tools/worker-entry/worker-entry.js');
-
+  const volume = normalizeVolume(manifest.storage?.volume, id);
+  const runtime = manifest.runtime || {};
+  const databaseRoot = path.join(dataRoot, 'volumes');
   return {
     id,
-    name: parsed.map?.name,
+    name: manifest.map.name,
     workspaceId: id,
-    projectHash: manifest.permissionHash,
     projectStatePath,
     contentDir,
-    port: parsed.map?.port ?? 0,
-    scriptWorkerEntry,
-    dataDir: parsed.map?.data_dir
-      ? path.resolve(mapDir, parsed.map.data_dir)
-      : path.join(dataRoot, 'maps', id, 'data'),
-    mode: parsed.map?.mode || 'play',
+    port: runtime.port ?? 0,
+    scriptWorkerEntry: path.resolve(
+      __dirname,
+      '../../shell/tools/worker-entry/worker-entry.js',
+    ),
+    dataDir: path.join(dataRoot, 'maps', id, 'data'),
+    mode: 'play',
     method: 'local',
-    databaseUrl,
+    databaseUrl: sqliteUrl(path.join(databaseRoot, `${volume}.db`)),
     volume,
-    groupNamespace: storage.volume?.trim() ? volume : (storage.group_namespace || id),
+    groupNamespace: volume,
     dataStorageNamespace: id,
-    contentId: manifest.contentId ?? 0,
-    env: parsed.map?.env,
+    env: undefined,
     limits: {
-      memoryMb: parsed.map?.memory_mb,
-      players: parsed.map?.player_limit,
+      memoryMb: runtime.memoryMb ?? undefined,
+      players: runtime.playerLimit ?? undefined,
     },
-    autoStart: true,
-    labels: { map: id },
+    autoStart: runtime.autoStart !== false,
+    labels: {
+      version: manifest.map.version || '',
+      source: manifest.source?.kind || '',
+    },
   };
 }
 
@@ -121,7 +82,7 @@ export function loadMaps(mapDirs: string[], dataRoot: string): LoadedMaps {
   if (mapDirs.length === 0) throw new Error('no map directories provided');
   const byId = new Map<string, MapSpec>();
   for (const dir of mapDirs) {
-    const map = loadMap(path.resolve(dir), dataRoot);
+    const map = loadOne(path.resolve(dir), dataRoot);
     if (byId.has(map.id)) throw new Error(`duplicate map id: ${map.id}`);
     byId.set(map.id, map);
   }
