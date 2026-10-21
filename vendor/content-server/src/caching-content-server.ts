@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 import {
   ContentCache,
   copyContent,
-  DEFAULT_CONTENT_CACHE,
+  getDefaultContentCache,
 } from './content-cache';
 import { Semaphore } from '@box/utils/semaphore';
 
@@ -41,7 +41,8 @@ export class CachingContentServer implements ContentServer {
   constructor(
     private logger: Logger,
     private baseServer: ContentServer,
-    private cache: ContentCache = DEFAULT_CONTENT_CACHE,
+    // 取默认缓存时走函数而不是常量：shard worker 会在启动图之前把它换成共享实现。
+    private cache: ContentCache = getDefaultContentCache(),
     private maxCacheItemSize = Infinity,
   ) {}
 

@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_CONTENT_CACHE = exports.LruContentCache = void 0;
+exports.LruContentCache = void 0;
 exports.copyContent = copyContent;
+exports.getDefaultContentCache = getDefaultContentCache;
+exports.setDefaultContentCache = setDefaultContentCache;
 const nodePool = [];
 function copyContent(array) {
     let result;
@@ -135,4 +137,10 @@ class LruContentCache {
     }
 }
 exports.LruContentCache = LruContentCache;
-exports.DEFAULT_CONTENT_CACHE = new LruContentCache(2048);
+let defaultContentCache = new LruContentCache(2048);
+function getDefaultContentCache() {
+    return defaultContentCache;
+}
+function setDefaultContentCache(cache) {
+    defaultContentCache = cache;
+}

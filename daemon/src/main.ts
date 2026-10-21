@@ -22,6 +22,13 @@ async function main() {
     socketPath,
     tcp,
     token,
+    enableExec:
+      process.argv.includes('--enable-exec') ||
+      (process.env.FEATHER_ENABLE_EXEC
+        ? !['off', '0', 'false'].includes(
+            process.env.FEATHER_ENABLE_EXEC.toLowerCase(),
+          )
+        : !tcp),
   });
   const pidFile = path.join(dataDir, 'daemon.pid');
   fs.writeFileSync(pidFile, `${process.pid}\n`);

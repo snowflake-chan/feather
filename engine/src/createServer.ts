@@ -449,7 +449,7 @@ export async function createGameServer(spec: {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader(
       'Access-Control-Allow-Headers',
-      'Content-Type, Authorization, Auth',
+      'Content-Type, Authorization, Auth, X-Box-Runtime-Restart',
     );
     res.setHeader('Vary', 'Origin');
   };

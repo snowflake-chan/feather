@@ -180,4 +180,20 @@ export class LruContentCache implements ContentCache {
   }
 }
 
-export const DEFAULT_CONTENT_CACHE = new LruContentCache(2048);
+/**
+ * 默认内容缓存。
+ *
+ * 用可变绑定而不是直接导出实例，是因为 shard worker 需要在启动任何图之前把它换成
+ * 跨 isolate 的共享实现（见 `shared-arena-cache.ts` 的 `installSharedContentArena`）。
+ * `CachingContentServer` 在构造时通过 `getDefaultContentCache()` 取值，所以换实现
+ * 不需要改任何调用点。
+ */
+let defaultContentCache: ContentCache = new LruContentCache(2048);
+
+export function getDefaultContentCache(): ContentCache {
+  return defaultContentCache;
+}
+
+export function setDefaultContentCache(cache: ContentCache): void {
+  defaultContentCache = cache;
+}

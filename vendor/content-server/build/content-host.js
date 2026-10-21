@@ -38,6 +38,21 @@ function requestOriginAllowed(origin, allowedOrigins) {
         return false;
     }
 }
+function matchesEtag(header, etag) {
+    if (typeof header !== 'string') {
+        return false;
+    }
+    for (const raw of header.split(',')) {
+        const value = raw.trim();
+        if (value === etag) {
+            return true;
+        }
+        if (value.startsWith('W/') && value.slice(2) === etag) {
+            return true;
+        }
+    }
+    return false;
+}
 function createContentRouter(contentServer, options = {}) {
     const endpointRegex = /^\/block\/?/;
     const argRegex = /^\/block\/([^/?]+)\/?/;
@@ -96,12 +111,19 @@ function createContentRouter(contentServer, options = {}) {
                 error(res, 404, 'nothing with that hash found');
                 return;
             }
+            const etag = `"${arg}"`;
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            res.setHeader('ETag', etag);
+            if (matchesEtag(req.headers['if-none-match'], etag)) {
+                res.writeHead(304);
+                res.end();
+                return;
+            }
             const buffer = await contentServer.retrieve(arg);
             if (buffer == undefined) {
                 return error(res, 404, `nothing with that hash found`);
             }
             log(`retrieve success`);
-            log(buffer.toString());
             const type = mime_1.default.getType(pathname);
             if (type) {
                 res.setHeader('Content-Type', type);

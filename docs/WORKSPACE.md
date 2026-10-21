@@ -115,7 +115,9 @@ shard 行为（按核数分配）：
 
 ## 已知限制（D2）
 
-- 一个 shard 内多图仍各自调用一次 `startServer`，content/build 每图一份；共享 HostContext 在 D3
+- 一个 shard 内多图仍各自调用一次 `startServer`，build 每图一份；共享 HostContext 在 D3
+- 内容 blob 已经跨 shard 共享（`SharedArrayBuffer` arena，见 `docs/DAEMON-API.md` 的 `contentArena`），
+  但 `ContentServer` 的 wrapper 仍是每图一套
 - map logs 目前是 shard 级 stdout/stderr，未按图打标
 - 不做热迁移；shard 崩溃按 map 重启策略恢复
 - 不做反代；端口直接暴露

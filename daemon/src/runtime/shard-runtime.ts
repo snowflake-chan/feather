@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { Worker } from 'node:worker_threads';
 
+import type { SharedArenaSpec } from 'feather-engine/content-arena';
+
 import type { MapSpec, MapStats, ShardUsage } from '../contract';
 import { ensureLocalConfig } from './local-config';
 import { type CpuSnapshot, deriveCpuPercent, toShardUsage } from './shard-usage';
@@ -20,6 +22,11 @@ export interface ShardRuntimeOptions {
   shardId: string;
   workspaceRoot: string;
   maps: MapSpec[];
+  /**
+   * 跨 shard 共享的内容 arena。由 daemon 创建一次再分发给所有 shard，
+   * 这样同一批 blob 在进程里只存一份。不传则各 isolate 用自己的 LRU。
+   */
+  contentArena?: SharedArenaSpec;
   onLog?: (shardId: string, stream: 'stdout' | 'stderr', message: string) => void;
   onMapReady?: (shardId: string, id: string, port: number) => void;
   onMapStopped?: (shardId: string, id: string) => void;
@@ -41,6 +48,8 @@ export class ShardRuntime {
   private _usageAt = 0;
   private readonly _mapReadyWaiters = new Map<string, { resolve: (port: number) => void; reject: (error: Error) => void }>();
   private readonly _mapStopWaiters = new Map<string, { resolve: () => void; reject: (error: Error) => void }>();
+  private _execSeq = 0;
+  private readonly _execWaiters = new Map<number, { resolve: (value: string) => void; reject: (error: Error) => void; timer: NodeJS.Timeout }>();
 
   constructor(private readonly _options: ShardRuntimeOptions) {
     this.shardId = _options.shardId;
@@ -66,6 +75,7 @@ export class ShardRuntime {
         shardId: this.shardId,
         workspaceRoot: this._options.workspaceRoot,
         maps: this._options.maps,
+        contentArena: this._options.contentArena,
       },
       env: {
         ...process.env,
@@ -88,6 +98,11 @@ export class ShardRuntime {
       }
     });
     this._worker.on('exit', (code) => {
+      for (const waiter of this._execWaiters.values()) {
+        clearTimeout(waiter.timer);
+        waiter.reject(new Error(`shard ${this.shardId} exited ${code}`));
+      }
+      this._execWaiters.clear();
       this._options.onExit?.(this.shardId, code);
       if (code !== 0) this._rejectReady?.(new Error(`shard ${this.shardId} exited ${code}`));
     });
@@ -179,6 +194,22 @@ export class ShardRuntime {
     this.maps.delete(id);
   }
 
+  public async exec(id: string, command: string, timeoutMs = 10_000): Promise<string> {
+    if (!this._worker) throw new Error('shard not started');
+    if (!this.maps.get(id)?.ready) throw new Error(`map is not ready: ${id}`);
+    const requestId = ++this._execSeq;
+    const result = new Promise<string>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this._execWaiters.delete(requestId);
+        reject(new Error(`exec timeout: ${id}`));
+      }, timeoutMs);
+      timer.unref();
+      this._execWaiters.set(requestId, { resolve, reject, timer });
+    });
+    this._worker.postMessage({ type: 'exec', id, requestId, command });
+    return result;
+  }
+
   public async stopAll(timeoutMs = 15_000): Promise<void> {
     if (!this._worker) return;
     const worker = this._worker;
@@ -240,6 +271,15 @@ export class ShardRuntime {
         const state = this.maps.get(String(message.id));
         if (state) state.stats = message.stats as MapStats;
         this._options.onStats?.(this.shardId, String(message.id), message.stats as MapStats);
+        break;
+      }
+      case 'execResult': {
+        const waiter = this._execWaiters.get(Number(message.requestId));
+        if (!waiter) break;
+        this._execWaiters.delete(Number(message.requestId));
+        clearTimeout(waiter.timer);
+        if (message.error) waiter.reject(new Error(String(message.error)));
+        else waiter.resolve(String(message.result ?? ''));
         break;
       }
       case 'shardError':

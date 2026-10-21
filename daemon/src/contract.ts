@@ -169,8 +169,29 @@ export interface DaemonInfo {
   cores: number;
   /** daemon 已运行时长（ms） */
   uptime: number;
+  /**
+   * 跨 shard 共享的内容 arena 占用。
+   *
+   * 这块内存在 V8 堆外，`heapUsed` / `rssBytes` 都反映不出它的构成，
+   * 所以单独报一份。关掉 arena 时字段缺省。
+   */
+  contentArena?: ContentArenaInfo;
   dataDir?: string;
   socketPath?: string;
+}
+
+/** 共享内容 arena 的占用快照，口径是进程级（不是每 shard） */
+export interface ContentArenaInfo {
+  /** 已分配的 payload 字节 */
+  usedBytes: number;
+  /** payload 区总容量 */
+  capacityBytes: number;
+  /** 已发布的索引条目数 */
+  entries: number;
+  /** 索引表容量 */
+  entryCapacity: number;
+  /** 因为空间不足被拒绝缓存的次数；持续增长说明 arena 该调大了 */
+  rejected: number;
 }
 
 export interface StopOptions {
@@ -230,6 +251,8 @@ export interface CreateDaemonOptions {
   dataDir?: string;
   token?: string;
   tcp?: boolean;
+  /** 显式开启地图 shell 的 eval；默认关闭，属于高危能力。 */
+  enableExec?: boolean;
 }
 
 /**

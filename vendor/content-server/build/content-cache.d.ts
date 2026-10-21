@@ -11,4 +11,5 @@ export declare class LruContentCache implements ContentCache {
     getCache(hash: string): Uint8Array | undefined;
     purge(): void;
 }
-export declare const DEFAULT_CONTENT_CACHE: LruContentCache;
+export declare function getDefaultContentCache(): ContentCache;
+export declare function setDefaultContentCache(cache: ContentCache): void;

@@ -39,7 +39,8 @@
     "check:shard-policy": "node dist/check-shard-policy.js",
     "check:map-config": "node dist/check-map-config.js",
     "check:stats": "node dist/check-stats.js",
-    "check:daemon": "node dist/check-daemon.js"
+    "check:daemon": "node dist/check-daemon.js",
+    "check:content-arena": "node dist/check-content-arena.js"
   },
   "dependencies": {
     "feather-engine": "workspace:*",

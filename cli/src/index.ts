@@ -1,5 +1,6 @@
 import { daemonCommand } from './commands/daemon';
 import { downCommand } from './commands/down';
+import { execCommand } from './commands/exec';
 import { logsCommand } from './commands/logs';
 import { psCommand } from './commands/ps';
 import { stopCommand } from './commands/stop';
@@ -16,6 +17,7 @@ Commands:
   ps                   list maps
   stop <id>            stop a map
   logs <id> [-f]       show map logs
+  exec <id> -- <code>  eval in the map script shell (daemon must enable exec)
   down                 stop maps and daemon
   daemon               run daemon in foreground
 
@@ -53,6 +55,15 @@ async function main() {
     const id = args[1];
     if (!id) throw new Error('missing map id');
     await stopCommand(id, getArg(args, '--workspace') || getArg(args, '-C'));
+    return;
+  }
+  if (command === 'exec') {
+    const id = args[1];
+    if (!id) throw new Error('missing map id');
+    const separator = args.indexOf('--');
+    const code = (separator >= 0 ? args.slice(separator + 1) : args.slice(2)).join(' ');
+    if (!code.trim()) throw new Error('missing code');
+    await execCommand(id, code, getArg(args, '--workspace') || getArg(args, '-C'));
     return;
   }
   if (command === 'logs') {

@@ -1,5 +1,6 @@
 import { parentPort, workerData } from 'node:worker_threads';
 
+import { installSharedContentArena } from 'feather-engine/content-arena';
 import { getConfig } from 'feather-engine/config';
 import { startServer } from 'feather-engine/entry';
 import { WorkerScriptServer } from '@feather/transport/worker-script-server';
@@ -12,6 +13,7 @@ interface ShardWorkerData {
   shardId: string;
   workspaceRoot: string;
   maps: MapSpec[];
+  contentArena?: { data: SharedArrayBuffer; index: SharedArrayBuffer; control: SharedArrayBuffer };
 }
 
 interface MapHandle {
@@ -30,6 +32,14 @@ const messagePort: NonNullable<typeof parentPort> = port;
 
 const data = workerData as ShardWorkerData;
 const handles = new Map<string, MapHandle>();
+
+/**
+ * 必须在启动任何图之前装：`CachingContentServer` 在构造时取默认缓存。
+ * 装上之后，本 shard 的所有图（以及其它 shard）读的是同一份 blob 字节。
+ */
+const contentArena = data.contentArena
+  ? installSharedContentArena(data.contentArena)
+  : undefined;
 
 function send(message: unknown) {
   messagePort.postMessage(message);
@@ -110,7 +120,7 @@ async function main() {
   for (const spec of data.maps) {
     await startMap(spec);
   }
-  send({ type: 'ready', shardId: data.shardId });
+  send({ type: 'ready', shardId: data.shardId, contentArena: contentArena?.stats() });
 
   const statsTimer = setInterval(() => {
     for (const [id, handle] of handles) {
@@ -138,6 +148,42 @@ async function main() {
     }
     if (message?.type === 'addMap') {
       void startMap(message.spec as MapSpec);
+      return;
+    }
+    if (message?.type === 'exec') {
+      const id = String(message.id);
+      const requestId = Number(message.requestId);
+      const handle = handles.get(id);
+      if (!handle) {
+        send({ type: 'execResult', id, requestId, error: `map is not running: ${id}` });
+        return;
+      }
+      let finished = false;
+      const timer = setTimeout(() => {
+        if (finished) return;
+        finished = true;
+        send({ type: 'execResult', id, requestId, error: `exec timeout: ${id}` });
+      }, 10_000);
+      timer.unref();
+      handle.result.game.script
+        .scriptEval(String(message.command ?? ''))
+        .then((result) => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          send({ type: 'execResult', id, requestId, result });
+        })
+        .catch((error) => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          send({
+            type: 'execResult',
+            id,
+            requestId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        });
       return;
     }
     if (message?.type === 'shutdown') {

@@ -3,7 +3,7 @@
     "target": "es2017",
     "module": "commonjs",
     "moduleResolution": "node",
-    "lib": ["dom", "es2015", "es2016.array.include"],
+    "lib": ["dom", "es2015", "es2016.array.include", "es2017.sharedmemory"],
     "allowJs": true,
     "checkJs": true,
     "declaration": true,

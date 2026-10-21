@@ -32,7 +32,9 @@
     "check:gc": "node --expose-gc -r @swc-node/register scripts/check-gc.ts",
     "check:map-context": "node -r @swc-node/register scripts/check-map-context.ts",
     "check:script-timeout": "node -r @swc-node/register scripts/check-script-timeout.ts",
-    "check:script-memory": "node -r @swc-node/register scripts/check-script-memory.ts"
+    "check:script-memory": "node -r @swc-node/register scripts/check-script-memory.ts",
+    "check:shared-content-arena": "node -r @swc-node/register scripts/check-shared-content-arena.ts",
+    "check:content-host-cache": "node -r @swc-node/register scripts/check-content-host-cache.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1.0.28",
@@ -106,6 +108,10 @@
     "./config": {
       "types": "./dist/config/server.d.ts",
       "require": "./dist/config/server.js"
+    },
+    "./content-arena": {
+      "types": "./dist/src/content-arena.d.ts",
+      "require": "./dist/src/content-arena.js"
     }
   },
   "typesVersions": {
@@ -121,6 +127,9 @@
       ],
       "config": [
         "dist/config/server.d.ts"
+      ],
+      "content-arena": [
+        "dist/src/content-arena.d.ts"
       ]
     }
   }

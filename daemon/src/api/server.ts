@@ -102,7 +102,7 @@ export async function startApiServer(
         if (!operation) return error(res, 404, 'OPERATION_NOT_FOUND', 'operation not found');
         return json(res, 200, operation);
       }
-      const mapMatch = url.pathname.match(/^\/v1\/maps\/([^/]+)(?:\/(start|stop|restart|stats|logs))?$/);
+      const mapMatch = url.pathname.match(/^\/v1\/maps\/([^/]+)(?:\/(start|stop|restart|stats|logs|exec))?$/);
       if (mapMatch) {
         const id = decodeURIComponent(mapMatch[1]);
         const action = mapMatch[2];
@@ -134,6 +134,13 @@ export async function startApiServer(
         if (action === 'stats' && req.method === 'GET') {
           return json(res, 200, await daemon.stats(id));
         }
+        if (action === 'exec' && req.method === 'POST') {
+          const body = (await readJson(req)) as { command?: string; code?: string };
+          const command = String(body.command ?? body.code ?? '');
+          if (!command.trim()) return error(res, 422, 'INVALID_SPEC', 'missing command');
+          const result = await daemon.exec(id, command);
+          return json(res, 200, { result });
+        }
         if (action === 'logs' && req.method === 'GET') {
           res.writeHead(200, {
             'Content-Type': 'application/x-ndjson',
@@ -162,10 +169,11 @@ export async function startApiServer(
       const code = (e as any)?.code;
       const status =
         code === 'MAP_NOT_FOUND' ? 404
-          : code === 'MAP_CONFLICT' || code === 'OPERATION_IN_PROGRESS' ? 409
-            : code === 'INVALID_SPEC' ? 422
-              : code === 'NOT_IMPLEMENTED' ? 501
-                : 500;
+          : code === 'EXEC_DISABLED' ? 403
+            : code === 'MAP_CONFLICT' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
+              : code === 'INVALID_SPEC' ? 422
+                : code === 'NOT_IMPLEMENTED' ? 501
+                  : 500;
       return error(res, status, code || 'INTERNAL', e instanceof Error ? e.message : String(e));
     }
   });

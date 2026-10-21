@@ -84,6 +84,18 @@ stopped / error → starting（restart）
 | `heapUsedBytes` / `heapTotalBytes` / `heapLimitBytes` | per-shard | `worker.getHeapStatistics()`，该 isolate 的 V8 堆 |
 | `rssBytes` | 进程级 | 线程共享地址空间，RSS 没有 per-thread 口径。每个 shard 报的都是同一个数 |
 
+还有一块内存不在上面任何一项里：**跨 shard 共享的内容 arena**。它放在 `SharedArrayBuffer` 里，
+属于 V8 堆外，`heapUsed` / `arrayBuffers` / `rssBytes` 的构成都反映不出它。所以单独报在
+`GET /v1/info` 的 `contentArena` 上，口径是**进程级**（不是每 shard）：
+
+| 字段 | 说明 |
+|---|---|
+| `usedBytes` / `capacityBytes` | 已分配 payload 字节 / 总容量 |
+| `entries` / `entryCapacity` | 已发布索引条目 / 表容量 |
+| `rejected` | 空间不足被拒绝缓存的次数。持续增长说明 `FEATHER_CONTENT_ARENA_MB` 该调大 |
+
+`FEATHER_CONTENT_ARENA=off` 时该字段缺省，内容缓存退回每 isolate 一份的 LRU。
+
 单位命名约定（全契约统一）：
 
 - **时间默认 ms，不加后缀**：`uptime`、`tickDuration`、`maxTickDuration`

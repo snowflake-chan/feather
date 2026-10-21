@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import { readSharedArenaUsage, type SharedArenaSpec } from 'feather-engine/content-arena';
+
 import type {
   CreateDaemonOptions,
   DaemonEvent,
@@ -19,6 +21,7 @@ import type {
   StopOptions,
 } from './contract';
 import { resolveShardBudget, shouldCreateShard } from './runtime/shard-policy';
+import { createContentArenaSpec } from './runtime/content-arena';
 import { NOMINAL_TICK_RATE } from './runtime/stats';
 import { ShardRuntime } from './runtime/shard-runtime';
 
@@ -59,6 +62,9 @@ export class Daemon implements DaemonHandle {
   private readonly _stateFile: string;
   private _shardSeq = 0;
   private _closed = false;
+  /** 懒创建：没有图要跑就不必占这块地址空间 */
+  private _contentArena?: SharedArenaSpec;
+  private _contentArenaResolved = false;
 
   constructor(private readonly _options: CreateDaemonOptions) {
     const workspaceRoot = path.resolve(_options.workspaceRoot || process.cwd());
@@ -80,6 +86,7 @@ export class Daemon implements DaemonHandle {
   }
 
   public async info(): Promise<DaemonInfo> {
+    const arena = this._resolveContentArena();
     return {
       version: VERSION,
       apiVersion: API_VERSION,
@@ -88,6 +95,8 @@ export class Daemon implements DaemonHandle {
       shards: this._shards.size,
       cores: os.availableParallelism(),
       uptime: Date.now() - this._startedAt,
+      // 只在真的启用时报，关掉 arena 时字段缺省，免得报一堆 0 让人以为坏了。
+      contentArena: arena ? readSharedArenaUsage(arena) : undefined,
       dataDir: this._options.dataDir,
       socketPath: this._options.socketPath,
     };
@@ -288,8 +297,24 @@ export class Daemon implements DaemonHandle {
     return this._operations.get(id);
   }
 
-  public async exec(): Promise<unknown> {
-    throw new DaemonError('NOT_IMPLEMENTED', 'exec is not implemented');
+  public async exec(id: string, command: string): Promise<unknown> {
+    if (!this._options.enableExec) {
+      throw new DaemonError(
+        'EXEC_DISABLED',
+        'exec is disabled; start the daemon with FEATHER_ENABLE_EXEC=1',
+      );
+    }
+    const record = this._requireMap(id);
+    if (record.status.state !== 'running') {
+      throw new DaemonError('MAP_NOT_RUNNING', `map is not running: ${id}`);
+    }
+    const shard = record.status.shardId
+      ? this._shards.get(record.status.shardId)
+      : undefined;
+    if (!shard) {
+      throw new DaemonError('SHARD_NOT_FOUND', `shard not found for map: ${id}`);
+    }
+    return shard.exec(id, command);
   }
 
   public async close(): Promise<void> {
@@ -354,6 +379,21 @@ export class Daemon implements DaemonHandle {
     return Array.from(this._shards.values()).sort((a, b) => a.maps.size - b.maps.size)[0];
   }
 
+  /**
+   * 整个 daemon 只建一个 arena，所有 shard 共用。
+   *
+   * 关键点：必须共享，否则每个 shard 各建一个就退回到「各存一份」，
+   * 白花内存还看不出区别。`undefined` 是合法结果（被 env 关掉），
+   * 所以要单独记一个 resolved 标志。
+   */
+  private _resolveContentArena(): SharedArenaSpec | undefined {
+    if (!this._contentArenaResolved) {
+      this._contentArena = createContentArenaSpec();
+      this._contentArenaResolved = true;
+    }
+    return this._contentArena;
+  }
+
   private async _createShard(record: MapRecord): Promise<ShardRuntime> {
     // 单调递增的序号：shard 回收后不能复用旧 id，否则会覆盖仍然存活的 shard。
     const shardId = `shard-${this._shardSeq++}`;
@@ -361,6 +401,7 @@ export class Daemon implements DaemonHandle {
       shardId,
       workspaceRoot: this._options.workspaceRoot!,
       maps: [record.spec],
+      contentArena: this._resolveContentArena(),
       onMapReady: (sid, id, port) => {
         const targetRecord = this._records.get(id);
         if (!targetRecord) return;

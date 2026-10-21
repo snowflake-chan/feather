@@ -31,7 +31,7 @@ class CachingContentServer {
             sem.v(Infinity);
         }
     }
-    constructor(logger, baseServer, cache = content_cache_1.DEFAULT_CONTENT_CACHE, maxCacheItemSize = Infinity) {
+    constructor(logger, baseServer, cache = (0, content_cache_1.getDefaultContentCache)(), maxCacheItemSize = Infinity) {
         this.logger = logger;
         this.baseServer = baseServer;
         this.cache = cache;

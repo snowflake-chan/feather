@@ -106,6 +106,13 @@ export class DaemonClient {
   stats(id: string) {
     return this._request<MapStats>('GET', `/v1/maps/${encodeURIComponent(id)}/stats`);
   }
+  exec(id: string, command: string) {
+    return this._request<{ result: string }>(
+      'POST',
+      `/v1/maps/${encodeURIComponent(id)}/exec`,
+      { command },
+    );
+  }
   shutdown() {
     return this._request<{ ok: boolean }>('POST', '/v1/shutdown');
   }

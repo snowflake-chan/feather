@@ -60,6 +60,28 @@ function requestOriginAllowed(
   }
 }
 
+/**
+ * 只认精确的 ETag 匹配。
+ *
+ * 不支持 `*`：此刻我们还没确认这个 hash 是否存在，用 `*` 回 304 等于替一个不存在的
+ * 资源背书。伪造 ETag 换到 304 是无害的——客户端本来就声称自己已经有了。
+ */
+function matchesEtag(header: string | string[] | undefined, etag: string): boolean {
+  if (typeof header !== 'string') {
+    return false;
+  }
+  for (const raw of header.split(',')) {
+    const value = raw.trim();
+    if (value === etag) {
+      return true;
+    }
+    if (value.startsWith('W/') && value.slice(2) === etag) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function createContentRouter(
   contentServer: ContentServer,
   options: ContentRouterOptions = {},
@@ -127,12 +149,25 @@ export function createContentRouter(
         error(res, 404, 'nothing with that hash found');
         return;
       }
+      // 内容是 hash 寻址的：同一个 hash 的字节永远不会变，所以可以标 immutable。
+      // 之前这里一个缓存头都没有，浏览器每次进图都要把整包重下一遍。
+      const etag = `"${arg}"`;
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.setHeader('ETag', etag);
+      if (matchesEtag(req.headers['if-none-match'], etag)) {
+        // 命中就不用去 content store 取了。
+        res.writeHead(304);
+        res.end();
+        return;
+      }
       const buffer = await contentServer.retrieve(arg);
       if (buffer == undefined) {
         return error(res, 404, `nothing with that hash found`);
       }
       log(`retrieve success`);
-      log(buffer.toString());
+      // 这里原来有一行 `log(buffer.toString())`。`log` 是空函数，但实参照算：
+      // 每个内容请求都会把整个 blob 解码成 UTF-8 字符串再丢掉。2MB 的 blob
+      // 就是一次 2MB 拷贝 + 解码 + 几 MB 垃圾。别加回来。
       const type = mime.getType(pathname);
       if (type) {
         res.setHeader('Content-Type', type);
