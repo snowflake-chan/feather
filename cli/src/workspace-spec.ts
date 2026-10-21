@@ -57,6 +57,15 @@ function loadOne(mapDir: string, dataRoot: string): MapSpec {
   if (!fs.existsSync(contentDir)) {
     throw new Error(`map ${id}: missing ${contentDir}`);
   }
+  let projectHash = '';
+  try {
+    const state = JSON.parse(fs.readFileSync(projectStatePath, 'utf8')) as {
+      permissionHash?: unknown;
+    };
+    if (typeof state.permissionHash === 'string') projectHash = state.permissionHash;
+  } catch {
+    // Let the engine report malformed project-state with its own error.
+  }
 
   const volume = normalizeVolume(manifest.storage?.volume, id);
   const runtime = manifest.runtime || {};
@@ -67,6 +76,7 @@ function loadOne(mapDir: string, dataRoot: string): MapSpec {
     workspaceId: id,
     projectStatePath,
     contentDir,
+    projectHash,
     port: runtime.port ?? 0,
     scriptWorkerEntry: path.resolve(
       __dirname,

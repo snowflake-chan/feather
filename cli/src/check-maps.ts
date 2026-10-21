@@ -18,7 +18,7 @@ function map(id: string, volume?: string): string {
   const dir = path.join(dataRoot, 'maps', id);
   fs.mkdirSync(path.join(dir, 'content'), { recursive: true });
   fs.mkdirSync(path.join(dataRoot, 'blobs'), { recursive: true });
-  fs.writeFileSync(path.join(dir, 'content', 'project-state.json'), '{"formatVersion":1}');
+  fs.writeFileSync(path.join(dir, 'content', 'project-state.json'), '{"formatVersion":1,"permissionHash":"test-hash"}');
   writeFmapManifest(dir, {
     format: 'feather.map',
     formatVersion: 1,
@@ -54,6 +54,11 @@ try {
     'content 路径正确',
     projectStatePath.endsWith('/content/project-state.json'),
     projectStatePath,
+  );
+  check(
+    'projectHash 来自 state',
+    loaded.maps[0].projectHash === 'test-hash',
+    String(loaded.maps[0].projectHash),
   );
   check(
     'contentDir 指向全局 blobs',
