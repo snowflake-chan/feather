@@ -44,6 +44,31 @@ function copyContent(source: string, target: string) {
   fs.cpSync(source, target, { recursive: true, dereference: true });
 }
 
+function mergeBlobs(sourceBlobs: string, dataRoot: string) {
+  const target = path.join(dataRoot, 'blobs');
+  fs.mkdirSync(target, { recursive: true });
+  if (!fs.existsSync(sourceBlobs)) return;
+  for (const entry of fs.readdirSync(sourceBlobs, { withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+    const from = path.join(sourceBlobs, entry.name);
+    const to = path.join(target, entry.name);
+    if (fs.existsSync(to)) continue;
+    fs.copyFileSync(from, to);
+  }
+}
+
+/** fmap 的 content 里只有 state 进 map 目录，blobs 进全局 store。 */
+function copyMapState(sourceContent: string, targetContent: string) {
+  fs.mkdirSync(targetContent, { recursive: true });
+  for (const entry of fs.readdirSync(sourceContent, { withFileTypes: true })) {
+    if (entry.name === 'blobs') continue;
+    fs.cpSync(path.join(sourceContent, entry.name), path.join(targetContent, entry.name), {
+      recursive: true,
+      dereference: true,
+    });
+  }
+}
+
 function installFmap(
   temp: string,
   archive: string,
@@ -53,13 +78,10 @@ function installFmap(
   const dataRoot = resolveDataRoot(options.dataDir);
   const mapDir = targetMapDir(dataRoot, manifest.map.id, !!options.force);
   const sourceContent = path.resolve(temp, 'content');
-  copyContent(sourceContent, path.join(mapDir, 'content'));
+  copyMapState(sourceContent, path.join(mapDir, 'content'));
+  mergeBlobs(path.join(sourceContent, 'blobs'), dataRoot);
   const installed: FmapManifest = {
     ...manifest,
-    content: {
-      ...manifest.content,
-      hash: hashContent(path.join(mapDir, 'content')),
-    },
     source: {
       ...manifest.source,
       hash: manifest.source?.hash || sha256(archive),
@@ -86,7 +108,8 @@ function installPlayBundle(
   for (const member of bundle.members) {
     const mapDir = targetMapDir(dataRoot, member.id, !!options.force);
     const source = path.join(temp, 'worlds', member.id, 'data');
-    copyContent(source, path.join(mapDir, 'content'));
+    copyMapState(source, path.join(mapDir, 'content'));
+    mergeBlobs(path.join(source, 'blobs'), dataRoot);
     const contentDir = path.join(mapDir, 'content');
     const manifest: FmapManifest = {
       format: 'feather.map',

@@ -16,7 +16,8 @@ const root = fs.mkdtempSync(path.join(os.tmpdir(), 'feather-maps-'));
 const dataRoot = path.join(root, 'data');
 function map(id: string, volume?: string): string {
   const dir = path.join(dataRoot, 'maps', id);
-  fs.mkdirSync(path.join(dir, 'content', 'blobs'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'content'), { recursive: true });
+  fs.mkdirSync(path.join(dataRoot, 'blobs'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'content', 'project-state.json'), '{"formatVersion":1}');
   writeFmapManifest(dir, {
     format: 'feather.map',
@@ -24,7 +25,7 @@ function map(id: string, volume?: string): string {
     map: { id, name: id, version: '1.0.0' },
     content: {
       state: 'content/project-state.json',
-      blobs: 'content/blobs',
+      blobs: path.join(dataRoot, 'blobs'),
       hash: hashContent(path.join(dir, 'content')),
     },
     storage: volume === undefined ? undefined : { volume },
@@ -53,6 +54,11 @@ try {
     'content 路径正确',
     projectStatePath.endsWith('/content/project-state.json'),
     projectStatePath,
+  );
+  check(
+    'contentDir 指向全局 blobs',
+    loaded.maps[0].contentDir === path.join(dataRoot, 'blobs'),
+    String(loaded.maps[0].contentDir),
   );
 
   let duplicate = false;

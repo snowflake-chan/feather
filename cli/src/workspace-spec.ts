@@ -23,6 +23,19 @@ function normalizeVolume(value: string | undefined, fallback: string): string {
   return name;
 }
 
+function mergeLegacyBlobs(mapDir: string, dataRoot: string) {
+  const source = path.join(mapDir, 'content', 'blobs');
+  if (!fs.existsSync(source)) return;
+  const target = path.join(dataRoot, 'blobs');
+  fs.mkdirSync(target, { recursive: true });
+  for (const name of fs.readdirSync(source)) {
+    const to = path.join(target, name);
+    if (!fs.existsSync(to)) fs.copyFileSync(path.join(source, name), to);
+  }
+  // 迁移完成后删掉 map 内的旧副本，避免同一 blob 存两份。
+  fs.rmSync(source, { recursive: true, force: true });
+}
+
 function assertContentPath(root: string, relative: string): string {
   const resolved = path.resolve(root, relative);
   const rel = path.relative(root, resolved);
@@ -36,7 +49,8 @@ function loadOne(mapDir: string, dataRoot: string): MapSpec {
   const manifest: FmapManifest = readFmapManifest(mapDir);
   const id = manifest.map.id;
   const projectStatePath = assertContentPath(mapDir, manifest.content.state);
-  const contentDir = assertContentPath(mapDir, manifest.content.blobs);
+  mergeLegacyBlobs(mapDir, dataRoot);
+  const contentDir = path.join(dataRoot, 'blobs');
   if (!fs.existsSync(projectStatePath)) {
     throw new Error(`map ${id}: missing ${projectStatePath}`);
   }

@@ -4,12 +4,12 @@ feather 没有 workspace 编排文件。一个可玩地图是 data root 下的�
 
 ```text
 ~/.feather/                 # 默认 data root，可用 FEATHER_DATA_DIR 覆盖
+  blobs/                  # 全局 content-addressed store，所有地图共享
   maps/<mapId>/
     feather.json
     content/
       project-state.json
-      blobs/
-    data/                   # 运行时由 engine 写入
+    data/                 # 运行时由 engine 写入
   volumes/<volume>.db
   daemon.sock
   daemon.pid
@@ -204,12 +204,13 @@ node cli/bin/feather load /path/to/map.boxplay
 一个 `.boxplay` group 会拆成多个独立地图：
 
 ```text
+<dataRoot>/blobs/                      # 所有 fmap 的 blobs 去重到这里
 <dataRoot>/maps/cloud-4e84.../
   feather.json
-  content/
+  content/project-state.json
 <dataRoot>/maps/cloud-3b56.../
   feather.json
-  content/
+  content/project-state.json
 ```
 
 同一个 `mapGroupId` 下所有成员写同一个 `storage.volume`，用于共享 group storage。
