@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_ENV: development
+      METHOD: local
+      MODE: play
+      IS_HTTPS: "false"
+      BOX_BUNDLED_CONTENT_PATH: ${{ github.workspace }}/test-fixtures/blobs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.2
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test:protocol
+      - run: pnpm test:daemon
+      - name: Package source release
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME}"
+          mkdir -p dist-release
+          tar \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='**/node_modules' \
+            --exclude='**/dist' \
+            --exclude='.feather' \
+            -czf "dist-release/feather-${VERSION}.tar.gz" .
+          (cd dist-release && sha256sum "feather-${VERSION}.tar.gz" > "feather-${VERSION}.tar.gz.sha256")
+      - uses: actions/upload-artifact@v4
+        with:
+          name: feather-${{ github.ref_name }}
+          path: dist-release/
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist-release/*
+          generate_release_notes: true
