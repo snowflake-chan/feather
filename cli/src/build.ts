@@ -34,8 +34,29 @@ function ensureDir(dir: string) {
 
 const ASSET_DIRS = ['mesh', 'audio', 'image'] as const;
 
+const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+/** 与 FileSystemContentServer 一致的 base58 multihash（sha256 + 0x12 0x20）。 */
+function contentHash(content: Uint8Array): string {
+  const digest = crypto.createHash('sha256').update(content).digest();
+  const multihash = Buffer.concat([Buffer.from([0x12, 0x20]), digest]);
+  let value = 0n;
+  for (const byte of multihash) value = (value << 8n) | BigInt(byte);
+  let out = '';
+  while (value > 0n) {
+    const rem = Number(value % 58n);
+    value /= 58n;
+    out = BASE58[rem] + out;
+  }
+  for (const byte of multihash) {
+    if (byte !== 0) break;
+    out = '1' + out;
+  }
+  return out;
+}
+
 function hashFile(file: string): string {
-  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  return contentHash(fs.readFileSync(file));
 }
 
 function scanAssets(
@@ -60,7 +81,7 @@ function scanAssets(
           const logical = path.relative(root, full).split(path.sep).join('/');
           const digest = hashFile(full);
           fs.copyFileSync(full, path.join(blobs, digest));
-          assets[logical] = { hash: `sha256:${digest}`, type: dir };
+          assets[logical] = { hash: digest, type: dir };
         }
       };
       walk(base);

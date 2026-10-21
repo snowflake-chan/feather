@@ -39,9 +39,9 @@ feather 没有 workspace 编排文件。一个可玩地图是 data root 下的�
     "volume": "bedwars-group"
   },
   "assets": {
-    "mesh/cube.vb": { "hash": "sha256:...", "type": "mesh" },
-    "audio/theme.mp3": { "hash": "sha256:...", "type": "audio" },
-    "image/icon.png": { "hash": "sha256:...", "type": "image" }
+    "mesh/cube.vb": { "hash": "Qm...", "type": "mesh" },
+    "audio/theme.mp3": { "hash": "Qm...", "type": "audio" },
+    "image/icon.png": { "hash": "Qm...", "type": "image" }
   },
   "runtime": {
     "port": 0,
@@ -171,7 +171,7 @@ content/blobs/<sha256>
 feather.json.assets
 ```
 
-`assets` 的逻辑 key 保持 shell 路径，例如 `mesh/cube.vb`、`audio/theme.mp3`。  
+`assets` 的逻辑 key 保持 shell 路径，例如 `mesh/cube.vb`、`audio/theme.mp3`；hash 使用 content-server 的 base58 multihash。  
 这些资源已经进包、可被后续 prebake compiler 使用；当前还不会自动注入 project-state/prebake，所以地图脚本暂时不能直接依赖新加的树资源。
 
 真正的源树编译（prebake builder）是下一步。
