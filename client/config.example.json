@@ -1,0 +1,25 @@
+{
+  "mode": "play",
+  "locale": "zh-CN",
+  "staticGame": true,
+  "headless": false,
+  "ARENA_URL": "http://127.0.0.1:3002",
+  "remoteGameServerURL": "http://127.0.0.1:3002",
+  "CDN_PATH": "http://127.0.0.1:3002",
+  "OSS_CDN_URL": "http://127.0.0.1:3002",
+  "isLocalGameServer": false,
+  "mapInfo": {
+    "contentId": 0,
+    "name": "dummy",
+    "description": "",
+    "image": "",
+    "customizeType": "DIGITALBLOCKLAND",
+    "backgroundImage": "",
+    "combType": 1,
+    "mapGroupId": "dummy",
+    "mapRole": "main",
+    "mainProjectId": "dummy",
+    "isLocalMapGroup": true
+  },
+  "name": "dummy"
+}

@@ -15,3 +15,5 @@ transport/dist/
 daemon/dist/
 
 cli/dist/
+
+client/dist
