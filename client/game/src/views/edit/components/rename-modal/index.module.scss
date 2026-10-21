@@ -1,0 +1,10 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+
+.errorMessage {
+  font-weight: 400;
+  @include texts.b12;
+  color: colors.$boxSystemErrorPositive2;
+  letter-spacing: 0em;
+  text-align: left;
+}

@@ -1,0 +1,15 @@
+@use '../../../../../../colors.module.scss' as colors;
+@use '../../../../../../texts.module.scss' as texts;
+
+.inlineNamedInput {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  height: 32px;
+  line-height: 32px;
+
+  @include texts.b12;
+  color: colors.$boxTextWhiteTertiary;
+}

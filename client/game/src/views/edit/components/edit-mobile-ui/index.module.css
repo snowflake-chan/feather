@@ -1,0 +1,30 @@
+.commonUseBtnGroup {
+  position: fixed;
+  width: 200px;
+  height: 30px;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+}
+
+.commonUseBtn {
+  height: 30px;
+  flex: 1;
+  margin: 0 3px;
+  border-radius: 5px;
+  line-height: 30px;
+  font-size: 15px;
+  color: rgb(219, 217, 217);
+  text-align: center;
+  background: #ffffff00;
+  border: 1px solid rgba(212, 212, 212, 0.849);
+  box-shadow: inset 0px 0px 11px 0px #00000040;
+  transition: all 0.2s linear;
+}
+
+.commonUseBtn.selected {
+  box-shadow: inset 0px 0px 11px 0px #ffffffa1;
+  color: #ffffff;
+  border: 1px solid rgb(255, 255, 255);
+}

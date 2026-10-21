@@ -1,0 +1,146 @@
+/* -------------------------------------------- Arena 主题颜色 ------------------------------------------ */
+/* Arena - 主色 */
+$arenaPrimary95: #ffdb99;
+$arenaPrimary90: #ffa93f;
+$arenaPrimary80: #ff8100;
+$arenaPrimary70: #d46b00;
+$arenaPrimary60: #b05900;
+$arenaPrimary50: #924a00;
+$arenaPrimary40: #793d00;
+$arenaPrimary30: #643300;
+$arenaPrimary20: #4f2800;
+$arenaPrimary10: #361c00;
+/* Arena - 次色 */
+$arenaSecondary95: #f1ede3;
+$arenaSecondary90: #e4dfd4;
+$arenaSecondary80: #cbc1ad;
+$arenaSecondary70: #b2a386;
+$arenaSecondary60: #9d8a66;
+$arenaSecondary50: #837354;
+$arenaSecondary40: #6d5f46;
+$arenaSecondary30: #544935;
+$arenaSecondary20: #3e331d;
+$arenaSecondary10: #302819;
+/* -------------------------------------- 组件库 - Voxa Arena 通用颜色 -------------------------------------- */
+/*  Box-Design 背景色 */
+$boxBackground6: #595959;
+$boxBackground5: #404040;
+$boxBackground4: #333333;
+$boxBackground3: #262626;
+$boxBackground2: #1a1a1a;
+$boxBackground1: #0d0d0d;
+$boxBackground0: #000000;
+/* Box-Design 透明色 - 黑 */
+$boxOpacityBlack60: rgba(0, 0, 0, 0.6);
+$boxOpacityBlack50: rgba(0, 0, 0, 0.5);
+$boxOpacityBlack40: rgba(0, 0, 0, 0.4);
+$boxOpacityBlack35: rgba(0, 0, 0, 0.35);
+$boxOpacityBlack10: rgba(0, 0, 0, 0.1);
+$boxOpacityBlack0: rgba(0, 0, 0, 0);
+/* Box-Design 透明色 - 白 */
+$boxOpacityWhite100: #ffffff;
+$boxOpacityWhite90: rgba(255, 255, 255, 0.9);
+$boxOpacityWhite80: rgba(255, 255, 255, 0.8);
+$boxOpacityWhite70: rgba(255, 255, 255, 0.7);
+$boxOpacityWhite60: rgba(255, 255, 255, 0.6);
+$boxOpacityWhite50: rgba(255, 255, 255, 0.5);
+$boxOpacityWhite40: rgba(255, 255, 255, 0.4);
+$boxOpacityWhite30: rgba(255, 255, 255, 0.3);
+$boxOpacityWhite21: rgba(255, 255, 255, 0.21);
+$boxOpacityWhite18: rgba(255, 255, 255, 0.18);
+$boxOpacityWhite16: rgba(255, 255, 255, 0.16);
+$boxOpacityWhite15: rgba(255, 255, 255, 0.15);
+$boxOpacityWhite12: rgba(255, 255, 255, 0.12);
+$boxOpacityWhite9: rgba(255, 255, 255, 0.09);
+$boxOpacityWhite6: rgba(255, 255, 255, 0.06);
+$boxOpacityWhite3: rgba(255, 255, 255, 0.03);
+$boxOpacityWhite0: rgba(255, 255, 255, 0);
+
+/* Box-Design 透明色 - 灰 */
+$boxOpacityGrey3: #565656;
+
+/* Box-Design 文本颜色 */
+$boxTextWhitePrimary: #ffffff;
+$boxTextWhiteSecondary: rgba(255, 255, 255, 0.75);
+$boxTextWhiteTertiary: rgba(255, 255, 255, 0.5);
+$boxTextWhiteDisabled: rgba(255, 255, 255, 0.25);
+
+$boxTextBlackPrimary: rgba(0, 0, 0, 0.95);
+$boxTextBlackSecondary: rgba(0, 0, 0, 0.8);
+$boxTextBlackTertiary: rgba(0, 0, 0, 0.65);
+$boxTextBlackDisabled: rgba(255, 255, 255, 0.25);
+
+/* Box-Design 系统颜色-错误（红） */
+$boxSystemErrorNegative3: #fddcdc;
+$boxSystemErrorNegative2: #fbaca3;
+$boxSystemErrorNegative1: #f98981;
+$boxSystemError0: #f65252;
+$boxSystemErrorPositive1: #f53f3f;
+$boxSystemErrorPositive2: #cf2b31;
+$boxSystemErrorPositive3: #a81b24;
+
+/* Box-Design 系统颜色-警告（黄） */
+$boxSystemWarnNegative3: #fefebe;
+$boxSystemWarnNegative2: #fdfa94;
+$boxSystemWarnNegative1: #fcf26b;
+$boxSystemWarn0: #fbe842;
+$boxSystemWarnPositive1: #fadc19;
+$boxSystemWarnPositive2: #cfaf0f;
+$boxSystemWarnPositive3: #a38408;
+
+/* Box-Design 系统颜色-成功（绿） */
+$boxSystemSuccessNegative3: #bbe4ae;
+$boxSystemSuccessNegative2: #9ad686;
+$boxSystemSuccessNegative1: #78c95d;
+$boxSystemSuccess0: #56bb35;
+$boxSystemSuccessPositive1: #3b9422;
+$boxSystemSuccessPositive2: #246e14;
+$boxSystemSuccessPositive3: #134709;
+
+/* Box-Design 系统颜色-中性 */
+$boxSystemNeutral95: #fdfcf4;
+$boxSystemNeutral90: #e4e3db;
+$boxSystemNeutral80: #c7c7bf;
+$boxSystemNeutral70: #acaca4;
+$boxSystemNeutral60: #91918a;
+$boxSystemNeutral50: #777771;
+$boxSystemNeutral40: #5e5f59;
+$boxSystemNeutral30: #464741;
+$boxSystemNeutral20: #30312c;
+$boxSystemNeutral10: #1b1c18;
+
+/* Box-Design 坐标颜色 */
+$boxAxisY: #32e844;
+$boxAxisX: #e83232;
+$boxAxisZ: #00c2ff;
+
+/* Box-Design 渐变色-Icon-Active */
+$boxGradientIconActive: linear-gradient(
+  90deg,
+  rgba(116, 223, 49, 0.4) 0%,
+  rgba(116, 223, 49, 0.15) 100%
+);
+
+/* Box-Design 渐变色-Icon-Default */
+$boxGradientIconDefault: linear-gradient(360deg, #e1e1e1 0%, #b5b5b5 100%);
+
+/* Box-Design 渐变色-Icon-Blue */
+$boxGradientBlue: linear-gradient(
+  360deg,
+  rgba(0, 194, 255, 0.2) 0%,
+  rgba(0, 194, 255, 0) 100%
+);
+
+/* Box-Design 渐变色-Icon-Green */
+$boxGradientGreen: linear-gradient(
+  360deg,
+  rgba(50, 232, 68, 0.2) 0%,
+  rgba(50, 232, 68, 0) 100%
+);
+
+/* Box-Design 渐变色-Icon-Red */
+$boxGradientRed: linear-gradient(
+  360deg,
+  rgba(232, 50, 50, 0.2) 0%,
+  rgba(232, 50, 50, 0) 100%
+);

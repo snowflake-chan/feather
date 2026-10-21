@@ -1,0 +1,1 @@
+{"version":3,"file":"rpc-interface.d.ts","sourceRoot":"","sources":["../../backend/rpc-interface.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,MAAM,qBAAqB,CAAC;AAC9C,OAAO,EAAE,UAAU,EAAE,MAAM,wBAAwB,CAAC;AACpD,OAAO,EAAE,OAAO,EAAE,MAAM,qBAAqB,CAAC;AAE9C,MAAM,WAAW,UAAU;IACzB,IAAI,EAAE,OAAO,CAAC;IACd,IAAI,EAAE,OAAO,CAAC;IACd,OAAO,EAAE,UAAU,CAAC;CACrB"}

@@ -1,0 +1,200 @@
+@import '../editor-common.css';
+@value phonePortrait, phoneLandscape, phone from 'src/views/components/breakpoints.css';
+
+.container {
+  top: 0;
+  left: 0;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+.joinedAsCollaboratorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+}
+.joinedAsCollaborator {
+  width: auto;
+  height: 24px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 400;
+}
+input[type='checkbox']#joinedAsCollaboratorCheckbox {
+  margin: 0;
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+}
+input[type='checkbox']#joinedAsCollaboratorCheckbox::before {
+  margin: 0;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #fff;
+  width: 18px;
+  height: 18px;
+  /* border: 1px solid #d9d9d9; */
+  box-sizing: border-box;
+}
+input[type='checkbox']#joinedAsCollaboratorCheckbox:checked::before {
+  margin: 0;
+  content: '\2713';
+  background-color: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  /* border: 1px solid black; */
+  color: black;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+.centerContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.centerContainer .text {
+  margin: 8px auto;
+  font-size: var(--text-h2);
+  line-height: 24px;
+  text-align: center;
+  color: var(--color-white);
+}
+
+.centerContainer .title {
+  margin-bottom: 24px;
+  font-family: Montserrat-Bold;
+  font-weight: 700;
+  font-size: var(--text-h1);
+  line-height: 36px;
+  text-align: center;
+  color: var(--color-white);
+}
+
+.centerContainer .image {
+  width: 176px;
+  height: 176px;
+  border-radius: 16px;
+  margin-bottom: 48px;
+  background: no-repeat center/cover;
+  overflow: hidden;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 368px;
+  height: 56px;
+  border-radius: 100px;
+  background: #fff;
+  color: #000;
+  font-family: Montserrat-Bold;
+  font-size: var(--text-h2);
+  font-weight: 700;
+  line-height: 24px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  margin-top: 0;
+  border: none;
+}
+.btn:active {
+  background: #fff;
+  color: #000;
+}
+.btn:hover {
+  background: #ffdb00;
+  color: #000;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.tipsWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tips {
+  font-size: 12px;
+  font-family: Montserrat-Medium;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  margin-left: 9px;
+}
+.iconTips {
+  opacity: 0.6;
+}
+
+@media phone {
+  .btn {
+    font-size: var(--text-h2);
+    border-radius: var(--hugeRadius);
+    height: 48px;
+  }
+}
+
+@media phonePortrait {
+  .tips {
+    max-width: 280px;
+  }
+  .image {
+    width: 50vw;
+    height: 50vw;
+  }
+  .btn {
+    width: 85vw;
+  }
+}
+
+@media phoneLandscape {
+  .title {
+    margin: 24px 0;
+  }
+
+  .centerContainer {
+    padding-top: 50px;
+    justify-content: normal;
+    overflow-y: scroll;
+  }
+
+  .tipsWrap {
+    margin: 16px 0;
+  }
+
+  .centerContainer .image {
+    width: 120px;
+    height: 120px;
+    border-radius: 16px;
+    background: no-repeat center/cover;
+    flex-shrink: 0;
+  }
+  .btn {
+    width: 526px;
+    height: 56px;
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,33 @@
+@use '../../../../../../colors.module.scss' as colors;
+@use '../../../../../../texts.module.scss' as texts;
+
+.tabInput {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  height: 32px;
+
+  color: colors.$boxTextWhiteTertiary;
+  @include texts.b12;
+
+  &:global(.boxTabTabNav) {
+    width: fit-content;
+    height: 24px;
+
+    background-color: colors.$boxBackground3;
+    border-radius: 4px;
+
+    :global(.boxButton.boxTabTabPanel) {
+      width: auto;
+      min-width: 40px;
+
+      padding-left: 8px;
+      padding-right: 8px;
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+}

@@ -1,0 +1,261 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+@import '../editor-common.css';
+@value icon, iconSmall, scrollbarStyle from '../editor-common.css';
+
+.container {
+  height: 100%;
+  border-right: 1px solid colors.$boxOpacityWhite12;
+}
+
+/* 控制台 - 输入栏 - 高度 */
+$scriptEvalHeight: 36px;
+
+.logWrapper {
+  width: 100%;
+  height: calc(100% - 80px);
+  overflow-y: scroll;
+  padding-top: 8px;
+  composes: scrollbarStyle;
+}
+
+.floatContainer .logWrapper {
+  height: calc(100% - $scriptEvalHeight);
+  width: 320px;
+  overflow-wrap: break-word;
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: var(--basePadding) 0;
+
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.consoleTitleContainer {
+  display: flex;
+  padding: 0 var(--basePadding);
+  width: 100%;
+  height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-white-30);
+}
+
+.consoleTabs {
+  display: flex;
+  align-self: stretch;
+  gap: 4px;
+}
+
+.consoleTab,
+.consoleTabActive {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  outline: none;
+  background: transparent;
+  color: var(--color-white-60);
+  font-size: var(--text-h2);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.consoleTab:hover {
+  color: var(--color-white);
+}
+
+.consoleTabActive {
+  color: var(--color-white);
+  border-bottom: 2px solid var(--color-white);
+}
+
+.problemCount {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-danger);
+  color: var(--color-white);
+  @include texts.b10;
+  line-height: 18px;
+  text-align: center;
+}
+
+.exceptionLink {
+  text-decoration: underline;
+  color: var(--color-danger);
+}
+
+.exceptionLink:hover {
+  text-decoration: underline;
+  font-family: var(--font-bold);
+}
+
+.closeBtn {
+  composes: icon;
+  background-position: -216px -96px;
+}
+
+.logContainer {
+  padding: 0 var(--basePadding);
+}
+
+.problemList {
+  height: calc(100% - 44px);
+  overflow-y: auto;
+  padding: 4px 0;
+  composes: scrollbarStyle;
+}
+
+.problemItem {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px calc(var(--basePadding) + 8px);
+  border: 0;
+  border-bottom: 1px solid colors.$boxOpacityWhite6;
+  outline: none;
+  background: transparent;
+  color: var(--color-white);
+  font-family: var(--font-regular);
+  text-align: left;
+  cursor: pointer;
+}
+
+.problemItem:hover,
+.problemItem:focus-visible {
+  background: var(--color-white-10);
+}
+
+.problemError,
+.problemWarning {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  border-radius: 50%;
+  color: var(--color-white);
+  font-family: var(--font-bold);
+  font-size: 12px;
+  line-height: 15px;
+  text-align: center;
+}
+
+.problemError {
+  background: var(--color-danger);
+}
+
+.problemWarning {
+  background: var(--color-primary);
+}
+
+.problemContent {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.problemMessage {
+  overflow: hidden;
+  color: colors.$boxTextWhitePrimary;
+  @include texts.b14;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.problemLocation {
+  overflow: hidden;
+  color: colors.$boxTextWhiteTertiary;
+  @include texts.b12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.problemEmpty {
+  display: flex;
+  height: calc(100% - 44px);
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white-60);
+}
+
+.log,
+.logWarning,
+.logError {
+  width: 100%;
+  color: var(--color-white);
+  user-select: text;
+  cursor: auto;
+}
+
+.floatContainer .log,
+.floatContainer .logWarning,
+.floatContainer .logError {
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 1);
+  user-select: text;
+  cursor: auto;
+}
+
+.floatContainer .log {
+  color: #00fff2;
+}
+
+.logWarning {
+  color: var(--color-primary);
+}
+
+.logError {
+  color: var(--color-danger);
+}
+
+.log:hover {
+  background-color: rgba(64, 128, 64, 0.5);
+}
+
+.logWarning:hover {
+  background-color: rgba(64, 128, 64, 0.5);
+}
+
+.logError:hover {
+  background-color: rgba(64, 128, 64, 0.5);
+}
+
+.scriptEval {
+  height: $scriptEvalHeight;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--color-white-30);
+  padding: 0 var(--basePadding);
+}
+
+.floatContainer .scriptEval {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  background-color: var(--color-grey2);
+}
+
+.scriptEvalIcon {
+  composes: iconSmall;
+  background-position: -128px -64px;
+  margin-right: 8px;
+}
+
+.scriptEvalInput {
+  height: 100%;
+  width: 100%;
+  outline: none;
+  background: transparent;
+  border: none;
+  color: var(--color-white);
+  font-size: var(--text-h2);
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "ESNext",
+    "composite": false,
+    "jsx": "react",
+    "rootDir": "./output/icon",
+    "outDir": "build"
+  },
+  "include": ["output"],
+  "exclude": ["node_modules", "build"]
+}

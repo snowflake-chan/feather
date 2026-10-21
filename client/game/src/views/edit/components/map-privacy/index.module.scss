@@ -1,0 +1,29 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+.container {
+  color: #fff;
+  line-height: 1.5em;
+}
+
+.selection {
+  display: flex;
+  margin-top: 16px;
+}
+
+.radio {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.radioName {
+  margin-left: 8px;
+  @include texts.b14;
+}
+
+.tip {
+  margin-top: 4px;
+  color: colors.$boxTextWhiteTertiary;
+  padding-left: 32px;
+  @include texts.b12;
+}

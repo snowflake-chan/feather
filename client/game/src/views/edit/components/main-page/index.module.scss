@@ -1,0 +1,95 @@
+@value icon from '../editor-common.css';
+
+.arenaEditor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: fixed;
+  width: 100%;
+  overflow: hidden scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+/* ----------------------------------------------------------------------------------------------- */
+
+.MainEditor {
+  height: 100%;
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  // top: 0px;
+}
+.editorContainer {
+  position: absolute;
+  flex: 1;
+  height: 100%;
+}
+.gameEditor {
+  height: 100%;
+}
+
+.guestEditor {
+  height: 100%;
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+}
+
+.applicationBtn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background: #565656;
+  border-radius: 8px;
+  height: 40px;
+  line-height: 40px;
+  color: #fff;
+  padding: 0 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.guestOperationBar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 8px;
+  height: 44px;
+  background: rgba(18, 18, 18, 0.9);
+  border-radius: 0 0 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.guestOpBtn {
+  padding: 4px;
+  margin: 2px;
+  border-radius: 6px;
+}
+
+.guestOpBtn.active {
+  background-color: rgba(200, 200, 200, 0.4);
+}
+
+.chatIcon {
+  composes: icon;
+  background-position: -168px -192px;
+}
+
+.fullscreenIcon {
+  composes: icon;
+  background-position: -216px 0;
+}
+
+.exitFullscreenIcon {
+  composes: icon;
+  background-position: -192px 0;
+}
+
+.settingIcon {
+  composes: icon;
+  background-position: -96px -72px;
+}

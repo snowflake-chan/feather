@@ -1,0 +1,1 @@
+{"version":3,"file":"input-protocol.js","sourceRoot":"","sources":["../../input/input-protocol.ts"],"names":[],"mappings":";;;AAAA,6CAA2C;AAE9B,QAAA,mBAAmB,GAAG;IACjC,IAAI,EAAE,OAAO;IACb,MAAM,EAAE;QACN,cAAc,EAAE,IAAI,gBAAO,CAAC,CAAC,CAAC;QAC9B,YAAY,EAAE,IAAI,gBAAO,CAAC,CAAC,CAAC;KAC7B;IACD,MAAM,EAAE,EAAE;CACX,CAAC"}

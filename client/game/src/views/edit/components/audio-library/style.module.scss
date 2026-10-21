@@ -1,0 +1,16 @@
+@use '../../../colors.module.scss' as colors;
+
+.item {
+  width: calc(50% - 16px);
+  height: 80px;
+  background-color: colors.$boxOpacityWhite6;
+  padding: 0px 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  &:hover {
+    background-color: colors.$boxOpacityWhite12;
+  }
+}

@@ -1,0 +1,115 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.toastsContainer {
+  position: fixed;
+  top: 52px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 12;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+
+  pointer-events: none;
+
+  .toast {
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 16px;
+    margin-top: 8px;
+
+    background-color: rgba(64, 64, 64, 1);
+    border-radius: 4px;
+    animation: fadeIn 0.3s linear;
+  }
+
+  .fadeOut {
+    animation: fadeOut 0.3s linear;
+  }
+
+  .title {
+    @include texts.b14;
+    color: colors.$textWhitePrimary;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .prefix {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+
+  .description {
+    @include texts.b12;
+    color: colors.$textWhiteTertiary;
+  }
+}
+
+.success {
+  fill: colors.$systemSuccess0;
+}
+
+.error {
+  fill: colors.$systemError0;
+}
+
+.warning {
+  fill: colors.$systemWarn0;
+}
+
+.info {
+  fill: colors.$secondary80;
+}
+
+.loading {
+  fill: colors.$textWhitePrimary;
+
+  animation: loading 1.2s linear infinite;
+
+  :global(.boxIcon) {
+    fill: colors.$textWhitePrimary;
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    margin-top: -8px;
+    opacity: 0%;
+  }
+
+  100% {
+    margin-top: 8px;
+    opacity: 100%;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    margin-top: 8px;
+    opacity: 100%;
+  }
+
+  100% {
+    margin-top: -8px;
+    opacity: 0%;
+  }
+}

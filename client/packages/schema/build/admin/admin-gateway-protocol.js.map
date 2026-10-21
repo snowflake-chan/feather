@@ -1,0 +1,1 @@
+{"version":3,"file":"admin-gateway-protocol.js","sourceRoot":"","sources":["../../admin/admin-gateway-protocol.ts"],"names":[],"mappings":";;;AAAA,6CAAkD;AAErC,QAAA,aAAa,GAAG;IAC3B,IAAI,EAAE,OAAO;IACb,MAAM,EAAE;QACN,QAAQ,EAAE,IAAI,eAAM,EAAE;QACtB,KAAK,EAAE,IAAI,eAAM,EAAE;KACpB;IACD,MAAM,EAAE;QACN,cAAc,EAAE,IAAI,eAAM,EAAE;QAC5B,eAAe,EAAE,IAAI,eAAM,EAAE;KAC9B;CACF,CAAC"}

@@ -1,0 +1,41 @@
+@use '../../../../../../colors.module.scss' as colors;
+
+.alignments {
+  display: flex;
+  justify-content: space-between;
+
+  .sub {
+    display: flex;
+    justify-content: space-between;
+
+    gap: 4px;
+
+    div {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+
+      svg {
+        width: 24px;
+        height: 24px;
+
+        fill: colors.$boxTextWhiteSecondary;
+      }
+
+      &:hover {
+        background: colors.$boxOpacityWhite6;
+      }
+
+      &:active svg {
+        fill: colors.$boxTextWhitePrimary;
+      }
+
+      &.selected svg {
+        fill: colors.$arenaPrimary80;
+      }
+    }
+  }
+}

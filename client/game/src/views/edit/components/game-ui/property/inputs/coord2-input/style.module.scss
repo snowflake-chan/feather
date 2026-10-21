@@ -1,0 +1,12 @@
+@use '../../common.module.scss' as common;
+
+.coord2Input {
+  .title {
+    @include common.title;
+  }
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}

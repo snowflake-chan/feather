@@ -1,0 +1,105 @@
+@use '../../../../texts.module.scss' as texts;
+@use '../../../../colors.module.scss' as colors;
+
+.hierarchyCollapse {
+  @include texts.b12;
+
+  svg {
+    fill: colors.$boxTextWhiteSecondary;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.hierarchyTabBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 32px;
+  padding: 0 8px;
+  border-bottom: 1px solid colors.$boxOpacityWhite12;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: colors.$boxTextWhiteSecondary;
+  }
+}
+
+.hierarchyTabList {
+  display: flex;
+  height: 100%;
+
+  .title {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 12px;
+    height: 100%;
+    @include texts.b12;
+    color: colors.$boxTextWhiteSecondary;
+
+    &:hover {
+      color: colors.$boxTextWhitePrimary;
+    }
+
+    &:active {
+      color: colors.$boxTextWhiteTertiary;
+    }
+  }
+
+  .activeUnderLine {
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 14px;
+    color: colors.$boxTextWhitePrimary;
+    border-bottom: 3px solid colors.$arenaPrimary80;
+    border-radius: 999px;
+  }
+}
+
+.sideBar {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.search {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 30%;
+
+  &:hover {
+    background-color: colors.$boxOpacityWhite6;
+  }
+
+  svg {
+    &:active {
+      fill: colors.$arenaPrimary80;
+    }
+  }
+}
+
+.searchActive {
+  svg {
+    fill: colors.$arenaPrimary80;
+  }
+}
+
+.content {
+  background-color: colors.$boxBackground4;
+  height: calc(100% - 32px);
+}
+
+.gap {
+  margin-left: 8px;
+  margin-right: 8px;
+  height: 16px;
+  width: 1px;
+  background-color: colors.$boxOpacityWhite6;
+}

@@ -1,0 +1,34 @@
+.tooltip {
+  position: relative;
+}
+.tooltipContent {
+  position: absolute;
+  white-space: nowrap;
+  padding: 8px;
+  min-width: 30px;
+  background-color: var(--color-grey1);
+  border: 1px solid var(--color-white);
+  color: var(--color-white);
+  font-size: var(--font-size-h4);
+  text-align: center;
+  border-radius: var(--baseRadius);
+  opacity: 0;
+  cursor: auto;
+  transition: opacity 0.5s;
+  z-index: 999;
+}
+.tooltipArrow {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  background-color: var(--color-grey1);
+  border: 1px solid var(--color-white);
+}
+.visible {
+  opacity: 1;
+}
+.hidden {
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+}

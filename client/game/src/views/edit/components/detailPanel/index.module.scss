@@ -1,0 +1,109 @@
+@use '../../../texts.module.scss' as texts;
+@use '../../../colors.module.scss' as colors;
+@import '../editor-common.css';
+@value icon, iconSmall, scrollbarStyle from '../editor-common.css';
+
+.panelContainer {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  display: flex;
+  max-height: calc(100% - 60px);
+  z-index: 1;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  overflow: hidden;
+}
+
+.panelHidden {
+  display: none;
+}
+
+.tabList {
+  width: 40px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.title {
+  @include texts.h12;
+  font-family: 'Rubik-700';
+  color: colors.$boxTextWhiteSecondary;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 11px 11px 16px;
+  height: 46px;
+  width: 100%;
+}
+
+.closeBtn {
+  cursor: pointer;
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: colors.$boxTextWhitePrimary;
+  }
+}
+
+.contentContainer {
+  composes: scrollbarStyle;
+  width: 240px;
+  position: relative;
+  max-height: 100%;
+  background-color: colors.$boxBackground6;
+  overflow: hidden;
+  padding-right: 4px;
+  padding-bottom: 5px;
+}
+
+.borderRadius {
+  border-radius: 0 16px 16px 0px;
+}
+
+.content,
+.contentWithFooter {
+  width: 100%;
+  height: calc(100% - 46px);
+  composes: scrollbarStyle;
+  padding-left: 10px;
+}
+
+.contentWithFooter {
+  height: calc(100% - 46px - 34px);
+}
+
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  width: calc(100%);
+  padding: 0 var(--basePadding);
+  height: 34px;
+  margin-bottom: calc(-1 * var(--basePadding));
+}
+
+.exapndBtn,
+.expanded {
+  display: none;
+  width: 64px;
+  height: 16px;
+  background: var(--color-grey2-90);
+  position: absolute;
+  bottom: -16px;
+  right: 16px;
+  border-radius: 0 0 64px 64px;
+  padding: 0 24px;
+}
+
+.expandIcon {
+  composes: iconSmall;
+  background-position: -96px -64px;
+}
+
+.expanded .expandIcon {
+  background-position: -80px -64px;
+}
+
+.hidden {
+  visibility: hidden;
+}

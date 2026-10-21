@@ -1,0 +1,6 @@
+.adminPanel {
+  overflow: auto;
+  max-height: 100vh;
+  width: 500px;
+  pointer-events: all;
+}

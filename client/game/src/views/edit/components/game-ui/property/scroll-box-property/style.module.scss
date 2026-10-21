@@ -1,0 +1,19 @@
+@use '../common.module.scss' as common;
+
+.scrollBoxProperty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .subTitle {
+    @include common.subTitle;
+  }
+
+  .divider {
+    @include common.divider;
+  }
+
+  .scrollbarPositions .title {
+    @include common.topTitle;
+  }
+}

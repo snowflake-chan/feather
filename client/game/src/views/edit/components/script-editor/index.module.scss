@@ -1,0 +1,94 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+
+.scriptEditorWrapper {
+  width: 100px;
+  height: 100%;
+  flex: 1;
+  display: block;
+}
+
+.codeEditorContainer {
+  background: colors.$boxBackground3;
+  color: var(--color-white);
+  height: calc(100% - 64px);
+  min-height: 36px;
+}
+
+.debugPanel {
+  color: var(--color-white);
+  background: var(--color-grey2-90);
+  position: relative;
+  bottom: 0px;
+  width: 100%;
+  &.hide {
+    display: none;
+  }
+}
+
+.headerWrapper {
+  width: 100%;
+  height: 64px;
+  background: colors.$boxBackground3;
+  border-right: 1px solid colors.$boxOpacityWhite12;
+  .header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 24px 0px 15px;
+    margin: 0px 32px;
+    border-bottom: 1px solid colors.$boxOpacityWhite12;
+  }
+}
+.left {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  gap: 8px;
+  p {
+    font-family: Rubik-700;
+    text-align: left;
+    @include texts.h16;
+    color: colors.$boxTextWhitePrimary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    svg {
+      width: 18px;
+      height: 18px;
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+}
+.right {
+  max-width: 50%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-wrap: nowrap;
+  font-family: MiSans;
+  @include texts.b14;
+  text-align: right;
+  color: colors.$arenaPrimary80;
+  flex: none;
+  &.lockedByOther {
+    color: colors.$boxSystemSuccess0;
+  }
+  p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-wrap: nowrap;
+  }
+}

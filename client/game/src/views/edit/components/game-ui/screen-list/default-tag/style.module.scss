@@ -1,0 +1,22 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../../../../../texts.module.scss' as texts;
+@value boxScrollbar from '../../../../../scroll.module.scss';
+
+.defaultTagContainer {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.defaultTag {
+  white-space: nowrap;
+  background: colors.$boxBackground6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  height: 16px;
+  border-radius: 2px;
+  padding: 4px;
+  transform: scale(0.75) translateX(-1px);
+}

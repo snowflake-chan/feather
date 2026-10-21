@@ -1,0 +1,28 @@
+@use '../../../../../../texts.module.scss' as texts;
+@use '../../../../../../colors.module.scss' as colors;
+
+.selectInput {
+  height: 32px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  @include texts.b12;
+  color: colors.$boxTextWhiteTertiary;
+
+  :global(.boxSelect) {
+    width: 106px;
+    height: 24px;
+
+    :global(.boxSelectContent) p {
+      @include texts.b12;
+      color: colors.$boxTextWhitePrimary;
+    }
+  }
+
+  &.mixed :global(.boxSelect) :global(.boxSelectContent) p {
+    color: colors.$boxTextWhiteTertiary;
+  }
+}

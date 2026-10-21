@@ -1,0 +1,1036 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+@value icon, iconSmall, scrollbarStyle from '../editor-common.css';
+@import '../editor-common.css';
+@value smallPhonePortrait, smallPhoneLandscape, phone, phonePortrait, phoneLandscape, tablet, tabletLandscape, tabletPortrait from '../../../components/breakpoints.css';
+@value barHeight: 44px;
+
+.hidden {
+  visibility: hidden;
+}
+.show {
+  position: absolute;
+  width: 880px;
+  height: 100%;
+}
+
+.tabLine {
+  border-top: 1px solid var(--color-white-15);
+  margin: 0 16px;
+}
+
+.dragOverMask {
+  width: 100%;
+  position: absolute;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.dragOverMask .inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.textColor {
+  color: var(--color-white);
+}
+
+.filterIcon,
+.textureIcon,
+.modelIcon,
+.audioIcon,
+.uploading,
+.closeIcon,
+.addResourcesIcon,
+.dragOverIcon,
+.allIcon,
+.recycleIcon,
+.backIcon,
+.pictureIcon,
+.animatedIcon {
+  composes: icon;
+  width: 24px;
+  height: 24px;
+}
+
+.modelIcon {
+  background-position: -25px -24px;
+}
+
+.textureIcon {
+  background-position: -216px -168px;
+}
+
+.filterIcon {
+  background-position: -120px -24px;
+}
+
+.pictureIcon {
+  background-position: -72px -120px;
+}
+
+.dragOverIconWrap {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dragOverIcon {
+  width: 24px;
+  height: 24px;
+  transform: translate(250%, 100%) scale(4);
+  background-position: -144px -48px;
+}
+
+.dragOverIcon.warning {
+  background-position: -192px -72px;
+}
+
+.dragOverText {
+  font-family: PingFangSC-Regular;
+  font-size: 16px;
+  color: #ffffff;
+  line-height: 24px;
+  text-align: center;
+  margin-top: 60px;
+}
+
+.allIcon {
+  background-position: -72px -72px;
+}
+
+.recycleIcon {
+  background-position: -120px 0;
+}
+
+.closeIcon {
+  background-position: -216px -96px;
+}
+
+.backIcon {
+  background-position: -48px -120px;
+}
+
+.ascIcon {
+  composes: iconSmall;
+  background-position: -112px -144px;
+}
+
+.descIcon {
+  composes: iconSmall;
+  background-position: -128px -144px;
+}
+
+.downIcon {
+  composes: iconSmall;
+  background-position: -96px -64px;
+  margin-left: 8px;
+}
+
+.backIcon {
+  background-position: -48px -120px;
+}
+
+.animatedIcon {
+  background-position: 0px -264px;
+  position: absolute;
+  margin: var(--basePadding);
+}
+
+.audioIconWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 16px;
+  border-radius: 5px;
+  flex: 0 0 48px;
+  background: var(--color-grey3);
+}
+
+.audioIcon {
+  background-position: -49px -239px;
+}
+
+.musicSymbol {
+  position: relative;
+  top: 8px;
+  left: -2px;
+  transform: scale(0.6);
+}
+
+.musicSymbol .circle {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50px 30px 45px 30px;
+  float: left;
+}
+
+.musicSymbol .stick {
+  width: 1px;
+  height: 40px;
+  border-left: 4px solid #fff;
+  float: left;
+  margin-top: -30px;
+  margin-left: -4px;
+}
+
+.musicSymbol .tailContainer {
+  float: left;
+  position: relative;
+  top: -30px;
+  left: 0;
+}
+
+.musicSymbol .tail {
+  width: 15px;
+  height: 25px;
+  background: #fff;
+  border-radius: 0 80px 70px 0;
+  z-index: 1;
+  position: absolute;
+}
+
+.musicSymbol .tailMask {
+  width: 12px;
+  height: 23px;
+  background: #555555;
+  border-radius: 0 100px 40px 0;
+  z-index: 2;
+  position: absolute;
+  top: 4px;
+}
+
+.audioIconWrapper .uploading {
+  background-position: -192px -120px;
+  -webkit-animation: rotation 2s infinite linear;
+}
+
+@-webkit-keyframes rotation {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(359deg);
+  }
+}
+
+.codeIconWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 16px;
+  border-radius: 5px;
+  flex: 0 0 48px;
+  background: var(--color-grey3);
+  .codeIcon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+}
+
+.tagOperation {
+  composes: iconSmall;
+  background-position: 0 -65px;
+}
+
+.fileSystemContainer {
+  display: flex;
+  position: fixed;
+  width: 880px;
+  top: 60px;
+  bottom: 16px;
+  border-radius: 16px 0 0 16px;
+  z-index: 2;
+}
+
+.fileSystemTab {
+  flex: 0 0 240px;
+  background-color: var(--color-grey1-90);
+  border-radius: 16px 0 0 16px;
+}
+
+.fileSystemContent {
+  flex: 3;
+  width: 640px;
+  background-color: var(--color-grey2-90);
+  border-radius: 0 16px 16px 0;
+  min-width: 0;
+}
+
+.fileSystemTabTitle {
+  line-height: 32px;
+  height: 64px;
+  color: var(--color-white);
+  padding: 16px;
+}
+
+.fileSystemTabContent {
+  overflow: overlay;
+  height: calc(100% - 64px);
+  user-select: none;
+}
+
+.tabItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  user-select: none;
+}
+
+.tabContentTitleWrapper {
+  display: flex;
+  color: var(--color-white);
+  .codeIcon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+}
+
+.tabContentTitle {
+  margin-left: 16px;
+  user-select: none;
+}
+
+.tabContentCount {
+  font-size: 12px;
+  color: var(--color-white-60);
+  user-select: none;
+}
+
+
+.contentBar {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.search {
+  width: 40%;
+}
+
+.tableHead {
+  display: flex;
+  padding-bottom: 8px;
+  color: var(--color-white);
+  border-bottom: 1px solid var(--color-white-30);
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+.tableHeadItem {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+}
+
+.tableHeadFirstItem {
+  padding-left: 16px;
+}
+
+.popupContainer {
+  min-width: 160px;
+  border-radius: var(--baseRadius);
+  overflow: hidden;
+  background-color: var(--color-grey1);
+  cursor: pointer;
+}
+
+.popupSelection {
+  height: 40px;
+  background-color: var(--color-grey1);
+  color: var(--color-white);
+  font-size: var(--font-h2);
+  line-height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.popupSelection:hover {
+  background: var(--color-grey2);
+}
+
+.contentItem:last-child {
+  margin-bottom: 90px;
+}
+
+.contentItemWrapper {
+  display: flex;
+  color: var(--color-white);
+}
+
+.contentItemWrapper:hover {
+  background: var(--color-white-15);
+}
+
+.contentItemSelected {
+  background: var(--color-white-15);
+}
+
+.tableContent {
+  overflow: overlay;
+  height: 100%;
+  margin-right: 4px;
+  composes: scrollbarStyle;
+}
+
+.contentItemName {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.tabContentItemImage {
+  width: 48px;
+  height: 48px;
+  margin: 0 16px;
+  border-radius: 5px;
+  flex: 0 0 48px;
+  background: var(--color-grey3);
+  overflow: hidden;
+}
+
+.tabContentItemInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 64px;
+  width: 100%;
+  word-break: break-all;
+  border-bottom: 1px solid var(--color-white-30);
+  overflow: hidden;
+}
+
+.tabContentName {
+  display: flex;
+  align-items: center;
+}
+
+.animatedIconSmall {
+  composes: iconSmall;
+  background-position: 0px -176px;
+  margin-right: var(--smallPadding);
+}
+
+.tabContentItemHash {
+  font-size: 12px;
+  color: var(--color-white-60);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 350px;
+}
+
+.contentItemLastModified {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  border-bottom: 1px solid var(--color-white-30);
+}
+
+.contentItemSize {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  border-bottom: 1px solid var(--color-white-30);
+}
+
+.contentItemOperationWrapper {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  border-bottom: 1px solid var(--color-white-30);
+}
+
+.contentItemOperation {
+  margin-right: 16px;
+}
+
+.contentDetailWrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--color-grey1);
+  width: 320px;
+  height: 100%;
+  border-radius: 16px;
+}
+
+.contentDetail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-right: 4px;
+}
+
+.contentDetailBar {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.contentDetailTitle {
+  display: flex;
+}
+
+.contentDetailText {
+  margin-left: 16px;
+  color: var(--color-white);
+}
+
+.contentDetailImgContainer {
+  display: inline-flex;
+  align-items: flex-end;
+  width: 288px;
+  height: 288px;
+}
+
+.contentDetailImg {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--color-white-30);
+
+  object-fit: contain;
+}
+
+.contentDetailInfo {
+  display: flex;
+  min-height: 40px;
+  padding-top: 8px;
+  justify-content: space-between;
+}
+
+.contentDetailInfoTitle {
+  flex: 0 0 100px;
+  color: var(--color-white-60);
+}
+
+.contentDetailInfoContent {
+  text-align: right;
+  color: var(--color-white);
+  word-break: break-all;
+}
+
+.contentDetailInfoWrapper {
+  overflow: overlay;
+  padding: 0 16px 16px;
+  composes: scrollbarStyle;
+}
+
+.phonefileSystemContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.phoneFileSystemTab {
+  display: flex;
+  background: var(--color-grey1-90);
+  height: 40px;
+}
+
+.phoneFileSystemTabContent {
+  display: flex;
+  width: 100%;
+  white-space: nowrap;
+  overflow: overlay;
+}
+
+.phoneFileSystemTabFoot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 16px;
+}
+
+.phoneTabContentTitleWrapper {
+  display: flex;
+  color: var(--color-white);
+}
+
+.phoneTabContentTitle {
+  margin-left: 8px;
+}
+
+.phoneTabItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.selectedTab {
+  background: var(--color-white-15);
+  opacity: 1;
+}
+
+.phoneFileSystemContent {
+  height: calc(100vh - 40px - 56px);
+  background: var(--color-grey2-90);
+  z-index: 3;
+}
+
+.phoneSearch {
+  padding: 12px 16px;
+}
+
+.phoneSort {
+  padding: 1px 16px 12px;
+}
+
+.phoneSortWay {
+  display: flex;
+  align-items: center;
+  width: 100vw;
+  color: var(--color-white);
+}
+
+.phoneContentItemWrapper {
+  display: flex;
+  align-items: center;
+  color: var(--color-white);
+}
+
+.phoneTabContentItemWrapper {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+/* .phoneContentDetailWrapper {
+  height: 100%;
+  border-radius: 16px;
+  background: var(--color-grey2-90);
+} */
+
+.phoneContentItem {
+  display: flex;
+  align-items: center;
+  color: var(--color-white);
+  width: 100%;
+}
+
+.phoneContentItemOperationWrapper {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  border-bottom: 1px solid var(--color-white-30);
+}
+
+.phoneContentDetailWrapper {
+  background: var(--color-grey2-90);
+  height: 100%;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.recycleFoot {
+  display: flex;
+  height: 72px;
+  padding: 16px;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-white-30);
+}
+
+.recycleButton {
+  outline: none;
+  border: none;
+  padding: var(--smallPadding) var(--basePadding);
+  background-color: var(--color-grey3);
+  font-size: var(--text-h2);
+  color: var(--color-white);
+  border-radius: var(--baseRadius);
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1.5em;
+}
+
+.recycleButtonDisabled {
+  outline: none;
+  border: none;
+  padding: var(--smallPadding) var(--basePadding);
+  background-color: var(--color-grey3);
+  font-size: var(--text-h2);
+  border-radius: var(--baseRadius);
+  display: inline-block;
+  line-height: 1.5em;
+  color: var(--color-white-30);
+  cursor: not-allowed;
+  border-color: var(--color-white-30);
+}
+
+.recycleButton:nth-child(2) {
+  margin-left: 16px;
+}
+
+.recycleButtonDisabled:nth-child(2) {
+  margin-left: 16px;
+}
+
+.contentDetailCopyInfo {
+  position: relative;
+  display: flex;
+  min-height: 40px;
+  padding: 8px 0;
+  justify-content: space-between;
+}
+
+.contentDetailCopyInfo:hover {
+  background: var(--color-white-15);
+  cursor: pointer;
+}
+
+.contentDetailCopyInfo:hover::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  right: -16px;
+  width: 16px;
+  top: 0;
+  border-right: solid var(--color-white-15) 16px;
+}
+
+.contentDetailCopyInfo:hover::before {
+  content: '';
+  position: absolute;
+  height: 100%;
+  left: -16px;
+  width: 16px;
+  top: 0;
+  border-left: solid var(--color-white-15) 16px;
+}
+
+.tableHeadItemContent {
+  margin-right: 8px;
+}
+
+.addResources {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  transition: 0.2s ease-in-out;
+}
+
+.phoneFileSystemContent .addResources {
+  bottom: 73px;
+}
+
+.addResources.dismiss {
+  transform: translateY(100px);
+}
+
+.addResourcesBg {
+  display: flex;
+
+  width: 100%;
+  height: 100%;
+
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+
+  gap: 11px;
+}
+
+.addResourcesBtn {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  background: var(--color-primary);
+  border-radius: 30px;
+  text-align: center;
+  cursor: pointer;
+  color: white;
+  box-shadow: 1px 1px 12px -4px rgba(0, 0, 0, 1);
+  transition: all ease-in-out 0.2s;
+  line-height: 52px;
+  font-size: 30px;
+  font-family: sans-serif;
+}
+
+.addResourcesBtn:hover {
+  background: var(--color-primary-hover);
+}
+
+.addResourcesBtn:active {
+  background: var(--color-primary-press);
+}
+
+.addResourcesIcon {
+  background-position: -96px -241px;
+  margin-top: 17px;
+  margin-left: 16px;
+}
+
+.addResources.disable {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.addResources.active {
+  width: 160px;
+}
+
+.uploadPendingText,
+.uploadButton {
+  display: none;
+}
+
+.addResources.active .uploadPendingText,
+.addResources.active .uploadButton {
+  display: block;
+  width: 160px;
+  height: 40px;
+  top: 0;
+  left: 0;
+  background: #4e4e4e;
+  color: rgb(219, 219, 219);
+  border-radius: 5px;
+  box-shadow: 1px 1px 12px -4px rgba(0, 0, 0, 1);
+  font-size: 16px;
+  line-height: 40px;
+  padding-left: 16px;
+  font-family: sans-serif;
+  cursor: pointer;
+}
+
+.uploadButtons {
+  border-radius: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 1px 1px 12px -4px rgba(0, 0, 0, 1);
+}
+
+.addResources.active .uploadButton {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.addResources.active .uploadPendingText {
+  width: 300px;
+  color: #ffc107;
+  left: -116px;
+}
+
+.addResources.active .uploadPendingText:hover,
+.addResources.active .uploadPendingText:active,
+.addResources.active .uploadButton:hover,
+.addResources.active .uploadButton:active {
+  background: #0f0f0f;
+  color: white;
+}
+
+.addResources.active .addResourcesBtn {
+  background: #343434;
+  transition: all ease-in-out 0.2s;
+  transform: rotate(45deg);
+}
+
+@media phonePortrait {
+  .tabContentItemHash {
+    width: 200px;
+  }
+
+  .phonefileSystemContainer {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 56px);
+    width: 100vw;
+  }
+
+  .phoneContentDetailWrapper {
+    background: var(--color-grey2-90);
+    height: calc(100% - 56px);
+    z-index: 2;
+  }
+
+  .contentDetailText {
+    padding-left: 16px;
+    color: var(--color-white);
+    border-left: 1px;
+    border-left: 1px solid var(--color-white-30);
+  }
+
+  .recycleFoot {
+    justify-content: center;
+    border-top: 0;
+  }
+
+  .recycleButton {
+    flex: 1;
+  }
+
+  .recycleButtonDisabled {
+    flex: 1;
+  }
+}
+
+@media smallPhonePortrait {
+  .tabContentItemHash {
+    max-width: 200px;
+  }
+}
+
+@media phoneLandscape {
+  .tabContentItemHash {
+    max-width: 220px;
+  }
+
+  .phonefileSystemContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vh;
+    position: fixed;
+    right: 0;
+    z-index: 1;
+    border-radius: 16px 0 0 16px;
+  }
+
+  .phoneSortWay {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: var(--color-white);
+  }
+
+  .phoneContentDetailWrapper {
+    background: var(--color-grey2-90);
+    height: 100%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 1;
+    width: 100vh;
+    border-radius: 16px 0 0 16px;
+  }
+
+  .phoneFileSystemTab {
+    display: flex;
+    background: var(--color-grey1-90);
+    height: 40px;
+    border-radius: 16px 0 0 0;
+  }
+
+  .phoneFileSystemTabContent {
+    display: flex;
+    width: 100%;
+    white-space: nowrap;
+    overflow: overlay;
+    border-radius: 16px 0 0 0;
+  }
+
+  .phoneFileSystemContent {
+    height: calc(100vh - 40px);
+    background: var(--color-grey2-90);
+    z-index: 3;
+    border-radius: 0 0 0 16px;
+  }
+
+  .contentDetailImg {
+    display: flex;
+    margin: 8px auto;
+    width: 160px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-white-30);
+  }
+
+  .contentDetailText {
+    padding-left: 16px;
+    color: var(--color-white);
+    border-left: 1px;
+    border-left: 1px solid var(--color-white-30);
+  }
+
+  .recycleFoot {
+    justify-content: center;
+    border-top: 0;
+  }
+
+  .recycleButton {
+    flex: 1;
+  }
+
+  .recycleButtonDisabled {
+    flex: 1;
+  }
+
+  .phoneFileSystemContent .addResources {
+    bottom: 20px;
+  }
+}
+
+@media smallPhoneLandscape {
+  .tabContentItemHash {
+    max-width: 160px;
+  }
+}
+
+@media tablet {
+  .phoneContentDetailWrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--color-grey1);
+    width: 35%;
+    height: 100%;
+    border-radius: 16px;
+  }
+}
+
+@media tabletLandscape and (orientation: landscape) {
+  .fileSystemContainer {
+    width: 880px;
+  }
+
+  .phoneFileSystemContent .addResources {
+    bottom: 20px;
+  }
+}
+
+@media tabletPortrait and (orientation: portrait) {
+  .fileSystemContainer {
+    width: 660px;
+  }
+}
+
+.tip {
+  @include texts.b14;
+}

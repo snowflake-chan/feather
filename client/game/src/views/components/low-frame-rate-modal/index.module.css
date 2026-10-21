@@ -1,0 +1,68 @@
+@value phonePortrait, phoneLandscape, tablet from '../breakpoints.css';
+
+.modalContainer {
+  width: 400px;
+  background: var(--color-black-80);
+  border-radius: var(--bigRadius);
+  padding: var(--basePadding);
+  position: relative;
+  max-width: 90%;
+  pointer-events: all;
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 100;
+}
+
+.operations {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  width: 100%;
+  padding-right: 16px;
+  padding-top: 16px;
+  right: 0;
+}
+
+.title {
+  line-height: 24px;
+  font-weight: 700;
+  font-family: 'Montserrat-Medium';
+  font-size: 16px;
+  height: 24px;
+  color: var(--color-white);
+  position: relative;
+}
+
+.content {
+  height: 18px;
+  font-weight: 400;
+  font-family: 'Montserrat-Regular';
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--color-white-60);
+  margin-top: 10px;
+}
+
+.cancelBtn,
+.confirmBtn {
+  margin-left: var(--basePadding);
+}
+
+@media phonePortrait {
+  .modalContainer {
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 135px;
+    border-radius: 8px;
+  }
+}
+
+@media phoneLandscape, tablet {
+  .modalContainer {
+    top: 24px;
+    right: 24px;
+    height: 135px;
+  }
+}

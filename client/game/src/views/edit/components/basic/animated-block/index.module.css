@@ -1,0 +1,207 @@
+@value tablet, phone from 'src/views/components/breakpoints.css';
+@value iconImgSrc from '../../editor-common.css';
+
+.wrap {
+  transform: translateY(32px);
+}
+
+.label {
+  position: absolute;
+  bottom: -50px;
+  font-size: small;
+  width: 100%;
+  text-align: center;
+  color: white;
+  text-shadow: 0 0 3px #000000;
+  z-index: 100;
+  transform: translate3d(0, 0, 200px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0px 2px;
+}
+
+.cube {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+  image-rendering: pixelated;
+}
+
+.back {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: translateZ(-8px) rotateY(180deg);
+}
+.right {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateY(-270deg) translateX(8px);
+  transform-origin: top right;
+}
+.left {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateY(270deg) translateX(-8px);
+  transform-origin: center left;
+}
+.top {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateX(-90deg) rotateY(180deg) translateY(-8px);
+  transform-origin: top center;
+}
+.bottom {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateX(90deg) translateY(8px);
+  transform-origin: bottom center;
+}
+.front {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: translateZ(8px);
+  box-shadow: inherit;
+}
+
+.cubeFull {
+  transform: scale(3) rotateX(-15deg) rotateY(60deg);
+  transition: transform 0.5s ease-in-out;
+}
+
+.cubeFull.north {
+  transform: scale(3) rotateX(-15deg) rotateY(60deg);
+}
+
+.cubeFull.east {
+  transform: scale(3) rotateX(-15deg) rotateY(150deg);
+}
+
+.cubeFull.south {
+  transform: scale(3) rotateX(-15deg) rotateY(240deg);
+}
+
+.cubeFull.west {
+  transform: scale(3) rotateX(-15deg) rotateY(330deg);
+}
+
+.cubeFullSelected {
+  transition: transform 0.5s ease-in-out;
+  transform: scale(4) rotateX(-15deg) rotateY(60deg);
+}
+
+.cubeFullSelected.north {
+  transform: scale(4) rotateX(-15deg) rotateY(60deg);
+}
+
+.cubeFullSelected.east {
+  transform: scale(4) rotateX(-15deg) rotateY(150deg);
+}
+
+.cubeFullSelected.south {
+  transform: scale(4) rotateX(-15deg) rotateY(240deg);
+}
+
+.cubeFullSelected.west {
+  transform: scale(4) rotateX(-15deg) rotateY(330deg);
+}
+
+.rotateBtn {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  z-index: 1;
+  top: -48px;
+  right: -4px;
+  cursor: pointer;
+  composes: iconImgSrc;
+  background-repeat: no-repeat;
+  background-position: -336px -336px;
+  width: 48px;
+  height: 48px;
+  transform: scale(0.55);
+}
+
+.rotateBtn:focus,
+.rotateBtn:active {
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.767);
+}
+
+.cubeFull + .rotateBtn {
+  opacity: 0.3;
+}
+
+.cubeFull + .rotateBtn:hover,
+.cubeFullSelected + .rotateBtn {
+  opacity: 1;
+}
+
+@keyframes waterFlow {
+  from {
+    background-position: 0px 0px;
+  }
+  to {
+    background-position: -256px -256px;
+  }
+}
+
+.waterBack {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: translateZ(-8px) rotateY(180deg);
+  background-image: url(../../../../../assets/water.png);
+  animation: waterFlow 10s infinite linear;
+}
+.waterRight {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateY(-270deg) translateX(8px);
+  transform-origin: top right;
+  background-image: url(../../../../../assets/water.png);
+  animation: waterFlow 10s infinite linear;
+}
+.waterLeft {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateY(270deg) translateX(-8px);
+  transform-origin: center left;
+  background-image: url(../../../../../assets/water.png);
+  animation: waterFlow 10s infinite linear;
+}
+.waterTop {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateX(-90deg) rotateY(180deg) translateY(-8px);
+  transform-origin: top center;
+  background-image: url(../../../../../assets/water.png);
+  animation: waterFlow 10s infinite linear;
+}
+.waterBottom {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: rotateX(90deg) translateY(8px);
+  transform-origin: bottom center;
+  background-image: url(../../../../../assets/water.png);
+  animation: waterFlow 10s infinite linear;
+}
+.waterFront {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  transform: translateZ(8px);
+  background-image: url(../../../../../assets/water.png);
+  animation: waterFlow 10s infinite linear;
+}

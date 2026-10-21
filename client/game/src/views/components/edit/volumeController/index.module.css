@@ -1,0 +1,46 @@
+@value icon, scrollbarStyle from '../editor-common.css';
+
+.iconMute {
+  composes: icon;
+  background-position: -24px -240px;
+}
+
+.iconVolume {
+  composes: icon;
+  background-position: 0 -240px;
+}
+
+.disableIcon {
+  margin-right: 16px;
+}
+
+.normalIcon {
+  margin-right: 16px;
+}
+
+.disable {
+  opacity: 0.3;
+}
+
+.disableWrapper {
+  margin: var(--basePadding) 0;
+  cursor: not-allowed;
+}
+
+.disableCursor {
+  cursor: not-allowed;
+}
+
+.enable {
+  opacity: 1;
+}
+
+.enableWrapper {
+  margin: var(--basePadding) 0;
+}
+
+.line {
+  width: 100%;
+  height: 1px;
+  background: var(--color-white-15);
+}

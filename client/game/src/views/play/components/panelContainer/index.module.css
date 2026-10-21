@@ -1,0 +1,67 @@
+@import '../play-common.css';
+@value icon, scrollbarStyle from '../play-common.css';
+
+@value fullHeight: calc(var(--vh, 1vh) * 100);
+
+.panelContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-radius: var(--basePadding) 0 0 var(--basePadding);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  max-height: fullHeight;
+}
+
+.panelTitleWrapper {
+  height: 48px;
+  background-color: var(--color-primary);
+  display: flex;
+  flex: 0 0 48px;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 24px;
+  padding-right: 12px;
+  font-family: var(--font-bold);
+  border-radius: var(--basePadding) 0 0 0;
+}
+
+.bgMask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: fullHeight;
+  background: var(--color-grey1-30);
+  z-index: -1;
+}
+
+.panelTitle {
+  font-size: 20px;
+  color: var(--color-grey1);
+}
+
+.closeBtnContainer {
+  height: 48px;
+  width: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.closeBtn {
+  composes: icon;
+  background-position: -120px -72px;
+}
+
+.panelContent {
+  composes: scrollbarStyle;
+  overflow: auto;
+  overflow: overlay;
+  width: 100%;
+  height: 100%;
+}

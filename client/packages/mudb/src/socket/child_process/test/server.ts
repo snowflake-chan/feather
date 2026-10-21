@@ -1,0 +1,130 @@
+import * as test from 'tape';
+
+import { MuChildProcessSocketServer } from '../server';
+import { MuSocketServerState } from '../../socket';
+
+function noop() {}
+
+test('server initial state', (t) => {
+    const server = new MuChildProcessSocketServer();
+
+    t.equal(server.state(), MuSocketServerState.INIT, 'should be INIT');
+    t.end();
+});
+
+test('server.start() - when INIT', (t) => {
+    t.plan(2);
+
+    const server = new MuChildProcessSocketServer();
+
+    server.start({
+        ready: () => {
+            t.ok(true, 'should invoke ready handler');
+            t.equal(
+                server.state(),
+                MuSocketServerState.RUNNING,
+                'should change state to RUNNING',
+            );
+        },
+        connection: noop,
+        close: noop,
+    });
+});
+
+test('server.start() - when RUNNING', (t) => {
+    t.plan(1);
+
+    const server = new MuChildProcessSocketServer();
+
+    server.start({
+        ready: () =>
+            t.throws(
+                // start again when already running
+                () =>
+                    server.start({
+                        ready: noop,
+                        connection: noop,
+                        close: noop,
+                    }),
+                /started/,
+            ),
+        connection: noop,
+        close: noop,
+    });
+});
+
+test('server.start() - when SHUTDOWN', (t) => {
+    t.plan(1);
+
+    const server = new MuChildProcessSocketServer();
+
+    server.start({
+        // close when running
+        ready: () => server.close(),
+        connection: noop,
+        close: () =>
+            t.throws(
+                // start again when already shut down
+                () =>
+                    server.start({
+                        ready: noop,
+                        connection: noop,
+                        close: noop,
+                    }),
+                /started/,
+            ),
+    });
+});
+
+test('server.close() - when INIT', (t) => {
+    const server = new MuChildProcessSocketServer();
+
+    server.close();
+    t.equal(
+        server.state(),
+        MuSocketServerState.SHUTDOWN,
+        'should change state to SHUTDOWN',
+    );
+    t.end();
+});
+
+test('server.close() - when RUNNING', (t) => {
+    t.plan(2);
+
+    const server = new MuChildProcessSocketServer();
+
+    server.start({
+        // close when running
+        ready: () => server.close(),
+        connection: noop,
+        close: (error) => {
+            t.equal(
+                error,
+                undefined,
+                'should not invoke close handler with an error',
+            );
+            t.equal(
+                server.state(),
+                MuSocketServerState.SHUTDOWN,
+                'should change state to SHUTDOWN',
+            );
+        },
+    });
+});
+
+test('server.close() - when SHUTDOWN', (t) => {
+    t.plan(1);
+
+    const server = new MuChildProcessSocketServer();
+
+    server.start({
+        // close when running
+        ready: () => server.close(),
+        connection: noop,
+        close: () => {
+            // close again when already shut down
+            server.close();
+            t.ok(true, 'should not invoke close handler');
+        },
+    });
+});

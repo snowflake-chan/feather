@@ -1,0 +1,1 @@
+{"version":3,"file":"worker.js","sourceRoot":"","sources":["../../../../src/socket/worker/test/_/worker.ts"],"names":[],"mappings":";;AAAA,yCAAwD;AACxD,+CAA8C;AAE9C,MAAM,CAAC,OAAO,GAAG,GAAG,EAAE;IAClB,MAAM,YAAY,GAAG,IAAA,iCAAwB,GAAE,CAAC;IAChD,MAAM,QAAQ,GAAG,IAAI,iBAAQ,CAAC,YAAY,CAAC,CAAC;IAE5C,YAAY,CAAC,MAAM,EAAE,CAAC;IACtB,QAAQ,CAAC,KAAK,EAAE,CAAC;AACrB,CAAC,CAAC"}

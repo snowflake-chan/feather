@@ -1,0 +1,14 @@
+@use '../../common.module.scss' as common;
+
+.colorProperty {
+  height: 32px;
+
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  .title {
+    @include common.title;
+  }
+}

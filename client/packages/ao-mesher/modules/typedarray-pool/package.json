@@ -1,0 +1,73 @@
+{
+  "_args": [
+    [
+      "typedarray-pool@0.1.2",
+      "/Users/mac/Desktop/编程猫/Box3-new/Box3"
+    ]
+  ],
+  "_from": "typedarray-pool@0.1.2",
+  "_id": "typedarray-pool@0.1.2",
+  "_inBundle": false,
+  "_integrity": "sha1-wBpKldNfBfmQ9TRWtj/2mFV9ko8=",
+  "_location": "/ao-mesher/typedarray-pool",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "typedarray-pool@0.1.2",
+    "name": "typedarray-pool",
+    "escapedName": "typedarray-pool",
+    "rawSpec": "0.1.2",
+    "saveSpec": null,
+    "fetchSpec": "0.1.2"
+  },
+  "_requiredBy": [
+    "/ao-mesher"
+  ],
+  "_resolved": "http://registry.npm.taobao.org/typedarray-pool/download/typedarray-pool-0.1.2.tgz",
+  "_spec": "0.1.2",
+  "_where": "/Users/mac/Desktop/编程猫/Box3-new/Box3",
+  "author": {
+    "name": "Mikola Lysenko"
+  },
+  "bugs": {
+    "url": "https://github.com/mikolalysenko/typedarray-pool/issues"
+  },
+  "dependencies": {
+    "bit-twiddle": "~0.0.2",
+    "dup": "~0.0.0"
+  },
+  "description": "Reuse typed arrays",
+  "devDependencies": {
+    "tap": "~0.4.2"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "gitHead": "d7a8a448caf51042e6c371b11074aab6ebaf53ad",
+  "homepage": "https://github.com/mikolalysenko/typedarray-pool#readme",
+  "keywords": [
+    "typed",
+    "array",
+    "cache",
+    "pool",
+    "memory",
+    "malloc",
+    "free",
+    "reuse",
+    "optimize",
+    "construct",
+    "overhead"
+  ],
+  "license": "MIT",
+  "main": "pool.js",
+  "name": "typedarray-pool",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikolalysenko/typedarray-pool.git"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "version": "0.1.2"
+}

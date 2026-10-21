@@ -1,0 +1,49 @@
+{
+  "name": "@box/player-policy",
+  "version": "0.1.0",
+  "description": "Shared BOX player capability, audit and administration navigation rules",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./navigation": {
+      "types": "./dist/navigation.d.ts",
+      "import": "./dist/navigation.mjs",
+      "require": "./dist/navigation.cjs"
+    },
+    "./permission-menu": {
+      "types": "./dist/permission-menu.d.ts",
+      "import": "./dist/permission-menu.mjs",
+      "require": "./dist/permission-menu.cjs"
+    }
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "navigation": [
+        "dist/navigation.d.ts"
+      ],
+      "permission-menu": [
+        "dist/permission-menu.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/build-reusable-package.js",
+    "test": "node --test test/*.test.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "typescript": "5.6.3"
+  }
+}

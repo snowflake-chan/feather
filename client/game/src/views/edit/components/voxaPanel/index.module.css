@@ -1,0 +1,72 @@
+@import '../editor-common.css';
+@value icon from '../editor-common.css';
+
+.voxaPanel {
+  position: fixed;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: var(--color-grey1-60);
+  z-index: 10;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+}
+
+.loading {
+  width: 400px;
+  height: 122px;
+  background: var(--color-grey2);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+
+  font-family: NotoSans-Regular;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--color-white-60);
+}
+
+.loadingIcon {
+  composes: icon;
+  background-position: -216px -240px;
+  animation: ring 2s linear infinite;
+  margin-bottom: 16px;
+}
+
+.voxa {
+  position: fixed;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(20px);
+  justify-content: center;
+  align-items: center;
+}
+
+.voxa.show {
+  visibility: visible;
+}
+.voxa.hide {
+  visibility: hidden;
+}
+
+.voxa iframe {
+  border: none;
+  width: calc(100% - 32px);
+  height: calc(100% - 32px);
+}
+
+@keyframes ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

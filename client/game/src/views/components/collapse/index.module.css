@@ -1,0 +1,46 @@
+.collapse {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 16px;
+  height: 44px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  background-color: #595959;
+  border-radius: 43px;
+  transform: translate(50%, -50%);
+  z-index: 9;
+  border: 1px solid #ffffff26;
+  cursor: pointer;
+}
+
+.collapse:active,
+.collapse:hover {
+  background-color: #333333;
+}
+.expend:active,
+.expend:hover {
+  background-color: #333333;
+}
+
+.expend {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 2px;
+  position: fixed;
+  top: 60px;
+  width: 28px;
+  height: 32px;
+  left: 0;
+  border-radius: 0 16px 16px 0;
+  border: 1px solid #ffffff26;
+  background-color: #595959;
+  transition: left 0.3s linear;
+  cursor: pointer;
+}
+
+.hide {
+  left: -50px;
+}

@@ -1,0 +1,29 @@
+:export {
+  colorAccent: #ffaf00;
+  colorAccentDark: #c37841;
+  colorAccentLight: #f1bd4c;
+  colorWhite: #fff;
+  colorBlack: #000;
+  colorGrey: #f5f5f5;
+  colorGreyDark: #ccc;
+  colorGreyLight: #eee;
+  colorDark: #323434;
+
+  colorBackground0: #414b55;
+  colorBackground1: #38393b;
+  colorBackground2: #4b555f;
+  colorBackground3: #5a646e;
+  colorBackground3_30: color(#5a646e alpha(30%));
+  colorBackground3_50: color(#5a646e alpha(50%));
+  colorBackground3_70: color(#5a646e alpha(70%));
+
+  colorBlue: #58a6c0;
+  colorBlueDark: #4d9db7;
+  colorBlueLight: rgb(115, 172, 190);
+
+  colorRed: #f44336;
+  colorRedLight: #f6685e;
+  colorRedDard: #db3c30;
+
+  colorWebsiteYellow: #f7b30a;
+}

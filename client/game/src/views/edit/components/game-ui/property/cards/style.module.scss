@@ -1,0 +1,22 @@
+.cards {
+  // 让卡片容器成为卡片的offsetParent
+  position: relative;
+  width: 236px;
+
+  padding-bottom: 8px;
+
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .items {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+}

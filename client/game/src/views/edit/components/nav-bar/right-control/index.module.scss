@@ -1,0 +1,161 @@
+@use '../../../../colors.module.scss' as colors;
+.rightControl {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: right;
+  min-width: fit-content;
+  height: 52px;
+  z-index: 4;
+  flex: 1 1 calc((100% - 76px) / 2);
+}
+
+.navControl {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: right;
+  min-width: fit-content;
+  height: 52px;
+
+  .navItem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+    margin-right: 16px;
+    cursor: pointer;
+  }
+
+  .navItemContent,
+  .navItemActive {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: center;
+    color: colors.$boxTextWhiteSecondary;
+    padding: 4px;
+    border-radius: 4px;
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: colors.$boxTextWhiteSecondary;
+    }
+    .title {
+      margin-left: 8px;
+    }
+    &:hover {
+      background-color: colors.$boxOpacityWhite6;
+    }
+    &:active {
+      svg {
+        fill: colors.$boxTextWhitePrimary;
+      }
+      .title {
+        color: colors.$boxTextWhitePrimary;
+      }
+    }
+  }
+
+  .runBtn {
+    background-color: colors.$arenaPrimary80;
+    border-radius: 100%;
+    svg {
+      width: 20px;
+      height: 20px;
+      fill: colors.$boxTextWhitePrimary;
+    }
+    &:hover {
+      background-color: colors.$arenaPrimary70;
+      svg {
+        fill: colors.$boxTextWhitePrimary;
+      }
+    }
+    &:active {
+      background-color: colors.$arenaPrimary60;
+      svg {
+        fill: colors.$boxTextWhitePrimary;
+      }
+    }
+  }
+
+  .divider {
+    border: 0.5px solid #464741ca;
+    border-radius: 10px;
+    height: 1em;
+    margin-right: 16px;
+  }
+
+  .navItemDisable {
+    cursor: url(../../../../../assets/cursor/not-allowed.svg) 0 0, not-allowed;
+    svg {
+      fill: colors.$boxTextWhiteDisabled;
+    }
+    .title {
+      color: colors.$boxTextWhiteDisabled;
+    }
+    &:hover {
+      background-color: unset;
+    }
+    &:active {
+      svg {
+        fill: colors.$boxTextWhiteDisabled;
+      }
+      .title {
+        color: colors.$boxTextWhiteDisabled;
+      }
+    }
+  }
+
+  .navItemActive {
+    svg {
+      fill: colors.$arenaPrimary80;
+    }
+  }
+
+  .navItemActive.runBtn {
+    svg {
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+
+  .tooltip {
+    margin: 0 16px;
+    pointer-events: auto;
+    position: fixed;
+  }
+
+  .iconLoading {
+    animation: rotating 1.2s linear infinite;
+  }
+
+  .redTips {
+    display: block;
+    position: absolute;
+    top: 4px;
+    right: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: colors.$arenaPrimary80;
+  }
+}
+
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,232 @@
+@value phone from '../../breakpoints.css';
+
+/* :global(.website) input, */
+.inputTextContainer input {
+  outline: none;
+  border: none;
+  min-width: 30px;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.inputTextContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+  --height: 40px;
+  height: var(--height);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background-color: var(--color-background);
+  padding: 0px 12px;
+}
+
+.inputTextContainer[data-disabled='true'] {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.inputTextContainer input {
+  height: 100%;
+  flex: 1;
+  color: var(--color-font-black);
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+.inputTextContainer input:-webkit-autofill,
+.inputTextContainer input:-webkit-autofill:hover,
+.inputTextContainer input:-webkit-autofill:focus,
+.inputTextContainer textarea:-webkit-autofill,
+.inputTextContainer textarea:-webkit-autofill:hover,
+.inputTextContainer textarea:-webkit-autofill:focus,
+.inputTextContainer select:-webkit-autofill,
+.inputTextContainer select:-webkit-autofill:hover,
+.inputTextContainer select:-webkit-autofill:focus {
+  -webkit-box-shadow: rgba(0, 0, 0, 0);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.inputTextContainer input[type='search']::-webkit-search-decoration,
+.inputTextContainer input[type='search']::-webkit-search-cancel-button,
+.inputTextContainer input[type='search']::-webkit-search-results-button,
+.inputTextContainer input[type='search']::-webkit-search-results-decoration {
+  display: none;
+}
+
+.inputTextContainer input,
+.textareaContainer textarea {
+  font-family: var(--font-regular);
+  resize: none;
+  display: block;
+}
+.textareaContainer textarea.allowResize {
+  resize: scale;
+}
+
+.inputTextContainer input::placeholder,
+.textareaContainer textarea::placeholder {
+  color: var(--color-font-black-disabled);
+  font-family: var(--font-regular);
+  word-break: break-all;
+}
+
+.inputTextContainer input[data-type='placeholder-center']::placeholder {
+  text-align: center;
+}
+
+.inputTextContainer.error,
+.inputTextarea.error {
+  border: 1px solid var(--color-red);
+}
+
+.inputTextContainer .icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.inputTextContainer .icon,
+.inputTextContainer .prefix {
+  margin-right: 8px;
+}
+
+.inputTextContainer .errorMsg,
+.textareaContainer .errorMsg {
+  position: absolute;
+  top: calc(var(--height) + 2px);
+  left: 0;
+}
+
+.textareaContainer .tips {
+  color: var(--color-white-60);
+  position: absolute;
+  top: var(--height);
+  left: 0;
+}
+
+.inputTextContainer .buttons {
+  display: flex;
+  align-items: center;
+}
+
+.inputTextContainer .buttons > div:global(.icon) {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.inputTextContainer .buttons > * {
+  margin-left: 16px;
+  cursor: pointer;
+}
+
+:global(.mobile) .inputTextContainer {
+  box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.08);
+}
+
+.inputList {
+  width: 100%;
+}
+
+.inputList > *:not(:first-child) {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.textareaContainer {
+  position: relative;
+  width: 100%;
+  height: fit-content;
+}
+
+.inputTextarea {
+  outline: none;
+  border: none;
+  background-color: var(--color-background);
+  padding: 8px 16px;
+  font-size: 14px;
+  width: 100%;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.radioWrap {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+.radioWrap span {
+  display: inline-block;
+  font-size: 16px;
+  text-align: left;
+  padding-left: 16px;
+}
+.radio {
+  display: flex;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 12px;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: #cccccc;
+}
+.radioWrap .disable {
+  opacity: 0.3;
+}
+.radioWrap .icon {
+  display: none;
+  background: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+}
+.radioChecked .icon {
+  display: block;
+}
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+}
+.checkboxContainer > *:not(:first-child) {
+  margin-left: 16px;
+}
+
+.inputSelectContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.text_input_container {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex: 1;
+  min-width: 30px;
+  height: 100%;
+}
+
+.text_input_holder {
+  position: absolute;
+  font-size: 14px;
+  pointer-events: none;
+  padding: 0 2px;
+  color: var(--color-grey1-30);
+  --font: var(--color-grey1-30);
+}
+
+.inputTextContainer .handleMsg {
+  position: absolute;
+  top: calc(var(--height) + 2px);
+  left: 0;
+  color: var(--color-grey1-30);
+  --font: var(--color-grey1-30);
+}

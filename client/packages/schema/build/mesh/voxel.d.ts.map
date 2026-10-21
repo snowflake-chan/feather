@@ -1,0 +1,1 @@
+{"version":3,"file":"voxel.d.ts","sourceRoot":"","sources":["../../mesh/voxel.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAE9D,OAAO,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAEpD,eAAO,MAAM,UAAU,iBAAwB,CAAC;AAChD,eAAO,MAAM,gBAAgB,kBAAuC,CAAC;AACrE,eAAO,MAAM,eAAe;;;EAG1B,CAAC;AAEH,eAAO,MAAM,aAAa;;;;;;;;;;;;EAGxB,CAAC"}

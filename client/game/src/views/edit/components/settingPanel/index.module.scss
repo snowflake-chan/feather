@@ -1,0 +1,746 @@
+@import '../editor-common.css';
+@value icon, scrollbarStyle, iconSmall from '../editor-common.css';
+
+.settingPanel {
+  position: unset;
+  border-radius: 16px;
+  overflow: hidden;
+  height: 560px;
+}
+
+.container {
+  composes: scrollbarStyle;
+  /* height: 100%; */
+  /* overflow-y: auto;
+    overflow-y: overlay; */
+}
+
+.saveIcon,
+.publishIcon,
+.graphIcon,
+.controlIcon,
+.languageIcon,
+.aboutIcon,
+.volumeIcon {
+  composes: icon;
+  transform: scale(0.8);
+  width: 23px;
+  height: 23px;
+}
+
+.saveIcon {
+  background-position: -168px -24px;
+}
+
+.publishIcon {
+  background-position: -192px -24px;
+}
+
+.graphIcon {
+  background-position: -72px -120px;
+}
+
+.controlIcon {
+  background-position: -96px -168px;
+}
+
+.languageIcon {
+  background-position: -48px -168px;
+}
+
+.aboutIcon {
+  background-position: -96px 0;
+}
+
+.volumeIcon {
+  background-position: 0 -240px;
+}
+
+.closeIcon {
+  composes: icon;
+  background-position: -216px -96px;
+}
+
+.aboutContainer {
+  padding: 2px 8px 10px;
+}
+
+.sectionTitle {
+  margin-top: 8px;
+  padding: 6px 0;
+  color: var(--color-white-60);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.aboutContainer .itemWrapper .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 40px;
+  gap: 18px;
+  padding: 0 4px;
+  font-size: var(--text-h2);
+  overflow: hidden;
+}
+
+.aboutContainer .itemWrapper .item .title {
+  white-space: nowrap;
+  color: var(--color-white-60);
+}
+
+.aboutContainer .itemWrapper .item .content {
+  flex: 1;
+  text-align: right;
+  color: var(--color-white);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemWrapper {
+  border-bottom: 1px solid var(--color-white-15);
+}
+
+.lastItemWrapper {
+  border-bottom: 0;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: var(--text-h4);
+  line-height: 1.4;
+}
+
+.statusEnabled {
+  color: #9be7b0;
+  background: rgba(82, 196, 116, 0.14);
+}
+
+.statusDisabled {
+  color: var(--color-white-60);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.aboutContainer .link {
+  cursor: pointer;
+}
+
+.smallAboutIcon,
+.copyIcon,
+.openIcon {
+  composes: icon;
+  transform: scale(0.72) translate(6px, 0);
+  cursor: pointer;
+}
+
+.smallAboutIcon {
+  background-position: -96px 0;
+}
+
+.copyIcon {
+  background-position: -72px 0;
+  width: 24px;
+  height: 24px;
+}
+
+.openIcon {
+  background-position: -24px -192px;
+  width: 24px;
+  height: 24px;
+}
+
+.iconWrapper {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.operationIconWrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.operationIcon {
+  composes: iconSmall;
+  background-position: 0 -64px;
+}
+
+.radioContainer {
+  margin-top: 16px;
+}
+
+.saveContainer {
+  composes: scrollbarStyle;
+  color: var(--color-white);
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-y: overlay;
+}
+
+.subTitle {
+  font-size: var(--text-h2);
+  line-height: 1.5em;
+  color: var(--color-white-60);
+  margin: var(--smallPadding) 0;
+}
+
+.previewWrapper {
+  margin: var(--smallPadding) 0;
+  display: flex;
+  align-items: center;
+  height: 128px;
+}
+
+.preview {
+  position: relative;
+  width: 128px;
+  height: 128px;
+}
+
+.previewTipContainer {
+  height: 100%;
+  justify-content: space-around;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--basePadding);
+  width: 50%;
+}
+
+.previewTip {
+  font-size: var(--text-h4);
+  line-height: 1.5em;
+  color: var(--color-white-60);
+}
+
+.operations {
+  display: flex;
+  justify-content: space-between;
+  margin: var(--basePadding) 0 0 0;
+}
+
+.uploadIcon,
+.uploadIconDisabled {
+  composes: icon;
+  background-position: -72px -48px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.uploadIconDisabled {
+  opacity: 0.6;
+}
+
+.uploadInput {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  display: none;
+}
+
+.uploadCoverWrapper {
+  position: absolute;
+  left: calc(50% - 16px);
+  top: calc(50% - 16px);
+}
+
+.coverLoadingContainer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.previewSelectionContainer {
+  position: absolute;
+  width: 180px;
+  color: var(--color-white);
+  z-index: 1;
+  box-shadow: 0px 0px 32px 0px rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.previewSelection {
+  height: 40px;
+  background: var(--color-grey1);
+  line-height: 40px;
+  padding: 0 16px;
+}
+
+.previewSelection:hover {
+  background: var(--color-grey2);
+  cursor: pointer;
+}
+
+.gameInfoContainer {
+  position: relative;
+}
+
+.bugReportItem {
+  margin-bottom: 24px;
+}
+
+.textareaContainer textarea {
+  height: 240px;
+}
+
+.textareaContainer > textarea::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.textareaContainer > textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.textareaContainer > textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(175, 175, 175, 0.6);
+}
+
+.textareaContainer > textarea::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.048);
+  border-radius: 2px;
+}
+
+.bugReportTitle {
+  color: var(--color-white-60);
+  margin-bottom: 8px;
+}
+
+.screenshotAddContainer {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 72px;
+  height: 72px;
+  line-height: 34px;
+  border: 1px solid var(--color-white-30);
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.screenshotAddContainer input {
+  display: inline-block;
+  position: absolute;
+  width: 73px;
+  height: 78px;
+  font-size: 0px;
+  top: -6px;
+  left: -2px;
+  opacity: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.bannerUploadIcon {
+  composes: icon;
+  background-position: -72px -48px;
+}
+
+.screenIcon {
+  composes: icon;
+  background-position: -72px -24px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.screenshotPreview {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.screenshotPreview {
+  margin-right: 16px;
+}
+
+.screenshotImg {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+}
+
+.deleteScreenshotIcon {
+  position: absolute;
+  right: 7px;
+  top: 0px;
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+.screenshotPreviewWrapper {
+  display: flex;
+}
+
+.bugReportInputWrapper {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  background: #121212;
+  border-radius: 8px;
+  padding-left: 16px;
+}
+
+.bugReportInput {
+  height: 100%;
+  width: 100%;
+  background: #121212;
+  border-radius: 8px;
+  color: #fff;
+  outline: none;
+  border: none;
+  padding: 0 20px 0 0;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.clearBtnContainer {
+  position: absolute;
+  display: flex;
+  top: 0;
+  right: 0;
+  height: 100%;
+  max-height: 40px;
+  width: 48px;
+  justify-content: center;
+  align-items: center;
+}
+
+.clearBtn {
+  composes: icon;
+  background-position: -217px -49px;
+  width: 22px;
+  height: 22px;
+  transform: scale(0.72);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.bugReportWrapper {
+  z-index: 2;
+  background: var(--color-grey2-90);
+  overflow: auto;
+}
+
+.bugReportBar {
+  display: flex;
+  height: 44px;
+  width: 100vw;
+  padding: 0 16px;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-grey1-90);
+  color: var(--color-white);
+}
+
+.submitBtn {
+  color: var(--color-primary);
+}
+
+.disableSubmit {
+  color: var(--color-primary);
+  opacity: 0.3;
+}
+
+.bugReportCover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--color-grey2-90);
+  opacity: 0.7;
+  width: 100%;
+  height: 100%;
+}
+
+.bannerImgWrapper {
+  display: flex;
+  overflow-y: hidden;
+  overflow-x: overlay;
+  composes: scrollbarStyle;
+}
+
+.backgroundImgAddContainer {
+  flex: 0 0 112px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--color-grey3);
+  border-radius: 8px;
+  width: 112px;
+  height: 63px;
+  z-index: 1;
+}
+
+.imgLoadingContainer {
+  flex: 0 0 112px;
+  width: 112px;
+  height: 63px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-grey3);
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.loadingBannerImg {
+  width: 112px;
+  height: 63px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--color-grey1);
+  opacity: 0.3;
+  position: absolute;
+}
+
+.loadingIcon {
+  composes: icon;
+  background-position: -192px -120px;
+  animation: rotation 2s infinite linear;
+  cursor: unset;
+}
+
+.propertyItem {
+  margin-bottom: 24px;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+.bannerClickPopupWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.hidden {
+  width: 0px;
+  height: 0px;
+  overflow: hidden;
+}
+
+.bannerImgContainer {
+  position: relative;
+  width: 112px;
+  height: 63px;
+  margin-right: 16px;
+}
+
+.bannerImg {
+  width: 112px;
+  height: 63px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--color-grey1);
+  cursor: pointer;
+}
+
+.popupContainer {
+  min-width: 160px;
+  border-radius: var(--baseRadius);
+  overflow: hidden;
+  background-color: var(--color-grey1);
+  cursor: pointer;
+}
+
+.popupSelection {
+  height: 40px;
+  background-color: var(--color-grey1);
+  color: var(--color-white);
+  font-size: var(--font-h2);
+  line-height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.popupSelection:hover {
+  background: var(--color-grey2);
+  cursor: pointer;
+}
+
+.previewBannerImg {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+.closeBtn {
+  composes: icon;
+  background-position: -221px -101px;
+  width: 14px;
+  height: 14px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+  margin: 16px;
+  opacity: 0.6;
+}
+
+.closeWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 98;
+  background: var(--color-grey1-60);
+  padding: 16px;
+}
+
+.bold {
+  font-weight: bold;
+  margin: 0 5px;
+  white-space: nowrap;
+}
+
+.boldLast {
+  font-weight: bold;
+  margin-left: 5px;
+  white-space: nowrap;
+}
+
+.keyBindContainer {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+}
+
+.keyBindLabel {
+  color: var(--color-white-60);
+  font-size: var(--text-h2);
+  line-height: 32px;
+}
+
+.keyBindText {
+  color: var(--color-white);
+  font-size: var(--text-h2);
+  min-width: 72px;
+  display: flex;
+  align-items: center;
+}
+
+.keyBindInputWrapper {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  background: #121212;
+  border-radius: 8px;
+  padding-left: 16px;
+  text-align: center;
+}
+
+.keyBindInput {
+  height: 100%;
+  width: 100%;
+  background: #121212;
+  border-radius: 8px;
+  color: #fff;
+  outline: none;
+  border: none;
+  padding: 0 20px 0 0;
+  font-size: 16px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.disableKeyBind {
+  border: 1px solid var(--color-danger);
+}
+
+.keyBindErrorMsg {
+  position: absolute;
+  left: 0;
+  font-size: 12px;
+  top: 30px;
+  color: var(--color-danger);
+}
+
+.keyInputWrapper {
+  padding-bottom: 16px;
+}
+
+.splitText {
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  margin: 8px 16px;
+  justify-content: center;
+}
+
+.keyInputable {
+  cursor: pointer;
+  border: 1px solid grey;
+  border-radius: 8px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+}
+
+.normalText {
+  color: var(--color-white);
+}
+
+.keyBindFlexText {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.screenshotMask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: fullHeight;
+  background-color: var(--color-white);
+  animation: disappear linear 160ms;
+  z-index: 3;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-white-60);
+  margin-bottom: var(--smallPadding);
+}

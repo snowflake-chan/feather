@@ -1,0 +1,1 @@
+export const INDICATOR_RES:{ 'arrow':string } = <any>JSON.parse(`{"arrow":"QmSp6Z5ioChjJg9zY7iMxT1iG9aPgEWChsGw3XnNfywpgZ.png"}`);

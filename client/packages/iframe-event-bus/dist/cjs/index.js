@@ -1,0 +1,71 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IframeEventBus = void 0;
+exports.simplifyEvent = simplifyEvent;
+const eventemitter3_1 = __importDefault(require("eventemitter3"));
+class IframeEventBus extends eventemitter3_1.default {
+    constructor(target, targetOrigin = '*') {
+        super();
+        this.target = target;
+        this.targetOrigin = targetOrigin;
+        if (typeof window === 'undefined') {
+            return;
+        }
+        window.addEventListener('message', (e) => {
+            var _a;
+            const { type, data, messageType } = (_a = e === null || e === void 0 ? void 0 : e.data) !== null && _a !== void 0 ? _a : {};
+            if (messageType === IframeEventBus.TYPE) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                this.emit(type, Object.assign(Object.assign({}, data), { triggeredBy: 'that' }));
+            }
+        });
+    }
+    expose(eventName, e) {
+        const sEvent = simplifyEvent(e);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.emit(eventName, Object.assign(Object.assign({}, sEvent), { triggeredBy: 'this' }));
+        if (typeof window === 'undefined') {
+            return;
+        }
+        if (this.target && this.target !== window) {
+            this.target.postMessage({
+                messageType: IframeEventBus.TYPE,
+                type: eventName,
+                data: sEvent,
+            }, this.targetOrigin);
+        }
+    }
+}
+exports.IframeEventBus = IframeEventBus;
+IframeEventBus.TYPE = 'IframeEventBus';
+/**
+ * 随便查看了几个 Event, 除了无法序列号的 Element(target / srcElement) 和 function 之外,
+ * 都是 number string boolean, 没见到过 Array 之类的,
+ * 所以就简单地仅保留这些 value 了。
+ * 之后如果发现其他有必要的属性值, 再来修改这个方法吧
+ */
+function simplifyEvent(e) {
+    if (!e || typeof e !== 'object' || Array.isArray(e)) {
+        return {};
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = {};
+    for (let proto = e; proto !== null; proto = Object.getPrototypeOf(proto)) {
+        Object.keys(proto).forEach((k) => {
+            const value = e[k];
+            result[k] =
+                value === undefined ||
+                    value === null ||
+                    ['number', 'string', 'boolean'].includes(typeof value)
+                    ? value
+                    : undefined;
+        });
+    }
+    return result;
+}
+//# sourceMappingURL=index.js.map

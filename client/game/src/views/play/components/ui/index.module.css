@@ -1,0 +1,62 @@
+.playUIContainer {
+  position: relative;
+  z-index: 1;
+}
+.msgBox {
+  width: 12vw;
+  height: 21.6vw;
+  composes: playIcon from '../../components/play-common.css';
+  background-position: -36vw -2.4vw;
+  position: absolute;
+  left: 0;
+  bottom: 35%;
+  opacity: 0.75;
+}
+.icon_msg {
+  display: block;
+  width: 6.6667vw;
+  height: 6.6667vw;
+  position: absolute;
+  right: 2.8267vw;
+  top: 8vw;
+  composes: playIcon from '../../components/play-common.css';
+  background-position: -4.8vw -33.0667vw;
+}
+.msgBox:active .icon_msg {
+  transform: scale(1.1);
+}
+
+.antiAddictNoticeHidden {
+  display: none;
+}
+
+.antiAddictNotice {
+  position: fixed;
+  top: 15vw;
+  right: 1.6667vw;
+  max-width: 60vw;
+  background: #fff;
+  padding: 1.6667vw;
+  z-index: 2;
+  font-size: 1.6667vw;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+  animation: antiAddictNoticeAnimation linear 10s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes antiAddictNoticeAnimation {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  90% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

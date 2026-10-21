@@ -1,0 +1,33 @@
+{
+  "name": "@box/icons",
+  "version": "1.0.0",
+  "description": "An Icon component library for box",
+  "main": "build/index.js",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "rm -rf ./build && tsc",
+    "build:watch": "npm run build",
+    "figma:export": "rm -rf output && figma-export use-config && npm run prettier",
+    "figma:build": "npm run figma:export && npm run build",
+    "prettier": "prettier output --write --config ../../.prettierrc.js --ignore-path=../../.prettierignore"
+  },
+  "author": "Code Infinity",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18.2.0 <20"
+  },
+  "devDependencies": {
+    "@figma-export/cli": "4.7.0",
+    "@figma-export/output-components-as-svgr": "4.7.0",
+    "@figma-export/output-components-as-svgstore": "4.7.0",
+    "dotenv": "16.0.1",
+    "typescript": "5.6.3",
+    "@types/react": "19.2.4",
+    "react": "19.2.1",
+    "@figma-export/utils": "4.7.0",
+    "@figma-export/transform-svg-with-svgo": "4.7.0",
+    "prettier": "3.0.0"
+  },
+  "sideEffects": false
+}

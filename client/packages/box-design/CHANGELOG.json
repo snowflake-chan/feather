@@ -1,0 +1,80 @@
+{
+  "name": "@box/box-design",
+  "entries": [
+    {
+      "version": "1.0.6",
+      "tag": "@box/box-design_v1.0.6",
+      "date": "Wed, 25 Dec 2024 07:21:20 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update checkbox and treeNode"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0.5",
+      "tag": "@box/box-design_v1.0.5",
+      "date": "Wed, 20 Nov 2024 02:59:09 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add sticky suffix icon for TreeNode"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0.4",
+      "tag": "@box/box-design_v1.0.4",
+      "date": "Fri, 06 Sep 2024 10:31:38 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update toolBar"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0.3",
+      "tag": "@box/box-design_v1.0.3",
+      "date": "Mon, 22 Jan 2024 10:54:32 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix style of Select"
+          },
+          {
+            "comment": "fix Select component background-clip"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0.2",
+      "tag": "@box/box-design_v1.0.2",
+      "date": "Mon, 22 Jan 2024 07:38:04 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix style of Select"
+          }
+        ]
+      }
+    },
+    {
+      "version": "1.0.1",
+      "tag": "@box/box-design_v1.0.1",
+      "date": "Mon, 22 Jan 2024 04:36:11 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix component select style"
+          }
+        ]
+      }
+    }
+  ]
+}

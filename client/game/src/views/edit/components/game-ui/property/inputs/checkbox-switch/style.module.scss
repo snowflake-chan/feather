@@ -1,0 +1,23 @@
+@use '../../../../../../colors.module.scss' as colors;
+@use '../../../../../../texts.module.scss' as texts;
+@use '../../common.module.scss' as common;
+
+.checkboxSwitch {
+  @include common.checkboxActive;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  color: colors.$boxTextWhiteTertiary;
+  @include texts.b12;
+
+  :global(.switch) {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    height: 24px;
+  }
+}

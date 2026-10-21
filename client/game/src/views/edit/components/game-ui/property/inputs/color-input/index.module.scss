@@ -1,0 +1,36 @@
+@use '../../../../../../colors.module.scss' as colors;
+@use '../../../../../../texts.module.scss' as texts;
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.colorPreview {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid colors.$boxOpacityWhite40;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.colorInput {
+  margin-left: 4px;
+
+  :global(.boxInput.boxInputInputWrapper .boxInputInnerInput) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.hex {
+  width: 58px;
+}
+
+.opacity {
+  width: 30px;
+}

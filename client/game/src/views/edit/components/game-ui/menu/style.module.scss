@@ -1,0 +1,70 @@
+.gameUIMenu {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background-color: rgba(#595959, 0.9);
+
+  padding: 8px 16px;
+
+  display: flex;
+  gap: 8px;
+
+  align-items: center;
+
+  border-radius: 8px;
+
+  .gap {
+    width: 1px;
+    height: 16px;
+    background-color: rgba($color: #ffffff, $alpha: 0.06);
+    margin: 0 6px;
+  }
+
+  :global(.boxButton) {
+    width: 16px;
+    height: 16px;
+
+    padding: 2px;
+  }
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    margin-top: 8px;
+
+    width: 44px;
+    gap: 4px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--box-textWhitePrimary, #ffffff);
+    }
+
+    .name {
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 18px;
+
+      color: rgba($color: #ffffff, $alpha: 0.75);
+    }
+
+    &:hover {
+      svg {
+        fill: #ff8100;
+      }
+    }
+
+    &:active {
+      svg {
+        fill: #ffa93f;
+      }
+    }
+  }
+}

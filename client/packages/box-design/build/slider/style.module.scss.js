@@ -1,0 +1,8 @@
+import styleInject from 'style-inject';
+
+var css_248z = ".boxSliderWrapper {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n.boxSliderWrapper .boxButton {\n  width: 20px;\n  height: 20px;\n}\n.boxSliderWrapper .boxButton svg {\n  width: 20px;\n  height: 20px;\n}\n.boxSliderWrapper .boxSliderButtonDec {\n  margin-right: 4px;\n}\n.boxSliderWrapper .boxSliderButtonInc {\n  margin-left: 4px;\n}\n.boxSliderWrapper .boxSliderSliderWrapper {\n  position: relative;\n  height: 24px;\n  width: 89px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.boxSliderWrapper .boxSliderSliderWrapper .boxSliderRail {\n  height: 4px;\n  width: 100%;\n  background: rgba(255, 255, 255, 0.12);\n  border-radius: 1px;\n}\n.boxSliderWrapper .boxSliderSliderWrapper .boxSliderTrack {\n  height: 4px;\n  width: 0px;\n  position: absolute;\n  left: 0px;\n  top: 10px;\n  background: #fdfcf4;\n  border-radius: 1px 0 0 1px;\n  pointer-events: none;\n}\n.boxSliderWrapper .boxSliderSliderWrapper .boxSliderHandle {\n  width: 6px;\n  height: 10px;\n  position: absolute;\n  left: 0;\n  top: 7px;\n  background: #fdfcf4;\n  border-radius: 12px;\n  pointer-events: none;\n}\n.boxSliderWrapper.boxSliderDisabled .boxSliderTrack,\n.boxSliderWrapper.boxSliderDisabled .boxSliderHandle {\n  background: #5e5f59;\n}";
+var styles = {"wrapper":"boxSliderWrapper","buttonDec":"boxSliderButtonDec","buttonInc":"boxSliderButtonInc","sliderWrapper":"boxSliderSliderWrapper","rail":"boxSliderRail","track":"boxSliderTrack","handle":"boxSliderHandle","disabled":"boxSliderDisabled"};
+styleInject(css_248z);
+
+export { styles as default };
+//# sourceMappingURL=style.module.scss.js.map

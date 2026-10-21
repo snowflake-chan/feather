@@ -1,0 +1,37 @@
+{
+  "name": "@box/utils",
+  "version": "2.1.0",
+  "license": "MIT",
+  "author": "Box Engine",
+  "exports": {
+    "./*": "./build/*.js"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./build/*.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "build/**/*",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "rm -rf ./build && tsc",
+    "build:watch": "tsc",
+    "dev": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@box/mudb": "workspace:1.0.4",
+    "@types/node": "10.17.60",
+    "bit-twiddle": "1.0.2",
+    "gl-matrix": "3.4.3",
+    "ioredis": "5.3.2",
+    "minimatch": "3.1.4",
+    "redis": "3.1.2",
+    "redis-mock": "0.46.0",
+    "typescript": "5.6.3"
+  }
+}

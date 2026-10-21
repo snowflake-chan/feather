@@ -1,0 +1,38 @@
+.container {
+  position: relative;
+  display: flex;
+  justify-items: center;
+  align-items: center;
+}
+
+.closeWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 98;
+}
+
+.content {
+  cursor: pointer;
+  display: flex;
+}
+
+.popup {
+  position: fixed;
+  z-index: 99;
+}
+
+.arrow::after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  border-width: 16px 16px 0;
+  border-style: solid;
+  border-color: transparent;
+  border-top-color: #fff;
+}

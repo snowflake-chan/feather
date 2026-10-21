@@ -1,0 +1,31 @@
+.topBarWrapper {
+  position: fixed;
+  top: 0;
+  padding: 0 24px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  height: 64px;
+  width: 100%;
+  z-index: 3;
+}
+
+.group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media phone {
+  .topBarWrapper {
+    position: fixed;
+    top: 0;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    height: 40px;
+    width: 100%;
+  }
+}

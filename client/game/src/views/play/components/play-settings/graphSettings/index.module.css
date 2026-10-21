@@ -1,0 +1,10 @@
+@value icon, scrollbarStyle from '../../play-common.css';
+.radioContainer {
+  margin-bottom: 8px;
+}
+
+@media screen and (orientation: portrait) {
+  .settingWrapper.mobile {
+    border-radius: 0 0 0 16px;
+  }
+}

@@ -1,0 +1,29 @@
+.input {
+  position: fixed;
+  padding: 0;
+
+  z-index: 1;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  text-align: center;
+
+  font-family: Rubik, MiSans;
+
+  &::selection {
+    color: #ffffff;
+
+    // TODO 等新版UI调整成引用变量  --arena-60
+    background-color: #ba5e00;
+  }
+}
+
+.textarea {
+  @extend .input;
+  resize: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

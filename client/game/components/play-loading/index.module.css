@@ -1,0 +1,143 @@
+.wrapper {
+  width: 100%;
+  height: 100%;
+  background-color: #0d0d0d;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+.header {
+  height: 96px;
+  width: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.logo {
+  display: block;
+  width: 4.3em;
+  height: 1em;
+  margin: 20px 0 0 32px;
+  font-size: 40px;
+}
+.progressWrapper {
+  width: 100%;
+  height: 56px;
+  background-color: rgba(0, 0, 0, 0.65);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+/* 进度条文案 */
+.tips {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  font-family: Montserrat-Medium;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #fff;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  z-index: 2;
+  padding: 0 24px;
+}
+.tipsCont {
+  max-width: 700px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.progressNum {
+  margin-left: 5px;
+}
+
+/* 进度条 */
+.progressBarWrapper {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+.progressBar {
+  background: #ffdb00;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  transform: translateX(-100%);
+}
+
+.rollWrapper {
+  width: 100%;
+  height: 100%;
+  background-image: url(../../assets/arrow-left.svg);
+  background-repeat: repeat-x;
+  animation: 20s linear infinite normal ProgressBarRoll;
+}
+
+.errorActions {
+  position: absolute;
+  z-index: 3;
+  right: 24px;
+  bottom: 72px;
+  display: flex;
+  gap: 8px;
+}
+
+.errorActions button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 7px;
+  color: #fff;
+  background: rgba(0,0,0,.72);
+  font: 600 13px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  cursor: pointer;
+}
+
+.errorActions button:hover { background: rgba(0,0,0,.9); }
+.errorActions button:active { transform: scale(.97); }
+
+@keyframes ProgressBarRoll {
+  from {
+    background-position: -600px;
+  }
+
+  to {
+    background-position: 0;
+  }
+}
+
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .progressWrapper {
+    height: 32px;
+  }
+
+  .tips {
+    font-size: 12px;
+  }
+}
+
+@media screen and (max-width: 500px), screen and (max-height: 500px) {
+  .logo {
+    font-size: 30px;
+  }
+  .errorActions { right: 12px; bottom: 44px; }
+}

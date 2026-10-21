@@ -1,0 +1,142 @@
+@use '../../../../texts.module.scss' as texts;
+@use '../../../../colors.module.scss' as colors;
+@value icon, iconSmall, scrollbarStyle from '../../editor-common.css';
+
+.panelContainer {
+  position: absolute;
+  min-width: 280px;
+  min-height: 288px;
+  top: 8px;
+  left: 8px;
+  height: calc(100% - 16px);
+  transition: left 0.3s;
+}
+
+.moveLeft {
+  left: -300px;
+}
+
+.panel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.contentContainer {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: calc(100% - 48px);
+  z-index: 1;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  overflow: hidden;
+  background: #595959e5;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tabBarContainer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 48px;
+  font-family: var(--font-regular);
+  @include texts.b12;
+  color: colors.$boxTextWhiteSecondary;
+  line-height: 18px;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  overflow: hidden;
+}
+
+.tabItem,
+.tabItemActive {
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #262626e5;
+  padding: 10px 20px;
+  flex: 1;
+  .tabTitle {
+    height: 18px;
+    @include texts.h14;
+  }
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: colors.$boxTextWhiteSecondary;
+    opacity: 0.75;
+  }
+
+  &:hover {
+    background-color: #404040e5;
+  }
+}
+
+.tabItemActive {
+  @include texts.h12;
+  background-color: #404040e5;
+  font-family: var(--font-bold);
+  color: colors.$boxTextWhitePrimary;
+
+  svg {
+    fill: colors.$boxTextWhitePrimary;
+    opacity: 1;
+  }
+}
+
+.show {
+  display: initial;
+}
+
+.hide {
+  display: none;
+}
+
+.projectModelPanel,
+.publicModelPanel,
+.privateModelPanel {
+  padding: 16px 0px;
+  height: 100%;
+  .modelAlreadyDeleteModal {
+    :global(.boxModalBody .boxModalMain .boxModalHeader) {
+      justify-content: center;
+    }
+  }
+}
+.projectModelSearch,
+.publicModelSearch,
+.privateModelSearch {
+  margin: 0px 16px 16px;
+  height: 34px;
+}
+
+.modelSearchContainer {
+  display: flex;
+}
+
+.searchIcon {
+  margin-left: 8px;
+}
+
+.projectModelList,
+.privateModelList {
+  margin-right: 3px;
+  height: calc(100% - 34px - 16px);
+}
+
+.crosshair {
+  cursor: url('../../../../../assets/crosshair.png') 12 12, auto;
+}

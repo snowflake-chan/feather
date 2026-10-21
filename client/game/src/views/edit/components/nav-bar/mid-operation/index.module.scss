@@ -1,0 +1,97 @@
+@use '../../../../colors.module.scss' as colors;
+.midOperation {
+  display: flex;
+  min-width: fit-content;
+  justify-content: center;
+  margin: 0 auto; /* 让中间的div在父容器中水平居中 */
+}
+
+.navOperation {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 52px;
+
+  .operationFloat {
+    position: fixed;
+    top: 68px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--smallPadding);
+    border-radius: var(--baseRadius);
+    background: #000000cc;
+
+    & .operation {
+      margin-right: 8px;
+    }
+    & .operation:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+.operationContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  svg {
+    width: 24px;
+    height: 24px;
+    fill: colors.$boxTextWhiteSecondary;
+  }
+}
+
+.operation,
+.operationActive,
+.operationDisabled {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+.operation {
+  svg {
+    fill: colors.$boxTextWhitePrimary;
+    opacity: 0.8;
+  }
+  &:hover {
+    background-color: colors.$boxOpacityWhite6;
+    border-radius: 4px;
+  }
+  &:active {
+    svg {
+      fill: colors.$boxTextWhitePrimary;
+      opacity: 1;
+    }
+  }
+}
+.operationActive {
+  svg {
+    fill: colors.$arenaPrimary80;
+    opacity: 0.8;
+  }
+}
+
+.operationDisabled {
+  cursor: url(../../../../../assets/cursor/not-allowed.svg) 0 0, not-allowed;
+  svg {
+    opacity: 0.5;
+  }
+}
+
+.divider {
+  width: 1px;
+  height: 16px;
+  margin-right: 8px;
+  background: colors.$boxOpacityWhite16;
+}

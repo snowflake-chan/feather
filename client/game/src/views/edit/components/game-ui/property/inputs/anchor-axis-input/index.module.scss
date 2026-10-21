@@ -1,0 +1,45 @@
+@use '../../../../../../colors.module.scss' as colors;
+
+.container {
+  &.disabled {
+    cursor: not-allowed;
+
+    :global(.boxInputInnerInput) {
+      cursor: not-allowed;
+    }
+  }
+
+  .prefix {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 100%;
+    border-right: 1px solid colors.$boxOpacityWhite9;
+
+    svg {
+      width: 20px;
+      height: 100%;
+      padding: 6px 4px;
+
+      background: colors.$boxOpacityWhite6;
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+
+  .suffix {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 28px;
+    height: 100%;
+
+    svg {
+      width: 20px;
+      height: 100%;
+      padding: 6px 8px 6px 0px;
+
+      fill: colors.$boxTextWhiteDisabled;
+    }
+  }
+}

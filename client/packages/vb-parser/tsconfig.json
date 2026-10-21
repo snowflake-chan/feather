@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["dom", "es2015"],
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "declarationDir": "build/types",
+    "sourceMap": false,
+    "outDir": "build",
+    "removeComments": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noUnusedLocals": true,
+    "noImplicitReturns": false,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "baseUrl": "./src",
+    "downlevelIteration": true
+  },
+  "exclude": ["node_modules/*", "build", "example", "./rollup.config.mjs"]
+}

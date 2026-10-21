@@ -1,0 +1,1 @@
+{"version":3,"file":"arena.d.ts","sourceRoot":"","sources":["../../src/schemas/arena.ts"],"names":[],"mappings":"AAAA;;GAEG;AAEH,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,eAAe,CAAC;AAEnD,MAAM,WAAW,kBAAkB;IAEjC,kBAAkB,EAAE,MAAM,CAAC;IAC3B;;;;;OAKG;IACH,eAAe,EAAE,MAAM,CAAC;IACxB,sCAAsC,EAAE,MAAM,CAAC;IAC/C,YAAY,EAAE,MAAM,CAAC;CACtB;AAED,eAAO,MAAM,YAAY,EAAE,aAAa,CAAC,kBAAkB,CAgBjD,CAAC"}

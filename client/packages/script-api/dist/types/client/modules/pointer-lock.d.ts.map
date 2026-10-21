@@ -1,0 +1,1 @@
+{"version":3,"file":"pointer-lock.d.ts","sourceRoot":"","sources":["../../../../src/client/modules/pointer-lock.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,MAAM,MAAM,sBAAsB,GAAG;IACnC;;OAEG;IACH,QAAQ,EAAE,OAAO,CAAC;CACnB,CAAC;AAEF;;GAEG;AACH,MAAM,MAAM,iBAAiB,GAAG;IAC9B,iBAAiB,EAAE,sBAAsB,CAAC;IAC1C,gBAAgB,EAAE,SAAS,CAAC;CAC7B,CAAC"}

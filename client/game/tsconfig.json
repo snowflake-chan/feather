@@ -1,0 +1,83 @@
+{
+  "extends": "../tsconfig.app.json",
+  "compilerOptions": {
+    "downlevelIteration": true,
+    "allowJs": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "es6",
+      "es2015",
+      "es5",
+      "es2017",
+      "dom",
+      "dom.iterable",
+      "esnext",
+      "WebWorker"
+    ],
+    "outDir": "dist",
+    // 输出 esnext 给打包工具用
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitReturns": true,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "alwaysStrict": false,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "target": "es5",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "paths": {
+      // 由于我们用了 src/xxx 这种绝对路径，这里需要覆盖一下base的配置
+      "/*": [
+        "./apps/game/*"
+      ],
+      "~/*": [
+        "./apps/game/src/*"
+      ],
+      "*": [
+        "./apps/game/*"
+      ]
+    },
+    "typeRoots": [
+      "./node_modules/@webgpu/types",
+      "./node_modules/@types"
+    ],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "exclude": [
+    "build",
+    "public"
+  ],
+  // 仅本地开发使用
+  "ts-node": {
+    "files": true,
+    "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "Node"
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../../services/game-server/src/edit/ai/llm-context.d.ts",
+    "./types/*.d.ts",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    ".next-player-service/types/**/*.ts"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@box/dsbridge",
+  "version": "0.0.1",
+  "description": "Javascript Initialization code of DSBridge ",
+  "keywords": [
+    "DSBridge"
+  ],
+  "homepage": "https://github.com/wendux",
+  "bugs": {
+    "url": "https://github.com/wendux/DSBridge-Android/issues",
+    "url2": "https://github.com/wendux/DSBridge-IOS/issues"
+  },
+  "license": "MIT",
+  "author": "Code Infinity",
+  "main": "index.js",
+  "typings": "./index.d.ts",
+  "scripts": {
+    "build": "echo 'No build required'",
+    "build:watch": "echo 'No build required'"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "respository": {
+    "type": "git",
+    "url": "https://github.com/wendux/DSBridge-Android",
+    "url2": "https://github.com/wendux/DSBridge-IOS"
+  }
+}

@@ -1,0 +1,22 @@
+import * as React from 'react';
+import { SVGProps, Ref, forwardRef, memo } from 'react';
+const IconHistory = (
+  props: SVGProps<SVGSVGElement>,
+  ref: Ref<SVGSVGElement>,
+) => (
+  <svg
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+    ref={ref}
+    {...props}
+  >
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0 2c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10ZM10 7a1 1 0 1 1 2 0v5h3a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1V7Z"
+    />
+  </svg>
+);
+const ForwardRef = forwardRef(IconHistory);
+const Memo = memo(ForwardRef);
+export default Memo;

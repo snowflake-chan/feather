@@ -1,0 +1,17 @@
+{
+  "name": "@box/regl",
+  "version": "2.1.0",
+  "description": "Vendored regl runtime used by the local VOXA editor.",
+  "license": "MIT",
+  "main": "dist/regl.js",
+  "module": "regl.js",
+  "types": "regl.d.ts",
+  "files": [
+    "regl.js",
+    "regl.d.ts",
+    "lib/*",
+    "dist/*",
+    "LICENSE"
+  ],
+  "scripts": {}
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@box/iframe-event-bus",
+  "version": "0.1.1",
+  "description": "iframe-event-bus",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/es/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/es/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:esm && npm run build:types",
+    "build:cjs": "tsc --module commonjs --outDir dist/cjs",
+    "build:esm": "tsc --module esnext --outDir dist/es",
+    "build:types": "tsc --emitDeclarationOnly --declarationDir dist/types",
+    "build:watch": "npm run build"
+  },
+  "dependencies": {
+    "eventemitter3": "5.0.1"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3"
+  }
+}

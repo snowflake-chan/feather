@@ -1,0 +1,103 @@
+import { MuStruct, MuUint32, MuVarint, MuSortedArray, MuQuantizedFloat } from '@box/mudb/schema';
+import { QuantizedVec3Schema } from '../utils/quantized-schema';
+export declare function packColor(c: {
+    r: number;
+    g: number;
+    b: number;
+}): number;
+export declare const ParticleEmitterSchema: MuStruct<{
+    countLimit: MuVarint;
+    emitRate: MuQuantizedFloat;
+    emitSpread: MuQuantizedFloat;
+    lifetime: MuQuantizedFloat;
+    lifetimeSpread: MuQuantizedFloat;
+    velocity: QuantizedVec3Schema;
+    velocitySpread: QuantizedVec3Schema;
+}>;
+export type ParticleEmitter = typeof ParticleEmitterSchema.identity;
+export declare const ParticleParameterSchema: MuStruct<{
+    acceleration: QuantizedVec3Schema;
+    noiseAmpl: MuQuantizedFloat;
+    noiseFreq: MuQuantizedFloat;
+    targetId: MuVarint;
+    targetWeight: MuQuantizedFloat;
+    color0: MuUint32;
+    color1: MuUint32;
+    color2: MuUint32;
+    color3: MuUint32;
+    color4: MuUint32;
+    size0: MuQuantizedFloat;
+    size1: MuQuantizedFloat;
+    size2: MuQuantizedFloat;
+    size3: MuQuantizedFloat;
+    size4: MuQuantizedFloat;
+    sizeSpread: MuQuantizedFloat;
+    damping: MuQuantizedFloat;
+}>;
+export declare const ParticleEntitySchema: MuStruct<{
+    countLimit: MuVarint;
+    emitRate: MuQuantizedFloat;
+    emitSpread: MuQuantizedFloat;
+    lifetime: MuQuantizedFloat;
+    lifetimeSpread: MuQuantizedFloat;
+    velocity: QuantizedVec3Schema;
+    velocitySpread: QuantizedVec3Schema;
+    id: MuVarint;
+    particleId: MuVarint;
+}>;
+export type ParticleEntity = typeof ParticleEntitySchema.identity;
+export declare const ParticlePrototypeSchema: MuStruct<{
+    acceleration: QuantizedVec3Schema;
+    noiseAmpl: MuQuantizedFloat;
+    noiseFreq: MuQuantizedFloat;
+    targetId: MuVarint;
+    targetWeight: MuQuantizedFloat;
+    color0: MuUint32;
+    color1: MuUint32;
+    color2: MuUint32;
+    color3: MuUint32;
+    color4: MuUint32;
+    size0: MuQuantizedFloat;
+    size1: MuQuantizedFloat;
+    size2: MuQuantizedFloat;
+    size3: MuQuantizedFloat;
+    size4: MuQuantizedFloat;
+    sizeSpread: MuQuantizedFloat;
+    damping: MuQuantizedFloat;
+    id: MuVarint;
+}>;
+export type ParticlePrototype = typeof ParticlePrototypeSchema.identity;
+export declare const ParticleReplicaSchema: MuStruct<{
+    emitters: MuSortedArray<MuStruct<{
+        countLimit: MuVarint;
+        emitRate: MuQuantizedFloat;
+        emitSpread: MuQuantizedFloat;
+        lifetime: MuQuantizedFloat;
+        lifetimeSpread: MuQuantizedFloat;
+        velocity: QuantizedVec3Schema;
+        velocitySpread: QuantizedVec3Schema;
+        id: MuVarint;
+        particleId: MuVarint;
+    }>>;
+    prototypes: MuSortedArray<MuStruct<{
+        acceleration: QuantizedVec3Schema;
+        noiseAmpl: MuQuantizedFloat;
+        noiseFreq: MuQuantizedFloat;
+        targetId: MuVarint;
+        targetWeight: MuQuantizedFloat;
+        color0: MuUint32;
+        color1: MuUint32;
+        color2: MuUint32;
+        color3: MuUint32;
+        color4: MuUint32;
+        size0: MuQuantizedFloat;
+        size1: MuQuantizedFloat;
+        size2: MuQuantizedFloat;
+        size3: MuQuantizedFloat;
+        size4: MuQuantizedFloat;
+        sizeSpread: MuQuantizedFloat;
+        damping: MuQuantizedFloat;
+        id: MuVarint;
+    }>>;
+}>;
+//# sourceMappingURL=particle-schema.d.ts.map

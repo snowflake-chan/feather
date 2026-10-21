@@ -1,0 +1,49 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.collapse {
+  width: 100%;
+  height: 100%;
+  background: colors.$background2;
+
+  .header {
+    display: flex;
+    height: 41px;
+    padding: 8px;
+    align-items: center;
+    justify-content: space-between;
+    color: colors.$textWhiteSecondary;
+    @include texts.h12;
+
+    .left {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+
+      .expand {
+        width: 12px;
+        height: 12px;
+        display: flex;
+        align-items: center;
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .divider {
+    width: calc(100% - 16px);
+    height: 1px;
+    background: colors.$opacityWhite6;
+    border-radius: 6px;
+    margin: 0 auto;
+  }
+
+  .disabledMask {
+    background: rgba(0, 0, 0, 0.6);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}

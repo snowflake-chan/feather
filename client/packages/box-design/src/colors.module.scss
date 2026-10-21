@@ -1,0 +1,137 @@
+// 主色-默认为voxa主色
+$primary95: var(--theme-primary95, #d1ff98);
+$primary90: var(--theme-primary90, #9afc17);
+$primary80: var(--theme-primary80, #81de00);
+$primary70: var(--theme-primary70, #6ec000);
+$primary60: var(--theme-primary60, #5ca200);
+$primary50: var(--theme-primary50, #4b8600);
+$primary40: var(--theme-primary40, #3a6a00);
+$primary30: var(--theme-primary30, #2a5000);
+$primary20: var(--theme-primary20, #1b3700);
+$primary10: var(--theme-primary10, #0d2000);
+
+// 次色-默认为voxa次色
+$secondary95: var(--theme-secondary95, #e9f5d6);
+$secondary90: var(--theme-secondary90, #dbe7c8);
+$secondary80: var(--theme-secondary80, #bfcbad);
+$secondary70: var(--theme-secondary70, #a4af93);
+$secondary60: var(--theme-secondary60, #8a957a);
+$secondary50: var(--theme-secondary50, #707b61);
+$secondary40: var(--theme-secondary40, #576249);
+$secondary30: var(--theme-secondary30, #404a34);
+$secondary20: var(--theme-secondary20, #2a331f);
+$secondary10: var(--theme-secondary10, #151e0b);
+
+// 背景颜色
+$background6: #595959;
+$background5: #404040;
+$background4: #333333;
+$background3: #262626;
+$background2: #1a1a1a;
+$background1: #0d0d0d;
+$background0: #000000;
+
+// 透明-白
+$opacityWhite100: #ffffff;
+$opacityWhite90: rgba(255, 255, 255, 0.9);
+$opacityWhite80: rgba(255, 255, 255, 0.8);
+$opacityWhite70: rgba(255, 255, 255, 0.7);
+$opacityWhite60: rgba(255, 255, 255, 0.6);
+$opacityWhite50: rgba(255, 255, 255, 0.5);
+$opacityWhite40: rgba(255, 255, 255, 0.4);
+$opacityWhite30: rgba(255, 255, 255, 0.3);
+$opacityWhite21: rgba(255, 255, 255, 0.21);
+$opacityWhite18: rgba(255, 255, 255, 0.18);
+$opacityWhite15: rgba(255, 255, 255, 0.15);
+$opacityWhite12: rgba(255, 255, 255, 0.12);
+$opacityWhite9: rgba(255, 255, 255, 0.09);
+$opacityWhite6: rgba(255, 255, 255, 0.06);
+$opacityWhite3: rgba(255, 255, 255, 0.03);
+$opacityWhite0: rgba(255, 255, 255, 0);
+
+// 字体颜色-白
+$textWhitePrimary: #ffffff;
+$textWhiteSecondary: rgba(255, 255, 255, 0.75);
+$textWhiteTertiary: rgba(255, 255, 255, 0.5);
+$textWhiteDisabled: rgba(255, 255, 255, 0.25);
+
+// 字体颜色-黑
+$textBlackPrimary: rgba(0, 0, 0, 0.95);
+$textBlackSecondary: rgba(0, 0, 0, 0.8);
+$textBlackTertiary: rgba(0, 0, 0, 0.65);
+$textBlackDisabled: rgba(255, 255, 255, 0.25);
+
+// 系统颜色-错误（红）
+$systemErrorNegative3: #fddcdc;
+$systemErrorNegative2: #fbaca3;
+$systemErrorNegative1: #f98981;
+$systemError0: #f65252;
+$systemErrorPositive1: #f53f3f;
+$systemErrorPositive2: #cf2b31;
+$systemErrorPositive3: #a81b24;
+
+// 系统颜色-警告（黄）
+$systemWarnNegative3: #fefebe;
+$systemWarnNegative2: #fdfa94;
+$systemWarnNegative1: #fcf26b;
+$systemWarn0: #fbe842;
+$systemWarnPositive1: #fadc19;
+$systemWarnPositive2: #cfaf0f;
+$systemWarnPositive3: #a38408;
+
+// 系统颜色-成功（绿）
+$systemSuccessNegative3: #bbe4ae;
+$systemSuccessNegative2: #9ad686;
+$systemSuccessNegative1: #78c95d;
+$systemSuccess0: #56bb35;
+$systemSuccessPositive1: #3b9422;
+$systemSuccessPositive2: #246e14;
+$systemSuccessPositive3: #134709;
+
+// 系统颜色-中性
+$systemNeutral95: #fdfcf4;
+$systemNeutral90: #e4e3db;
+$systemNeutral80: #c7c7bf;
+$systemNeutral70: #acaca4;
+$systemNeutral60: #91918a;
+$systemNeutral50: #777771;
+$systemNeutral40: #5e5f59;
+$systemNeutral30: #464741;
+$systemNeutral20: #30312c;
+$systemNeutral10: #1b1c18;
+
+// 坐标颜色
+$axisY: #32e844;
+$axisX: #e83232;
+$axisZ: #00c2ff;
+
+// 渐变色-Icon-Active
+$gradientIconActive: linear-gradient(
+  90deg,
+  rgba(116, 223, 49, 0.4) 0%,
+  rgba(116, 223, 49, 0.15) 100%
+);
+
+// 渐变色-Icon-Default
+$gradientIconDefault: linear-gradient(360deg, #e1e1e1 0%, #b5b5b5 100%);
+
+// 渐变色-Icon-Blue
+$gradientBlue: linear-gradient(
+  360deg,
+  rgba(0, 194, 255, 0.2) 0%,
+  rgba(0, 194, 255, 0) 100%
+);
+
+// 渐变色-Icon-Green
+$gradientGreen: linear-gradient(
+  360deg,
+  rgba(50, 232, 68, 0.2) 0%,
+  rgba(50, 232, 68, 0) 100%
+);
+
+// 渐变色-Icon-Red
+$gradientRed: linear-gradient(
+  360deg,
+  rgba(232, 50, 50, 0.2) 0%,
+  rgba(232, 50, 50, 0) 100%
+);

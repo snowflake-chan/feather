@@ -1,0 +1,20 @@
+.image {
+  object-fit: cover;
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.image:before {
+  content: ' ';
+  display: block;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: var(--color-grey6);
+  background-image: url(../../../assets/website_logo_white.svg);
+  background-repeat: no-repeat;
+  background-size: 50% 50%;
+  background-position-x: 50%;
+  background-position-y: 50%;
+}

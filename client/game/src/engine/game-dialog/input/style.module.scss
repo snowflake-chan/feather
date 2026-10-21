@@ -1,0 +1,31 @@
+@value icon from 'src/views/components/edit/editor-common.css';
+
+.input {
+  position: fixed;
+
+  z-index: 1;
+
+  display: flex;
+  outline: none;
+  border-radius: 8px;
+  color: white;
+  resize: none;
+  padding: 8px 16px;
+  background: #121212;
+  font-size: 12px;
+  height: fit-content;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.clearBtn {
+  position: fixed;
+  z-index: 2;
+  composes: icon;
+  background-position: -217px -49px;
+  width: 22px;
+  height: 22px;
+  transform: scale(0.72);
+  opacity: 0.6;
+  cursor: pointer;
+}

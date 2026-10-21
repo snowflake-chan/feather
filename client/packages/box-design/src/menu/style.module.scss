@@ -1,0 +1,79 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  background: colors.$background3;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  padding: 4px;
+
+  .menuItem {
+    min-width: 115px;
+    height: 36px;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0 11px;
+    @include texts.b12;
+    color: colors.$textWhitePrimary;
+
+    .icon {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      margin-right: 8px;
+    }
+
+    .selection {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+
+      .bar {
+        position: absolute;
+        width: 3px;
+        height: 16px;
+        left: 0px;
+        top: calc(50% - 16px / 2);
+        background: colors.$primary70;
+        border-radius: 999px;
+      }
+    }
+
+    &.disabled {
+      color: colors.$textWhiteDisabled;
+    }
+
+    &:not(.disabled) {
+      &:hover {
+        background: colors.$opacityWhite3;
+        border-radius: 5px;
+      }
+
+      &:active {
+        background: colors.$opacityWhite6;
+        border-radius: 5px;
+
+        .selection {
+          .bar {
+            height: 10px;
+            top: calc(50% - 10px / 2);
+          }
+        }
+      }
+    }
+
+    .expandArrow {
+      position: absolute;
+      right: 6px;
+      margin-left: 17px;
+      fill: colors.$textWhiteSecondary;
+    }
+  }
+}

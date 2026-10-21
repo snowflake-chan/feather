@@ -1,0 +1,12 @@
+@use '../../../../texts.module.scss' as texts;
+@use '../../../../colors.module.scss' as colors;
+
+.noObjectTips {
+  @include texts.b14;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: colors.$boxTextWhiteDisabled;
+  text-align: center;
+}

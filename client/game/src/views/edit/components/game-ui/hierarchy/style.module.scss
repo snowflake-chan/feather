@@ -1,0 +1,123 @@
+@use '../../../../colors.module.scss' as colors;
+@use '../../../../texts.module.scss' as texts;
+
+.container {
+  height: 100%;
+  overflow: auto;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: colors.$boxTextWhiteSecondary;
+  }
+
+  :global(.boxTree) {
+    background-color: unset;
+    height: calc(100% - 28px);
+
+    :global(.boxButton.boxButtonIcon) {
+      transition: all linear 200ms;
+    }
+  }
+
+  &.isSearching {
+    :global(.boxTree) {
+      background-color: unset;
+      height: calc(100% - 28px - 40px);
+    }
+  }
+
+  .header {
+    display: flex;
+    height: 28px;
+    border-bottom: 1px solid colors.$boxOpacityWhite12;
+    align-items: center;
+
+    .divider {
+      height: 16px;
+      width: 1px;
+      background: colors.$boxOpacityWhite12;
+      transform: translateX(-1px);
+    }
+    .expandBtn {
+      display: flex;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      justify-content: center;
+      align-items: center;
+      @include texts.h12;
+      box-sizing: border-box;
+      &:hover {
+        background: colors.$boxOpacityWhite12;
+        cursor: pointer;
+      }
+      &:active {
+        svg {
+          fill: colors.$boxOpacityWhite100;
+        }
+      }
+
+      & svg {
+        width: 16px;
+        height: 16px;
+        fill: colors.$boxTextWhiteSecondary;
+      }
+    }
+
+    .screenIcon {
+      margin: 0 4px;
+      min-width: 16px;
+      width: 16px;
+      height: 16px;
+      fill: colors.$arenaPrimary80;
+    }
+
+    .nameContainer {
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding-right: 4px;
+      color: colors.$boxTextWhitePrimary;
+    }
+    .screenName {
+      display: block;
+      height: 100%;
+      flex: 1;
+      padding-right: 4px;
+      @include texts.h12;
+      line-height: 28px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: colors.$arenaPrimary80;
+    }
+  }
+}
+
+.draggingCursor {
+  cursor: url(../../../../../assets/cursor/drag-skin.svg) 0 0, default;
+}
+
+.notAllowedCursor {
+  cursor: url(../../../../../assets/cursor/not-allowed.svg) 0 0, not-allowed;
+}
+
+.contextMenu {
+  position: fixed;
+}
+
+.searchEmptyTip {
+  width: 100%;
+  height: calc(100% - 28px - 40px);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  color: colors.$boxOpacityWhite60;
+}
+
+.head {
+  margin: var(--smallPadding);
+  height: 24px;
+}

@@ -1,0 +1,61 @@
+@use '../../../../../../colors.module.scss' as colors;
+@use '../../../../../../texts.module.scss' as texts;
+
+.wrapper {
+  position: relative;
+  max-height: 482px;
+  min-height: 296px;
+  overflow-y: overlay;
+  .basicBtn {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    position: relative;
+  }
+  .btnWrapper {
+    width: 100%;
+    .btnAdd {
+      width: 100%;
+      @include texts.h12;
+      color: colors.$arenaPrimary80;
+    }
+  }
+
+  .icon {
+    height: 100%;
+  }
+}
+.listWrapper {
+  padding: 8px 0;
+  border-bottom: 1px solid colors.$boxOpacityWhite9;
+}
+.listContainer {
+  position: relative;
+  .listItem {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    @include texts.h14;
+    color: colors.$boxTextWhitePrimary;
+    cursor: pointer;
+    .name {
+      display: inline-block;
+      max-width: 319px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+.wrapper::-webkit-scrollbar {
+  width: 0;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  margin-top: 8px;
+  @include texts.h14;
+  color: colors.$boxTextWhitePrimary;
+}

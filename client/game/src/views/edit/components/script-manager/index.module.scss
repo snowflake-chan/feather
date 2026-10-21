@@ -1,0 +1,239 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+@value boxScrollbar from '../../../scroll.module.scss';
+
+.managerWrapper {
+  position: relative;
+  width: 220px;
+  background: colors.$boxBackground3;
+  border-right: 1px solid colors.$boxOpacityWhite12;
+}
+
+.managerWrapper.hide {
+  width: 0px;
+  .expandBtn {
+    left: 0px;
+    border-radius: 0px 43px 43px 0px;
+    svg {
+      transform: rotate(180deg) translateX(2px);
+    }
+  }
+  .scrollList {
+    visibility: hidden;
+  }
+}
+
+.expandBtn {
+  position: absolute;
+  left: calc(220px - 16px / 2);
+  top: calc(50% - 56px / 2);
+  width: 16px;
+  height: 56px;
+  padding: 20px 0px;
+  border-radius: 43px;
+  background: colors.$boxBackground3;
+  border: 1px solid colors.$boxOpacityWhite9;
+  z-index: 1;
+  &:hover {
+    background: colors.$boxBackground4;
+  }
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: colors.$boxTextWhiteSecondary;
+  }
+}
+
+.scrollWrapper {
+  height: calc(100vh - 52px);
+  height: calc(var(--vh, 1vh) * 100 - 52px);
+  min-height: 220px;
+  overflow: hidden scroll;
+  composes: boxScrollbar;
+  margin-right: 1px;
+}
+.scrollList {
+  width: 100%;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fileList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  &.hide {
+    display: none;
+  }
+}
+
+.scriptTab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 204px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 4px;
+  &:hover {
+    background: colors.$boxOpacityWhite6;
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    p {
+      width: 144px;
+      @include texts.h14;
+      font-family: 'Rubik-700';
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: colors.$boxTextWhitePrimary;
+    }
+    svg {
+      width: 16px;
+      height: 16px;
+      margin: 2px 6px 2px 2px;
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+  .addBtn {
+    width: 20px;
+    height: 20px;
+    svg {
+      width: 16px;
+      height: 16px;
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+}
+
+.scriptItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 204px;
+  height: 32px;
+  padding: 0px 4px 0px 24px;
+  border-radius: 4px;
+  &:hover,
+  &.hoverStyle {
+    background: colors.$boxOpacityWhite6;
+    .head {
+      p {
+        color: colors.$boxTextWhitePrimary;
+      }
+      svg {
+        fill: colors.$boxTextWhitePrimary;
+      }
+    }
+  }
+  &.selected {
+    background: colors.$boxOpacityWhite6 !important;
+    .head {
+      p {
+        color: colors.$arenaPrimary80 !important;
+      }
+      svg {
+        fill: colors.$arenaPrimary80;
+      }
+    }
+  }
+  .head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    p {
+      width: 100%;
+      @include texts.b14;
+      font-family: Rubik;
+      line-height: 24px;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: colors.$boxTextWhiteTertiary;
+      white-space: nowrap;
+    }
+    svg {
+      width: 16px;
+      height: 16px;
+      fill: colors.$boxTextWhiteTertiary;
+    }
+    .moreBtn {
+      flex: none;
+      display: none;
+      width: 16px;
+      height: 16px;
+      svg {
+        width: 12px;
+        height: 12px;
+        fill: colors.$boxTextWhitePrimary;
+      }
+      &.visible {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+.renameModal {
+  height: 58px;
+  .bottomTips {
+    display: flex;
+    padding-top: 8px;
+    font-family: Rubik;
+    @include texts.b12;
+    text-align: left;
+    color: colors.$boxTextWhiteTertiary;
+    .warn {
+      color: colors.$boxSystemError0;
+    }
+  }
+}
+
+.scriptIcon {
+  display: flex;
+  &.otherMapLocked {
+    svg {
+      fill: colors.$boxSystemSuccess0 !important;
+    }
+  }
+  &.currMapLocked {
+    svg {
+      fill: colors.$arenaPrimary80 !important;
+    }
+  }
+  &.uploading {
+    animation: rotating 1.2s linear infinite;
+    svg {
+      fill: colors.$arenaPrimary80 !important;
+    }
+  }
+}
+
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.breakWord {
+  word-wrap: break-word;
+}

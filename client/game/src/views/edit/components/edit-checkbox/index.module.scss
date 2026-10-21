@@ -1,0 +1,78 @@
+@use '../../../colors.module.scss' as colors;
+@value phone, tablet from '../../../components/breakpoints.css';
+
+.container {
+  cursor: pointer;
+}
+
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkMarkBox {
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 24px;
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.checkMark {
+  display: block;
+  height: 16px;
+  width: 16px;
+  border: 1px solid colors.$boxTextWhiteSecondary;
+  border-radius: 3px;
+}
+
+.container:hover input ~ .checkMarkBox {
+  background-color: colors.$boxOpacityWhite6;
+}
+.container:active input ~ .checkMarkBox .checkMark {
+  border: 1px solid colors.$boxTextWhitePrimary;
+}
+
+.container input:checked ~ .checkMarkBox .checkMark {
+  border: 1px solid colors.$arenaPrimary80;
+  background-color: colors.$arenaPrimary80;
+}
+.container:hover input:checked ~ .checkMarkBox {
+  background-color: #ff81000f;
+}
+.checkMarkBox .checkMark:after {
+  content: '';
+  position: absolute;
+  display: none;
+}
+
+.container input:checked ~ .checkMarkBox .checkMark:after {
+  display: block;
+}
+
+.container .checkMarkBox .checkMark:after {
+  left: 9px;
+  top: 6px;
+  width: 4px;
+  height: 8px;
+  border: solid colors.$boxBackground4;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+@media phone, tablet {
+  .container:hover input ~ .checkMarkBox .checkMark {
+    background-color: transparent;
+  }
+
+  .container input:checked ~ .checkMarkBox .checkMark {
+    background-color: colors.$arenaPrimary80;
+  }
+}

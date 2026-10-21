@@ -1,0 +1,233 @@
+@use '../../colors.module.scss' as colors;
+@use '../../texts.module.scss' as texts;
+
+.treeNode {
+  display: flex;
+  flex-direction: column;
+  min-width: 100%;
+  width: fit-content;
+
+  .notChildren {
+    position: relative;
+
+    .interaction {
+      position: relative;
+
+      .container {
+        padding-left: 8px;
+        padding-right: 3px;
+        display: flex;
+        height: 22px;
+        align-items: center;
+        justify-content: flex-start;
+
+        &.noPaddingLeft {
+          padding-left: 0px;
+        }
+
+        .stickyPrefixIcon {
+          position: sticky;
+          left: 0px;
+          float: left;
+          padding-left: 4px;
+          padding-right: 4px;
+          z-index: 1;
+        }
+
+        &.selected {
+          background: colors.$opacityWhite15;
+          color: colors.$systemWarn0;
+
+          :global(.boxTreeNodeAttachableName) {
+            color: colors.$systemWarn0;
+          }
+
+          &:not(.disableHover):hover {
+            background: colors.$opacityWhite21;
+          }
+        }
+
+        &.relativeSelected {
+          background: colors.$opacityWhite6;
+          color: colors.$systemWarn0;
+
+          :global(.boxTreeNodeAttachableName) {
+            color: colors.$systemWarn0;
+          }
+
+          &:not(.disableHover):hover {
+            background: colors.$opacityWhite21;
+          }
+        }
+
+        &.relative {
+          color: colors.$systemWarnPositive3;
+
+          :global(.boxTreeNodeAttachableName) {
+            color: colors.$systemWarnPositive3;
+          }
+
+          &:not(.disableHover):hover {
+            background: colors.$opacityWhite21;
+          }
+        }
+
+        &.unselected {
+          &:not(.disableHover):hover {
+            background: colors.$opacityWhite21;
+          }
+        }
+
+        .icon,
+        .extraIcon {
+          width: 12px;
+          height: 12px;
+          display: flex;
+          align-items: center;
+        }
+
+        .icon {
+          margin-right: 4px;
+        }
+
+        .extraIcon {
+          margin-right: 2px;
+        }
+
+        span {
+          display: inline-block;
+        }
+
+        .expandBtn {
+          width: 16px;
+          height: 22px;
+          margin-right: 4px;
+          display: flex;
+          position: relative;
+
+          .left {
+            width: 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+
+            .verticalLine {
+              width: 1px;
+              height: 5px;
+              border: none;
+              background-color: colors.$opacityWhite50;
+              margin: 0 auto;
+            }
+
+            .icon {
+              -webkit-clip-path: unset;
+              clip-path: unset;
+              width: 12px;
+              height: 12px;
+              svg {
+                width: 12px;
+                height: 12px;
+              }
+            }
+          }
+
+          .horizontalLine {
+            height: 1px;
+            width: 4px;
+            background-color: colors.$opacityWhite50;
+            margin: auto 0;
+          }
+
+          .rightAngle {
+            width: 10.5px;
+            height: 11px;
+            border-bottom: 1px solid colors.$opacityWhite50;
+            border-left: 1px solid colors.$opacityWhite50;
+            position: absolute;
+            right: 0;
+          }
+
+          .lineToNext {
+            width: 10.5px;
+            height: 11px;
+            border-left: 1px solid colors.$opacityWhite50;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+          }
+        }
+
+        .stickySuffixIconWrap {
+          position: sticky;
+          right: 0px;
+          background-color: inherit;
+          margin-left: auto;
+          &::before {
+            content: '';
+            width: 22px;
+            height: 22px;
+            position: absolute;
+            right: 0;
+            background-color: inherit;
+          }
+          .stickySuffixIcon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background-color: colors.$background4;
+            svg {
+              width: 12px;
+              height: 12px;
+              fill: colors.$textWhiteTertiary;
+            }
+          }
+        }
+      }
+
+      .markerBox {
+        position: absolute;
+        pointer-events: none;
+        width: 100%;
+        height: calc(100% + 1px);
+        left: 0;
+        top: -0.5px;
+        border: 1px solid colors.$primary80;
+      }
+    }
+
+    .markerLine {
+      position: absolute;
+      height: 1px;
+      background: colors.$primary80;
+    }
+  }
+}
+
+.name {
+  padding: 0 2px;
+  position: relative;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+}
+
+.highlightLetter {
+  background-color: colors.$primary80;
+}
+
+.nameInput {
+  position: absolute;
+  top: 1px;
+  left: 0px;
+
+  height: 16px;
+  width: 100%;
+  flex: auto;
+
+  input {
+    font-size: 12px;
+    line-height: 16px;
+    padding: 0 2px;
+  }
+}

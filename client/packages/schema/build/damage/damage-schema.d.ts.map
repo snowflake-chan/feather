@@ -1,0 +1,1 @@
+{"version":3,"file":"damage-schema.d.ts","sourceRoot":"","sources":["../../damage/damage-schema.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,QAAQ,EACR,QAAQ,EACR,SAAS,EACT,aAAa,EACb,gBAAgB,EACjB,MAAM,kBAAkB,CAAC;AAG1B,eAAO,MAAM,YAAY;;;;;EASvB,CAAC;AACH,MAAM,MAAM,MAAM,GAAG,OAAO,YAAY,CAAC,QAAQ,CAAC;AAElD,eAAO,MAAM,eAAe;;;;;GAI3B,CAAC;AACF,MAAM,MAAM,SAAS,GAAG,OAAO,eAAe,CAAC,QAAQ,CAAC"}

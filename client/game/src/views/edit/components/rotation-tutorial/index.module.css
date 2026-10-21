@@ -1,0 +1,31 @@
+@value mouseButton from '../editor-common.css';
+@import '../editor-common.css';
+
+.container {
+  position: fixed;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 64px;
+  border-radius: 32px;
+  background: var(--color-grey1-30);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--bigPadding);
+}
+
+.container span {
+  font-size: var(--text-h2);
+  color: var(--color-white);
+  margin: 0 var(--tinyPadding);
+}
+
+.mouseIcon,
+.mouseIconLeft {
+  composes: mouseButton;
+  margin: 0 var(--basePadding);
+}
+
+.mouseIconLeft {
+  transform: matrix(-1, 0, 0, 1, 0, 0);
+}

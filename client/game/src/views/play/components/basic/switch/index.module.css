@@ -1,0 +1,33 @@
+.operationList {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 32px;
+  border-radius: var(--baseRadius);
+  margin: var(--basePadding) 0;
+}
+
+.operation {
+  border-radius: 100px;
+  flex: 1;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Montserrat-Bold';
+  color: var(--color-font-white-minor);
+  font-size: var(--text-h4);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.active {
+  color: var(--color-black);
+  background: var(--color-white);
+}
+
+.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

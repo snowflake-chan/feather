@@ -1,0 +1,48 @@
+@use '../../../../../../colors.module.scss' as colors;
+
+.spinButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 16px;
+  border-left: 1px solid colors.$boxOpacityWhite9;
+  .spinBtn {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 16px;
+    height: 12px;
+    &:hover {
+      background-color: colors.$boxOpacityWhite9;
+    }
+    &:active {
+      background-color: colors.$boxOpacityWhite12;
+    }
+    &.disabled {
+      background-color: unset;
+      .addBtn,
+      .subBtn {
+        border-color: colors.$boxTextWhiteDisabled;
+      }
+    }
+  }
+  .spinBtnDivider {
+    width: 16px;
+    border-bottom: 1px solid colors.$boxOpacityWhite9;
+  }
+  .addBtn,
+  .subBtn {
+    position: absolute;
+    top: 4px;
+    width: 4px;
+    height: 4px;
+    border-left: 1.5px solid colors.$boxTextWhiteSecondary;
+    border-bottom: 1.5px solid colors.$boxTextWhiteSecondary;
+    transform: rotate(135deg) translateX(1px);
+  }
+  .subBtn {
+    top: 2px;
+    transform: rotate(-45deg) translateX(-1px);
+  }
+}

@@ -1,0 +1,118 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../../../../../texts.module.scss' as texts;
+@value boxScrollbar from '../../../../../scroll.module.scss';
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 32px;
+  padding: 0px 4px 0px 24px;
+  border-radius: 4px;
+  svg {
+    min-width: 16px;
+    width: 16px;
+    height: 16px;
+  }
+  &:hover:not(.overing, .selected),
+  &.hoverStyle {
+    background: colors.$boxOpacityWhite6;
+    p {
+      color: colors.$boxOpacityWhite100;
+    }
+    svg {
+      fill: colors.$boxOpacityWhite100;
+    }
+  }
+  &.selected {
+    background: colors.$boxOpacityWhite6 !important;
+    .head {
+      p {
+        color: colors.$arenaPrimary80 !important;
+      }
+      .screenIcon {
+        fill: colors.$arenaPrimary80 !important;
+      }
+    }
+  }
+  .head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    p {
+      @include texts.b14;
+      font-family: Rubik;
+      line-height: 24px;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: colors.$boxTextWhiteTertiary;
+      white-space: nowrap;
+    }
+    svg {
+      fill: colors.$boxTextWhiteSecondary;
+    }
+    .moreBtn {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      svg {
+        fill: colors.$boxTextWhiteSecondary;
+      }
+    }
+    .eyeBtn {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      svg {
+        fill: colors.$boxTextWhiteSecondary;
+      }
+      &:active {
+        svg {
+          fill: colors.$arenaPrimary80 !important;
+        }
+      }
+    }
+  }
+}
+
+.breakWord {
+  word-wrap: break-word;
+}
+
+.overing {
+  position: relative;
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 1px;
+    left: 0;
+    width: 100%;
+    background: colors.$arenaPrimary80;
+  }
+  &.overingBefore {
+    &::after {
+      top: 0;
+    }
+  }
+
+  &.overingAfter {
+    &::after {
+      bottom: 0;
+    }
+  }
+}
+
+.defaultTagContainer {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}

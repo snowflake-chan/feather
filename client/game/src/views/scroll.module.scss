@@ -1,0 +1,22 @@
+@use './colors.module.scss' as colors;
+
+.boxScrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+// 滚动条滑块 = 边框 + padding + content
+.boxScrollbar::-webkit-scrollbar-thumb {
+  background-color: colors.$boxTextWhiteTertiary;
+  background-clip: padding-box;
+  border-radius: 2px;
+  border: 2px solid transparent;
+}
+
+.boxScrollbar::-webkit-scrollbar-thumb:hover {
+  background: colors.$boxTextWhiteSecondary;
+}
+
+.boxScrollbar::-webkit-scrollbar-thumb:active {
+  background: colors.$boxTextWhitePrimary;
+}

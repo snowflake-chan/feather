@@ -1,0 +1,65 @@
+@use '../../../colors.module.scss' as colors;
+.radioContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+.radioContainer span {
+  display: inline-block;
+  font-size: 16px;
+  color: #fff;
+  text-align: left;
+  padding-left: 8px;
+}
+.radioWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 99px;
+  &:hover {
+    background-color: colors.$boxOpacityWhite6;
+  }
+  &:active {
+    .radio {
+      border: 1px solid colors.$boxTextWhitePrimary;
+    }
+  }
+}
+.radioChecked {
+  .radioWrap {
+    &:active {
+      .radio {
+        border: 1px solid colors.$arenaPrimary80;
+      }
+    }
+  }
+}
+.radio {
+  display: flex;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid colors.$boxTextWhiteSecondary;
+  border-radius: 12px;
+  align-items: center;
+  box-sizing: border-box;
+}
+.disable {
+  opacity: 0.3;
+}
+.icon {
+  display: none;
+  background: colors.$arenaPrimary80;
+  width: 10px;
+  height: 10px;
+  border-radius: 8px;
+}
+.radioChecked .icon {
+  display: block;
+}
+.radioChecked .radio {
+  border: 1px solid colors.$arenaPrimary80;
+}

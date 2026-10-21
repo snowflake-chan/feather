@@ -1,0 +1,109 @@
+@import url('../editor-common.css');
+@value iconSmall, icon, scrollbarStyle from '../editor-common.css';
+
+.inputContainer {
+  /* height: 40px; */
+  /* display: flex;
+    align-items: center; */
+  background: var(--color-grey1);
+  border-radius: var(--baseRadius);
+  position: relative;
+  border: 1px solid var(--color-white-30);
+}
+
+.small {
+  width: 90px;
+  background: transparent;
+}
+
+/* .small:focus {
+    background: var(--color-grey1);
+} */
+
+.inputContainer input,
+.inputContainer textarea {
+  height: 40px;
+  display: flex;
+  flex: 1;
+  outline: none;
+  border-radius: var(--baseRadius);
+  color: var(--color-white);
+  resize: none;
+  padding: var(--smallPadding) var(--basePadding);
+  background: var(--color-grey1);
+  font-size: var(--text-h4);
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+}
+
+.inputContainer textarea {
+  height: 175px;
+}
+
+.small input {
+  height: 20px;
+  background: transparent;
+  text-align: end;
+  padding: var(--smallPadding);
+}
+
+.small input:focus {
+  background: var(--color-grey1);
+}
+
+.disable {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.error,
+.small .error {
+  border: 1px solid var(--color-danger) !important;
+}
+
+.errorMessage,
+.small .errorMessage {
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
+.clearBtnContainer {
+  position: absolute;
+  display: flex;
+  top: 0;
+  right: 0;
+  height: 100%;
+  max-height: 40px;
+  width: 48px;
+  justify-content: center;
+  align-items: center;
+}
+
+.clearBtn {
+  composes: icon;
+  background-position: -217px -49px;
+  width: 22px;
+  height: 22px;
+  transform: scale(0.72);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.small .clearBtnContainer {
+  display: none;
+}
+
+.searchBtn {
+  composes: iconSmall;
+  background-position: 161px 67px;
+  width: 16px;
+  height: 16px;
+  margin: 0 var(--smallPadding);
+  background-color: green;
+}
+
+.small .searchBtn {
+  display: none;
+}

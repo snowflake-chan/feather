@@ -1,0 +1,8 @@
+import styleInject from 'style-inject';
+
+var css_248z = ".boxAxisInputAxisInputs {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  box-sizing: border-box;\n  height: 34px;\n  border-radius: 4px;\n  border: 1px solid rgba(70, 71, 65, 0.35);\n  overflow: hidden;\n}\n.boxAxisInputAxisInputs > :first-child {\n  border-bottom: 2px solid #e83232;\n}\n.boxAxisInputAxisInputs > :nth-child(2) {\n  border-bottom: 2px solid #32e844;\n}\n.boxAxisInputAxisInputs > :last-child {\n  border-bottom: 2px solid #00c2ff;\n}\n.boxAxisInputAxisInputs:hover {\n  border-color: rgba(172, 172, 164, 0.35);\n}\n.boxAxisInputAxisInputs:focus-within {\n  border-color: rgba(255, 255, 255, 0.35);\n}\n.boxAxisInputAxisInputs .boxAxisInputAxisInput {\n  width: 36px;\n  height: 30px;\n  border: none;\n}\n.boxAxisInputAxisInputs .boxAxisInputAxisInput input {\n  padding: 6px 5px 4px 5px !important;\n}\n.boxAxisInputAxisInputs .boxAxisInputDecorator {\n  width: 100%;\n  height: 100%;\n}\n.boxAxisInputAxisInputs .boxAxisInputX {\n  border-radius: 4px 0px 0px 4px;\n}\n.boxAxisInputAxisInputs .boxAxisInputX input {\n  border-radius: 4px 0px 0px 0px;\n}\n.boxAxisInputAxisInputs .boxAxisInputY {\n  border-radius: 0px;\n}\n.boxAxisInputAxisInputs .boxAxisInputY input {\n  border-radius: 0px;\n}\n.boxAxisInputAxisInputs .boxAxisInputZ {\n  border-radius: 0px 4px 4px 0px;\n}\n.boxAxisInputAxisInputs .boxAxisInputZ input {\n  border-radius: 0px 4px 0px 0px;\n}";
+var styles = {"axisInputs":"boxAxisInputAxisInputs","axisInput":"boxAxisInputAxisInput","decorator":"boxAxisInputDecorator","X":"boxAxisInputX","Y":"boxAxisInputY","Z":"boxAxisInputZ"};
+styleInject(css_248z);
+
+export { styles as default };
+//# sourceMappingURL=style.module.scss.js.map

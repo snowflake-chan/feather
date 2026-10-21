@@ -1,0 +1,73 @@
+/* -------------------------------------- 组件库 - Voxa Arena 通用文本样式 -------------------------------------- */
+
+@mixin h24 {
+  font-style: normal;
+  font-size: 24px;
+  line-height: 30px;
+}
+
+@mixin h20 {
+  font-style: normal;
+  font-size: 20px;
+  line-height: 30px;
+}
+
+@mixin h18 {
+  font-style: normal;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+@mixin h16 {
+  font-style: normal;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+@mixin h14 {
+  font-style: normal;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+@mixin h12 {
+  font-style: normal;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+@mixin b24 {
+  font-style: normal;
+  font-size: 24px;
+  line-height: 36px;
+}
+
+@mixin b20 {
+  font-style: normal;
+  font-size: 20px;
+  line-height: 30px;
+}
+
+@mixin b16 {
+  font-style: normal;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+@mixin b14 {
+  font-style: normal;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+@mixin b12 {
+  font-style: normal;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+@mixin b10 {
+  font-style: normal;
+  font-size: 10px;
+  line-height: 16px;
+}

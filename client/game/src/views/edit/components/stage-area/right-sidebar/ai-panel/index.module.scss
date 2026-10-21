@@ -1,0 +1,136 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../../../../../texts.module.scss' as texts;
+
+.aiPanelContainer {
+  height: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 13px;
+  overflow: hidden;
+  background-color: #383838;
+  user-select: text;
+}
+
+.hide {
+  display: none;
+}
+
+.chatContainer {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px; // 增加间距使对话气泡更加清晰分离
+}
+
+.questionContainer {
+  color: #eee;
+  background-color: #5050508c; // 参考原脚本中的 aiDiv 样式
+  font-size: 12px; // 添加字体大小设置
+
+  border-right: 3px solid #4d8af0;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 12px 0 0 12px;
+  animation: fadeInLeft 0.3s ease;
+}
+
+.codeBlock {
+  position: relative;
+
+  .insertCodeButton {
+    display: none;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    color: #004080;
+    background-color: #ffffffd9;
+    border-radius: 3px;
+    padding: 5px;
+    transition: color 0.1s;
+    user-select: none;
+    z-index: 1;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -khtml-user-select: none;
+
+    &:hover {
+      color: #0066cc;
+    }
+  }
+
+  &:hover {
+    .insertCodeButton {
+      display: block;
+    }
+  }
+}
+
+.responseContainer {
+  background-color: #3c3c3c; // 调整为稍微明亮一点的背景色
+  color: white;
+  font-size: 12px; // 添加字体大小设置
+
+  border-left: 3px solid #63e6be;
+  padding: 15px;
+  border-radius: 0 12px 12px 0;
+
+  animation: fadeInRight 0.3s ease;
+}
+
+.modelInfo {
+  color: #838383; // 参考原脚本中的文本颜色
+  margin-bottom: 10px;
+  font-size: 12px; // 保持较小字体，AI对话气泡会相对更大
+  background-color: #383838;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.inputArea {
+  display: flex;
+  margin-top: 10px;
+  align-items: center;
+  gap: 10px;
+
+  .stopButton {
+    border-radius: 4px;
+  }
+}
+
+.textInput {
+  flex: 1;
+  border-radius: 10px;
+  background-color: rgba(28, 28, 28, 0.77);
+  color: #ffffff;
+  border-style: solid;
+  padding: 8px 10px;
+  height: 40px;
+  resize: none;
+  outline: none;
+
+  &:focus {
+    border-color: colors.$arenaPrimary10;
+  }
+}
+
+.selectModel {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 5px;
+  background-color: colors.$boxBackground3;
+  color: colors.$boxTextWhitePrimary;
+  border: 1px solid colors.$boxBackground5;
+  outline: none;
+
+  &:focus {
+    border-color: colors.$arenaPrimary10;
+  }
+}

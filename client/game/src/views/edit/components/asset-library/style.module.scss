@@ -1,0 +1,147 @@
+@use '../../../colors.module.scss' as colors;
+@value scrollbarStyle from '../editor-common.css';
+
+.library {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  height: 100%;
+  width: 100%;
+  z-index: 10;
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #00000099;
+}
+
+.main {
+  width: 920px;
+  min-width: 576px;
+  height: 100%;
+  max-height: 668px;
+  border-radius: 8px;
+  border: 1px solid colors.$boxOpacityWhite21;
+  background-color: colors.$boxBackground3;
+  box-shadow: 0px 2px 21px 0px rgba(0, 0, 0, 0.37),
+    0px 32px 64px 0px rgba(0, 0, 0, 0.37);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+.header {
+  width: 100%;
+  height: 67px;
+  padding-left: 24px;
+  padding-right: 16px;
+
+  display: flex;
+  flex: none;
+  justify-content: space-between;
+  align-items: center;
+
+  .title {
+    color: colors.$boxTextWhitePrimary;
+    font-family: Rubik, MiSans;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .iconClose {
+    fill: colors.$boxTextWhitePrimary;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+}
+.toolBar {
+  height: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0px 24px 16px;
+
+  .sort {
+    display: flex;
+    align-items: center;
+
+    :global(.boxSelect) {
+      cursor: pointer;
+      width: 116px;
+      height: 34px;
+      margin-left: 8px;
+
+      border: 0px;
+      border-radius: 3px;
+
+      :global(.boxSelectContent) p {
+        color: colors.$boxTextWhitePrimary;
+      }
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: colors.$boxOpacityWhite100;
+    }
+  }
+}
+
+.emptyItem {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  overflow: auto;
+
+  img {
+    width: 128px;
+    height: 128px;
+  }
+
+  p {
+    font-family: Rubik, MiSans;
+    font-weight: 500;
+    font-size: 16px;
+    color: colors.$boxOpacityWhite60;
+  }
+}
+
+.listWrapper {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  composes: scrollbarStyle;
+  .list {
+    padding-left: 24px;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+.footer {
+  width: 100%;
+  height: 80px;
+  padding: 0px 24px;
+  background-color: colors.$boxBackground2;
+
+  display: flex;
+  flex: none;
+  justify-content: right;
+  align-items: center;
+
+  gap: 16px;
+}

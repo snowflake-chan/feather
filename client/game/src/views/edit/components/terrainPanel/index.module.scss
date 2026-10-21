@@ -1,0 +1,181 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+@import '../editor-common.css';
+@value icon, scrollbarStyle from '../editor-common.css';
+
+.terrainPanel {
+  position: absolute;
+  top: unset;
+  right: unset;
+  height: 100%;
+}
+.voxelListContainer,
+.voxelListContainerExpanded {
+  overflow: hidden;
+  height: 100%;
+}
+
+.voxelListContainerExpanded {
+  margin-bottom: 16px;
+}
+
+.search {
+  margin: 0 16px 16px 0;
+}
+
+.voxel {
+  width: 96px;
+  height: 90px;
+  margin-bottom: 16px;
+}
+
+.terrainUploader {
+  color: var(--color-white);
+}
+
+.title {
+  margin: var(--smallPadding) 0;
+  font-size: var(--text-h3);
+}
+
+.uploadBtn {
+  margin: var(--basePadding) 0 0 0;
+}
+
+.voxelContent {
+  display: flex;
+  justify-content: space-between;
+  height: calc(100% - 42px);
+}
+
+.voxelTypeList {
+  overflow-y: auto;
+  overflow-y: overlay;
+}
+
+.voxelTypeList::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+.voxelTypeListWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 36px;
+  height: 100%;
+}
+
+.voxelType,
+.activeVoxelType {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 20px;
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: colors.$boxOpacityWhite60;
+  }
+}
+
+.activeVoxelType {
+  svg {
+    fill: colors.$boxOpacityWhite100;
+  }
+}
+
+.voxelListWrapper {
+  composes: scrollbarStyle;
+  overflow: auto;
+  overflow: overlay;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 248px;
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.voxelListScrollWrapper {
+  composes: scrollbarStyle;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.emptyTip {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  @include texts.b14;
+  color: colors.$boxTextWhiteDisabled;
+  font-weight: 400;
+}
+
+.voxelList {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  height: 34px;
+}
+
+.footerWrapper {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  width: 100%;
+}
+
+.brushIcon {
+  composes: icon;
+  background-position: -144px -217px;
+  margin-right: 14px;
+  opacity: 0.3;
+  cursor: pointer;
+}
+
+.columnIcon {
+  composes: icon;
+  background-position: -96px -216px;
+  margin-right: 24px;
+  opacity: 0.3;
+  cursor: pointer;
+}
+
+.brushIcon:hover,
+.columnIcon:hover {
+  opacity: 0.8;
+}
+
+.footerRange {
+  flex: 1;
+}
+
+.rangeSlider {
+  transform: translateY(-5px);
+}
+
+.footerCounter {
+  margin-left: var(--basePadding);
+  font-size: var(--text-h2);
+  color: var(--color-white);
+}
+
+.searchIcon {
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.rangePickerContainer {
+  width: 90%;
+  margin-left: 8px;
+}

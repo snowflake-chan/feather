@@ -1,0 +1,36 @@
+{
+  "name": "@box/mesher",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "exports": {
+    ".": "./build/index.js",
+    "./*": "./build/*.js"
+  },
+  "main": "build/index.js",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./build/*.d.ts",
+        "./build/index.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "rm -rf ./build && tsc",
+    "build:watch": "tsc"
+  },
+  "dependencies": {
+    "@box/mudb": "workspace:1.0.4",
+    "@box/utils": "workspace:*",
+    "ndarray": "1.0.19",
+    "save-pixels": "2.3.6"
+  },
+  "devDependencies": {
+    "@types/ndarray": "1.0.11",
+    "@types/node": "20.16.15",
+    "@types/save-pixels": "2.3.2",
+    "typescript": "5.6.3"
+  }
+}

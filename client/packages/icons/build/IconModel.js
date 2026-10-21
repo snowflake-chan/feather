@@ -1,0 +1,8 @@
+import * as React from 'react';
+import { forwardRef, memo } from 'react';
+const IconModel = (props, ref) => (React.createElement("svg", Object.assign({ viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", ref: ref }, props),
+    React.createElement("path", { d: "M12.025 22.353a1.58 1.58 0 0 1-1.155-.475 1.554 1.554 0 0 1-.479-1.144v-1.806a.3.3 0 0 0-.3-.3H4.213a.943.943 0 0 1-.88-.52c-.192-.347-.169-.692.071-1.036l3.657-5.294H6.15c-.281-.094-.47-.3-.57-.619-.097-.318-.036-.63.185-.937l5.426-7.672A.93.93 0 0 1 12 2.112a1 1 0 0 1 .444.103c.14.07.267.18.379.335l5.412 7.672c.22.306.282.619.184.937-.098.319-.288.525-.569.62h-.886l3.646 5.293c.23.344.25.69.057 1.036a.943.943 0 0 1-.88.52h-5.853a.3.3 0 0 0-.3.3v1.83c0 .447-.156.825-.467 1.133a1.56 1.56 0 0 1-1.142.462Zm-5.56-6.176a.3.3 0 0 0 .247.47h10.601a.3.3 0 0 0 .247-.47l-4.076-5.909a.3.3 0 0 1 .247-.47H15a.2.2 0 0 0 .163-.315l-2.917-4.135a.3.3 0 0 0-.49 0L8.838 9.483A.2.2 0 0 0 9 9.798h1.293a.3.3 0 0 1 .247.47l-4.076 5.91Z" })));
+const ForwardRef = forwardRef(IconModel);
+const Memo = memo(ForwardRef);
+export default Memo;
+//# sourceMappingURL=IconModel.js.map

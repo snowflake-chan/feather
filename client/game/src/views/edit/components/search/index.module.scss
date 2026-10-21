@@ -1,0 +1,50 @@
+@use '../../../texts.module.scss' as texts;
+@use '../../../colors.module.scss' as colors;
+@value iconSmall, icon from '../editor-common.css';
+
+.inputWrapper {
+  position: relative;
+  svg {
+    fill: colors.$boxTextWhiteSecondary;
+    opacity: 0.75;
+  }
+  &.large {
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+  &.middle {
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  &.small {
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.inputWrapper.isFocused .searchIcon {
+  svg {
+    opacity: 1;
+  }
+}
+
+.searchIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 4px 4px 8px;
+  height: 100%;
+}
+.clearIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 8px 4px 4px;
+  height: 100%;
+}

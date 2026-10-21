@@ -1,0 +1,11 @@
+@value phone: screen and (max-width: 500px), screen and (max-height: 500px);
+@value phoneLandscape: screen and (max-height: 500px) and (orientation: landscape);
+@value phonePortrait: screen and (max-width: 500px) and (orientation: portrait);
+
+@value smallPhone: screen and (max-width: 374px), screen and (max-height: 374px);
+@value smallPhoneLandscape: screen and (max-height: 374px) and (orientation: landscape) and (min-width: 500px);
+@value smallPhonePortrait: screen and (max-width: 374px) and (orientation: portrait) and (min-height: 500px);
+
+@value tabletPortrait: screen and (orientation: portrait) and (min-width: 501px) and (max-width: 1024px) and (min-height: 501px) and (max-height: 1366px);
+@value tabletLandscape: screen and (orientation: landscape) and (min-height: 501px) and (max-height: 1024px) and (min-width: 501px) and (max-width: 1366px);
+@value tablet: tabletPortrait, tabletLandscape;

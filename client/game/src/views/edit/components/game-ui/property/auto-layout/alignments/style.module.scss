@@ -1,0 +1,71 @@
+@use '../../../../../../colors.module.scss' as colors;
+@use '../../common.module.scss' as common;
+
+.alignments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  align-items: center;
+
+  .title {
+    width: 100%;
+    @include common.topTitle;
+  }
+
+  .grid {
+    width: 120px;
+    height: 120px;
+
+    padding: 8px;
+
+    display: grid;
+
+    grid-template:
+      'a b c'
+      'd e f'
+      'g h i';
+
+    gap: 4px;
+
+    border-radius: 4px;
+    border: 1px solid colors.$boxBackground6;
+
+    .cell {
+      position: relative;
+
+      svg {
+        position: absolute;
+        top: 0;
+
+        fill: colors.$boxTextWhiteTertiary;
+      }
+
+      svg:not(.default) {
+        display: none;
+      }
+
+      &:hover {
+        .default {
+          display: none;
+        }
+
+        svg:not(.default) {
+          display: block;
+          fill: colors.$arenaSecondary80;
+        }
+      }
+
+      &.active {
+        .default {
+          display: none;
+        }
+
+        svg:not(.default) {
+          display: block;
+          fill: colors.$arenaPrimary80;
+        }
+      }
+    }
+  }
+}

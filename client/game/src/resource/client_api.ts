@@ -1,0 +1,1 @@
+export const CLIENT_API_RES:string = `Qmbz3kEaSMVLRobrjPRdczwnAaLQno84qzoipyMbFqskLd`;

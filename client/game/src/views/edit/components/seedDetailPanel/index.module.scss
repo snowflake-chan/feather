@@ -1,0 +1,414 @@
+@import '../editor-common.css';
+@value icon, iconSmall from '../editor-common.css';
+@value phone, tablet, phonePortrait, phoneLandscape from '../../../components/breakpoints.css';
+
+.PropertyPanel {
+  position: unset;
+  border-radius: unset;
+  max-height: calc(100%);
+  height: 100%;
+
+  :global(.contentContainer) {
+    width: 260px;
+  }
+}
+.container {
+  color: var(--color-white);
+  min-height: 240px;
+}
+
+.property {
+  display: flex;
+  justify-content: space-between;
+  margin: var(--basePadding) 0;
+}
+
+.propName {
+  color: var(--color-white-60);
+  font-size: var(--text-h4);
+  line-height: 1.5em;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+}
+
+.tagsName {
+  max-width: 176px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.createTagBtn {
+  background-color: var(--color-grey1-30);
+  padding: 0 var(--smallPadding);
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--color-white-60);
+}
+
+.propValue {
+  color: var(--color-white);
+  font-size: var(--text-h4);
+  line-height: 1.5em;
+}
+
+.infoIcon {
+  display: inline-block;
+  composes: iconSmall;
+  background-position: -128px -64px;
+  margin-left: 8px;
+}
+
+.radioContainer {
+  margin-top: var(--basePadding);
+  margin-bottom: var(--basePadding);
+  display: flex;
+  align-items: center;
+}
+
+.collapsibleWrap {
+  margin: var(--basePadding) 0;
+}
+
+.collapseIcon {
+  display: inline-block;
+  composes: iconSmall;
+  background-position: -64px -64px;
+  transition: all linear 200ms;
+  transform: rotate(90deg);
+}
+
+.collapsed {
+}
+
+.collapsed div {
+  display: none;
+}
+
+.collapsed .collapsibleTitle {
+  display: flex;
+}
+
+.collapsed .collapseIcon {
+  transform: rotate(0deg);
+}
+
+.collapsibleTitle {
+  color: var(--color-white);
+  font-size: var(--text-h4);
+  line-height: 1.5em;
+  display: flex;
+  align-items: center;
+}
+
+.basicIcon,
+.physicsIcon,
+.scriptIcon,
+.particleIcon,
+.soundIcon {
+  composes: icon;
+}
+
+.basicIcon {
+  background-position: 0 -24px;
+}
+
+.physicsIcon {
+  background-position: -216px -120px;
+}
+
+.scriptIcon {
+  background-position: -48px -24px;
+}
+
+.particleIcon {
+  background-position: -193px -169px;
+  width: 22px;
+  height: 22px;
+}
+
+.soundIcon {
+  background-position: -48px -240px;
+}
+
+.tagEditingPanel {
+}
+
+.backIconWrapper {
+  margin: 16px 0;
+  color: var(--color-white);
+  display: flex;
+  font-size: var(--text-h4);
+  height: 1.5em;
+  align-items: center;
+  transform: translateX(-12px);
+  margin-left: 16px;
+}
+
+.backIcon {
+  composes: icon;
+  background-position: -48px -120px;
+  transform: scale(0.6);
+}
+
+.addTagBtn {
+  margin: var(--smallPadding) 0;
+}
+
+.tagList {
+}
+
+.tag {
+  display: flex;
+  justify-content: space-between;
+  height: 40px;
+  align-items: center;
+}
+
+.tag:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.tag:hover::after {
+  content: ' ';
+  height: 40px;
+  position: absolute;
+  right: 0;
+  border-right: solid rgba(255, 255, 255, 0.1) 16px;
+}
+
+.tag:hover::before {
+  content: ' ';
+  height: 40px;
+  position: absolute;
+  left: 0;
+  border-left: solid rgba(255, 255, 255, 0.1) 16px;
+}
+
+.tagNameWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.tagIcon {
+  composes: iconSmall;
+  background-position: -112px -48px;
+}
+
+.tagName {
+  font-size: var(--text-h2);
+  color: var(--color-white);
+  line-height: 1.5em;
+  margin-left: var(--smallPadding);
+}
+
+.tagOperation {
+  composes: iconSmall;
+  background-position: 0 -64px;
+}
+
+.newTagName {
+  color: var(--color-white);
+  font-size: var(--text-h2);
+  line-height: 1.5em;
+  margin: var(--smallPadding) 0;
+}
+
+.popupContainer {
+  width: 160px;
+  border-radius: var(--baseRadius);
+  overflow: hidden;
+  background-color: var(--color-grey1);
+  cursor: pointer;
+}
+
+.popupSelection {
+  height: 40px;
+  background-color: var(--color-grey1);
+  color: var(--color-white);
+  font-size: var(--font-h2);
+  line-height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.popupSelection:hover {
+  background: var(--color-grey2);
+}
+
+.propertyContainer .colorRow {
+  width: 100%;
+  display: flex;
+  margin-top: 6px;
+}
+
+.propertyContainer .colorRow .colorColumn {
+  flex: 1;
+  text-align: center;
+}
+
+.propertyContainer .colorPicker {
+  box-sizing: border-box;
+  width: 51px;
+  height: 24px;
+  border-radius: 8px;
+  outline: none;
+  outline: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--color-white);
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+}
+
+.colorItem {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.colorItem .itemTitle {
+  font-size: var(--text-h4);
+  font-family: PingFangSC-Regular, PingFang SC;
+  font-weight: 400;
+  color: var(--color-white-60);
+  line-height: 22px;
+  margin: 8px 0;
+}
+
+.item {
+  width: 100%;
+}
+
+.item .title {
+  color: var(--color-white-60);
+  font-size: var(--text-h4);
+  line-height: 32px;
+}
+
+.item .title.disabled,
+.inputLabel.disabled,
+.colorColumn .colorIndex.disabled,
+.property.disabled {
+  color: var(--color-white-60);
+  opacity: 0.3;
+}
+
+.colorColumn .colorIndex {
+  font-size: 12px;
+}
+
+.inputRow {
+  width: 100%;
+  display: flex;
+}
+
+.inputRow .inputColumn {
+  flex: 1;
+  text-align: center;
+  height: 132px;
+  overflow-x: hidden;
+}
+
+.topDownSlider {
+  padding-top: 2px;
+  height: 24px;
+  transform: rotate(-90deg) translate(-42px, -6px);
+}
+
+.topDownSlider input[type='range'] {
+  width: 76px;
+}
+
+.inputLabel {
+  font-size: 12px;
+}
+
+.soundPropertyWrapper {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+  color: var(--color-white-60);
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.soundPropertyWrapper:last-child {
+  margin: 16px 0 0 0;
+}
+
+.soundSampleWrapper {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  max-width: 180px;
+}
+
+.soundSampleName {
+  font-size: var(--text-h4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-white);
+}
+
+.soundSamepleNameUnset {
+  font-size: var(--text-h4);
+  color: var(--color-white-30);
+}
+
+.rightArrowIcon {
+  composes: iconSmall;
+  background-position: -128px -64px;
+  margin-left: 8px;
+  flex: 0 0 16px;
+}
+
+.normText,
+.boldText {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.boldText {
+  font-weight: bold;
+}
+
+.staticShadow {
+  display: flex;
+  align-items: center;
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: var(--color-white-60);
+  }
+
+  .staticShadowInfoIcon {
+    padding-left: 4px;
+  }
+}
+
+@media phone {
+  .backIconWrapper {
+    transform: translateX(0);
+    margin-left: 0;
+  }
+}
+
+@media phonePortrait {
+  .backIconWrapper {
+    transform: translateX(0);
+  }
+}
+
+@media phoneLandscape {
+  .backIconWrapper {
+    transform: translateX(0);
+  }
+}

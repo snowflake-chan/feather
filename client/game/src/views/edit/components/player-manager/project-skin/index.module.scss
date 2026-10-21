@@ -1,0 +1,109 @@
+@use '../../../../colors.module.scss' as colors;
+@use '../../../../texts.module.scss' as texts;
+
+.container {
+  height: 100%;
+  .skinAlreadyDeleteModal {
+    :global(.boxModalBody .boxModalMain .boxModalHeader) {
+      justify-content: center;
+    }
+  }
+}
+.sourceTabs {
+  display: flex;
+  gap: 24px;
+  height: 32px;
+  margin: 0 24px 16px;
+  border-bottom: 1px solid colors.$boxOpacityWhite12;
+}
+.sourceTab,
+.sourceTabActive {
+  position: relative;
+  padding: 0 4px 10px;
+  border: 0;
+  color: colors.$boxTextWhiteSecondary;
+  background: transparent;
+  cursor: pointer;
+  @include texts.b14;
+}
+.sourceTabActive {
+  color: colors.$boxTextWhitePrimary;
+
+  &::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: colors.$arenaPrimary80;
+    content: '';
+  }
+}
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  width: 632px;
+  height: 32px;
+  margin: 0px 24px 24px;
+
+  .left {
+    display: flex;
+    height: 32px;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+
+    :global(.boxButton) {
+      width: fit-content;
+      padding: 6px 20px;
+    }
+  }
+  .right {
+    width: 372px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: colors.$boxOpacityWhite100;
+    }
+
+    .sort {
+      display: flex;
+      align-items: center;
+
+      :global(.boxSelect) {
+        cursor: pointer;
+        width: 116px;
+        height: 34px;
+        margin-left: 8px;
+
+        border: 0px;
+        border-radius: 3px;
+
+        :global(.boxSelectContent) p {
+          color: colors.$boxTextWhitePrimary;
+        }
+      }
+    }
+    :global(.boxInput) {
+      width: 208px;
+    }
+  }
+}
+.content {
+  height: calc(100% - 32px - 24px - 48px);
+  padding-bottom: 4px;
+  margin-right: 6px; /* 设置右侧 margin */
+}
+.errorMessage {
+  font-weight: 400;
+  @include texts.b12;
+  color: colors.$boxSystemErrorPositive2;
+  letter-spacing: 0em;
+  text-align: left;
+}

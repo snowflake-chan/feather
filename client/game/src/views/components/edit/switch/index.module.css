@@ -1,0 +1,32 @@
+.operationList {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 44px;
+  border-radius: var(--baseRadius);
+  margin: var(--basePadding) 0;
+}
+
+.operation {
+  border-radius: var(--baseRadius);
+  flex: 1;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white-60);
+  background: #444;
+  border: 2px solid var(--color-grey3);
+  font-size: var(--text-h4);
+}
+
+.active {
+  color: var(--color-white);
+  border: 2px solid var(--color-white);
+}
+
+.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

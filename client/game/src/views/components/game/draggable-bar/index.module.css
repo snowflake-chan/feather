@@ -1,0 +1,66 @@
+.draggableBar,
+.draggableBarAlwaysShow {
+  position: absolute;
+  background: #565656;
+  opacity: 0;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.draggableBarAlwaysShow {
+  opacity: 1;
+}
+
+.draggableBar:hover {
+  opacity: 1;
+}
+
+.top {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.right {
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.bottom {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.left {
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.top .decoration,
+.bottom .decoration {
+  width: 16px;
+  height: 4px;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+}
+
+.left .decoration,
+.right .decoration {
+  width: 4px;
+  height: 16px;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #fff;
+}

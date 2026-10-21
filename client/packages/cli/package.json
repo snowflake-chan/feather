@@ -1,0 +1,28 @@
+{
+  "name": "@box/cli",
+  "version": "0.1.1",
+  "license": "MIT",
+  "private": true,
+  "description": "Stable Creator protocol contracts for BOX CLI clients and server adapters",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "require": "./build/index.js",
+      "default": "./build/index.js"
+    }
+  },
+  "files": [
+    "build/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rm -rf build && tsc --project tsconfig.json",
+    "test": "npm run build && node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "20.16.15",
+    "typescript": "5.6.3"
+  }
+}

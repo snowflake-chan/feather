@@ -1,0 +1,41 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.progress {
+  width: 329px;
+  height: 20px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .inner {
+    width: 283px;
+    height: 8px;
+
+    border-radius: 43px;
+
+    background-color: colors.$opacityWhite15;
+
+    overflow: hidden;
+
+    :global(.boxProgressThumb) {
+      height: 100%;
+
+      border-radius: 43px;
+
+      background-color: colors.$primary80;
+
+      transform-origin: 0;
+    }
+  }
+
+  .percentage {
+    width: 46px;
+
+    text-align: right;
+
+    @include texts.b14;
+    color: colors.$textWhiteSecondary;
+  }
+}

@@ -1,0 +1,313 @@
+@use '../../../../colors.module.scss' as colors;
+@use '../../../../texts.module.scss' as texts;
+@value boxScrollbar from '../../../../scroll.module.scss';
+
+$JOYSTICK_LEFT: 56px;
+$JOYSTICK_BOTTOM: 50px;
+$JOYSTICK_BACKGROUND_SIZE: 88px;
+$JOYSTICK_ICON_EDIT_TOP: 6px;
+$JOYSTICK_CONTROLLER_SIZE: 24px;
+
+$JUMP_RIGHT: 40px;
+$JUMP_BOTTOM: 72px;
+$JUMP_BTN_SIZE: 56px;
+$JUMP_ICON_SIZE: 32px;
+
+$ACTION_BTN_SIZE: 40px;
+$ACTION_ICON_SIZE: 20px;
+$ACTION_A_RIGHT: 120px;
+$ACTION_A_BOTTOM: 80px;
+$ACTION_B_RIGHT: 96px;
+$ACTION_B_BOTTOM: 32px;
+$CROUCH_RIGHT: 96px;
+$CROUCH_BOTTOM: 128px;
+
+$FLY_RIGHT: 46px;
+$FLY_BOTTOM: 150px;
+$FLY_BACKGROUND_WIDTH: 20px;
+$FLY_BACKGROUND_HEIGHT: 88px;
+$FLY_BACKGROUND_RIGHT: 56px;
+$FLY_BACKGROUND_BOTTOM: 126px;
+$FLY_BACKGROUND_ICON_EDIT_TOP: 12px;
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  composes: boxScrollbar;
+  margin-right: 4px;
+  .restoreModal {
+    :global(.boxModalBody .boxModalMain .boxModalHeader) {
+      justify-content: center;
+    }
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin: 45px 16px 45px 24px;
+  width: 100%;
+  height: 355px;
+  border-radius: 8px;
+  border: 1px solid colors.$boxOpacityWhite15;
+  background-color: colors.$boxBackground5;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center bottom;
+}
+
+.tabList {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 48px;
+  margin-top: 8px;
+  padding: 4px;
+  border-radius: 34px;
+  background-color: colors.$boxOpacityBlack50;
+  @include texts.b14;
+  color: colors.$boxTextWhitePrimary;
+  .divider {
+    background-color: colors.$boxOpacityWhite21;
+    width: 1px;
+    height: 8px;
+  }
+}
+
+.gamepad {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.skinBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.skinTooltip {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+.skinBtnHover {
+  border: 1px solid colors.$boxOpacityWhite100;
+  background-image: repeating-linear-gradient(
+    45deg,
+    colors.$arenaPrimary80 0 2px,
+    colors.$arenaPrimary90 2px 4px
+  ) !important;
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: colors.$arenaPrimary20;
+  }
+}
+
+.joystickWrapper {
+  position: absolute;
+  left: $JOYSTICK_LEFT;
+  bottom: $JOYSTICK_BOTTOM;
+  .backgroundWrapper {
+    width: $JOYSTICK_BACKGROUND_SIZE;
+    height: $JOYSTICK_BACKGROUND_SIZE;
+    .skinBtn {
+      align-items: start;
+      svg {
+        margin-top: $JOYSTICK_ICON_EDIT_TOP;
+      }
+    }
+    .initBackground {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      border-radius: $JOYSTICK_BACKGROUND_SIZE;
+      border: 1px solid colors.$boxOpacityWhite80;
+      box-shadow: 0px 0px 2px 0px colors.$boxOpacityWhite80;
+      background: radial-gradient(
+        50% 50% at 50% 50%,
+        colors.$boxOpacityBlack0 0%,
+        colors.$boxOpacityBlack10 100%
+      );
+      .arrow {
+        background-image: url('../../../../../assets/gamepad/arrow.png');
+        background-position: center center;
+        background-size: contain;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+      }
+      .arrowUp {
+        top: 8px;
+      }
+      .arrowDown {
+        bottom: 8px;
+        transform: rotate(180deg);
+      }
+      .arrowLeft {
+        left: 8px;
+        transform: rotate(-90deg);
+      }
+      .arrowRight {
+        right: 8px;
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .controllerWrapper {
+    width: $JOYSTICK_CONTROLLER_SIZE;
+    height: $JOYSTICK_CONTROLLER_SIZE;
+    position: absolute;
+    top: calc($JOYSTICK_BACKGROUND_SIZE / 2 - $JOYSTICK_CONTROLLER_SIZE / 2);
+    left: calc($JOYSTICK_BACKGROUND_SIZE / 2 - $JOYSTICK_CONTROLLER_SIZE / 2);
+    .initController {
+      width: 100%;
+      height: 100%;
+      border-radius: $JOYSTICK_CONTROLLER_SIZE;
+      background-color: colors.$boxOpacityWhite100;
+    }
+  }
+}
+
+// 所有动作按钮的最外层容器定位
+.actionWrapper {
+  position: absolute;
+  right: $JUMP_RIGHT;
+  bottom: $JUMP_BOTTOM;
+
+  // 各动作按钮的公共样式：宽高
+  .actionBtnWrapper {
+    width: $ACTION_BTN_SIZE;
+    height: $ACTION_BTN_SIZE;
+    // 定制 - 跳跃键宽高
+    &.jumpWrapper {
+      width: $JUMP_BTN_SIZE;
+      height: $JUMP_BTN_SIZE;
+    }
+    // 定制 - 蹲下键定位
+    &.crouchWrapper {
+      position: absolute;
+      right: $CROUCH_RIGHT - $JUMP_RIGHT;
+      bottom: $CROUCH_BOTTOM - $JUMP_BOTTOM;
+    }
+    // 定制 - A键定位
+    &.actionAWrapper {
+      position: absolute;
+      right: $ACTION_A_RIGHT - $JUMP_RIGHT;
+      bottom: $ACTION_A_BOTTOM - $JUMP_BOTTOM;
+    }
+    // 定制 - B键定位
+    &.actionBWrapper {
+      position: absolute;
+      right: $ACTION_B_RIGHT - $JUMP_RIGHT;
+      bottom: $ACTION_B_BOTTOM - $JUMP_BOTTOM;
+    }
+    // 定制 - 飞行激活btn和飞行控制btn的键定位
+    &.flyWrapper {
+      position: absolute;
+      right: $FLY_RIGHT - $JUMP_RIGHT;
+      bottom: $FLY_BOTTOM - $JUMP_BOTTOM;
+    }
+    // 定制 - 飞行小圆柱Hover时：定位、宽高、icon样式
+    &.flyBackgroundWrapper {
+      position: absolute;
+      right: $FLY_BACKGROUND_RIGHT - $JUMP_RIGHT;
+      bottom: $FLY_BACKGROUND_BOTTOM - $JUMP_BOTTOM;
+      width: $FLY_BACKGROUND_WIDTH;
+      height: $FLY_BACKGROUND_HEIGHT;
+      .skinBtnHover {
+        align-items: start;
+        svg {
+          margin-top: $FLY_BACKGROUND_ICON_EDIT_TOP;
+        }
+      }
+    }
+
+    // 各动作按钮的公共样式：宽高、边框、阴影
+    .initAction {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      border-radius: $ACTION_BTN_SIZE;
+      border: 1px solid colors.$boxOpacityWhite80;
+      box-shadow: 0px 0px 2px 0px colors.$boxOpacityWhite80;
+      background: radial-gradient(
+        50% 50% at 50% 50%,
+        colors.$boxOpacityBlack0 0%,
+        colors.$boxOpacityBlack10 100%
+      );
+      // 定制 - 飞行控制btn背景色
+      &.initFlyController {
+        background: colors.$boxOpacityWhite90;
+      }
+
+      // 各动作按钮的Icon的公共样式：宽高、边框、阴影
+      .actionIcon {
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        width: $ACTION_ICON_SIZE;
+        height: $ACTION_ICON_SIZE;
+        // 定制 - 跳跃键的icon图片、宽高
+        &.jumpIcon {
+          background-image: url('../../../../../assets/gamepad/jump.png');
+          width: $JUMP_ICON_SIZE;
+          height: $JUMP_ICON_SIZE;
+        }
+        // 定制 - 蹲下键的icon图片
+        &.crouchIcon {
+          background-image: url('../../../../../assets/gamepad/crouch.png');
+        }
+        // 定制 - A键的icon图片
+        &.actionAIcon {
+          background-image: url('../../../../../assets/gamepad/A.png');
+        }
+        // 定制 - B键的icon图片
+        &.actionBIcon {
+          background-image: url('../../../../../assets/gamepad/B.png');
+        }
+        // 定制 - 飞行激活btn的icon图片
+        &.flyIcon {
+          background-image: url('../../../../../assets/gamepad/fly.png');
+        }
+        // 定制 - 飞行小圆柱的icon图片、定位
+        &.flyBackgroundIcon {
+          background-image: url('../../../../../assets/gamepad/fly-arrow.png');
+          width: $ACTION_ICON_SIZE;
+          height: $ACTION_ICON_SIZE;
+          position: absolute;
+          &.arrowUp {
+            top: 3px;
+          }
+          &.arrowDown {
+            bottom: 3px;
+            transform: rotate(180deg);
+          }
+        }
+        // 定制 - 飞行控制btn的icon图片
+        &.flyReversedIcon {
+          background-image: url('../../../../../assets/gamepad/fly-reversed.png');
+        }
+      }
+    }
+  }
+}

@@ -2,9 +2,7 @@ const path = require('path');
 const { createRequire } = require('module');
 
 const here = __dirname;
-const gameRoot = path.resolve(
-  process.env.BOX_GAME_ROOT || path.join(here, '../../box3-local-engine/apps/game'),
-);
+const gameRoot = path.join(here, 'game');
 const gameRequire = createRequire(path.join(gameRoot, 'package.json'));
 const webpack = gameRequire('webpack');
 const CopyPlugin = gameRequire('copy-webpack-plugin');
@@ -83,7 +81,7 @@ module.exports = {
       shared: path.join(gameRoot, 'shared'),
     },
     extensions: ['.tsx', '.ts', '.js', '.json'],
-    modules: [path.join(gameRoot, 'node_modules'), 'node_modules'],
+    modules: [path.join(here, 'node_modules'), path.join(gameRoot, 'node_modules'), 'node_modules'],
     fallback: {
       crypto: gameRequire.resolve('crypto-browserify'),
       stream: gameRequire.resolve('stream-browserify'),
@@ -95,6 +93,6 @@ module.exports = {
     },
   },
   resolveLoader: {
-    modules: [path.join(gameRoot, 'node_modules'), 'node_modules'],
+    modules: [path.join(here, 'node_modules'), path.join(gameRoot, 'node_modules'), 'node_modules'],
   },
 };

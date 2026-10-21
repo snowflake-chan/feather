@@ -1,0 +1,45 @@
+{
+  "name": "@box/box-design",
+  "version": "1.0.6",
+  "description": "An UI component library for box",
+  "license": "MIT",
+  "author": "Code Infinity",
+  "sideEffects": false,
+  "main": "build/index.js",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "rm -rf build && rollup -c rollup.config.mjs && node scripts/fix-build-imports.js",
+    "build:watch": "npm run build"
+  },
+  "dependencies": {
+    "@box/icons": "workspace:~1.0.0",
+    "ramda": "0.28.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "style-inject": "0.3.0",
+    "tslib": "2.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.28.5",
+    "@babel/preset-react": "7.28.5",
+    "@rollup/plugin-babel": "6.0.4",
+    "@rollup/plugin-eslint": "9.0.5",
+    "@rollup/plugin-typescript": "12.1.2",
+    "@svgr/rollup": "8.0.1",
+    "@types/ramda": "0.28.15",
+    "@types/react": "19.2.4",
+    "@types/react-dom": "19.2.3",
+    "@typescript-eslint/eslint-plugin": "5.18.0",
+    "@typescript-eslint/parser": "5.18.0",
+    "eslint": "8.4.1",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "4.3.0",
+    "eslint-plugin-sonarjs": "0.13.0",
+    "postcss": "8.5.23",
+    "rollup": "4.59.0",
+    "rollup-plugin-postcss": "4.0.2",
+    "typescript": "5.6.3"
+  }
+}

@@ -1,0 +1,15 @@
+// Apps 项目配置
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+    "composite": false,
+    "incremental": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@box/*": ["internals/*/src", "internals/*", "@box/*"]
+    }
+  }
+}

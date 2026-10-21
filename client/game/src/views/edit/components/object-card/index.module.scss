@@ -1,0 +1,130 @@
+@use '../../../texts.module.scss' as texts;
+@use '../../../colors.module.scss' as colors;
+@value iconSmall from '../../../edit/components/editor-common.css';
+
+.card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px;
+}
+
+.previewImg {
+  width: 100%;
+  height: 100%;
+  background: center center no-repeat;
+  background-size: cover;
+  border-radius: 8px;
+}
+.selectable {
+  cursor: pointer;
+  &:hover {
+    outline: 2px solid colors.$boxOpacityWhite50;
+  }
+}
+.label {
+  position: absolute;
+  top: 0px;
+  height: 24px;
+  padding: 2px 4px;
+  border-radius: 8px 0px;
+  background: colors.$boxTextBlackDisabled;
+
+  color: colors.$boxTextWhitePrimary;
+  font-family: MiSans;
+  font-weight: 400;
+  @include texts.b14;
+}
+
+.animatedIcon {
+  composes: iconSmall;
+  background-position: 0px -176px;
+  margin-right: var(--tinyPadding);
+  min-width: 16px;
+  min-height: 16px;
+}
+
+.actionsMenu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  :global(.boxButton.boxButtonIcon svg) {
+    width: 24px;
+    height: 24px;
+  }
+}
+.footer {
+  position: absolute;
+  bottom: 0px;
+  right: 0;
+  left: 0;
+  height: 40px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(26, 26, 26, 0) 0%, #000000 100%);
+  display: flex;
+  align-items: center;
+  .title {
+    flex: 1;
+    cursor: pointer;
+    color: colors.$boxTextWhitePrimary;
+    font-family: MiSans;
+    font-weight: 400;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.checkBox {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  margin: 6px;
+  border-radius: 4px;
+  background: colors.$arenaPrimary80;
+  .selectMark {
+    width: 7px;
+    height: 12px;
+    border-right: 2px solid colors.$boxBackground4;
+    border-bottom: 2px solid colors.$boxBackground4;
+    transform: rotate(45deg) translateX(-1px) translateY(-1px);
+  }
+}
+
+.selectedDefault {
+  outline: 2px solid colors.$boxOpacityWhite100;
+  &:hover {
+    outline: 2px solid colors.$boxOpacityWhite100;
+  }
+}
+
+.selectedCheckBox {
+  outline: 2px solid colors.$arenaPrimary80;
+  &:hover {
+    outline: 2px solid colors.$arenaPrimary80;
+  }
+}
+
+.normalSize {
+  width: 200px;
+  height: 200px;
+  .footer .title {
+    /* 中-Mi Sans/正文/14 */
+    @include texts.b14;
+  }
+}
+.smallSize {
+  width: 116px;
+  height: 116px;
+  .footer .title {
+    /* 中-Mi Sans/正文/12 */
+    @include texts.b12;
+  }
+}

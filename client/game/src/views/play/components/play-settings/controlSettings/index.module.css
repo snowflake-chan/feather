@@ -1,0 +1,53 @@
+@value icon, scrollbarStyle from '../../play-common.css';
+
+.settingWrapper {
+  width: 360px;
+  background: var(--color-grey2);
+  padding: 8px 24px;
+}
+
+.backBtn {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  top: 9px;
+  left: 24px;
+  height: 30px;
+  background-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.backIcon {
+  composes: icon;
+  background-position: -192px -72px;
+}
+
+.title {
+  font-size: 20px;
+}
+
+.panelContainer.mobile {
+  top: 0;
+  position: fixed;
+  width: 264px;
+  right: 0;
+  border-radius: 0 0 0 16px;
+  overflow: hidden;
+  font-size: 16px;
+}
+
+.panelContent {
+  composes: scrollbarStyle;
+  overflow: auto;
+  border-radius: 0;
+  background: var(--color-grey2);
+}
+
+.settingWrapper.mobile {
+  width: 100%;
+  padding: 0 16px;
+}
+
+.normalText {
+  color: var(--color-white);
+}

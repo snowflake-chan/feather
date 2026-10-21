@@ -1,0 +1,49 @@
+@use '../../../colors.module.scss' as colors;
+@use '../../../texts.module.scss' as texts;
+@value boxScrollbar from '../../../scroll.module.scss';
+.scroll {
+  composes: boxScrollbar;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  .content {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+}
+
+.footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .loading {
+    width: 24px;
+    height: 24px;
+    margin: 16px 0px;
+    fill: colors.$boxTextWhitePrimary;
+    animation: loading 2s linear infinite;
+  }
+  .tips {
+    height: 24px;
+    font-family: MiSans;
+    font-weight: 400;
+    letter-spacing: 0em;
+    text-align: left;
+    @include texts.b14;
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

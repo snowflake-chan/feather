@@ -1,0 +1,23 @@
+// Internals 项目配置
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "lib": ["ESNext", "DOM"],
+    "target": "ES6",
+    "moduleResolution": "Node",
+    "rootDir": ".",
+
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmitOnError": true,
+
+    "strict": true,
+    "useUnknownInCatchVariables": false,
+
+    "skipLibCheck": true
+  }
+}

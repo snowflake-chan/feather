@@ -1,0 +1,49 @@
+@value panelHeaderBackgroundColor: #4B555F;
+
+.icon,
+.iconSmall {
+  background-image: url(../../../assets/editor_icon.svg);
+  background-repeat: no-repeat;
+  background-size: 288px 288px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+}
+
+.iconImgSrc {
+  background-image: url(../../../assets/editor_icon.svg);
+}
+
+.mouseButton {
+  background-image: url(../../../assets/mouse_button.png);
+  background-repeat: no-repeat;
+  background-size: 28px 44px;
+  width: 28px;
+  height: 44px;
+}
+
+.iconSmall {
+  background-size: 192px 192px;
+  width: 16px;
+  height: 16px;
+}
+
+.scrollbarStyle::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbarStyle::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.scrollbarStyle::-webkit-scrollbar-thumb:hover {
+  background: rgba(175, 175, 175, 0.6);
+}
+
+.scrollbarStyle::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.048);
+  border-radius: 2px;
+}

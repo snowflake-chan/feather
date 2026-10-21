@@ -1,0 +1,50 @@
+.button,
+.buttonGhost,
+.buttonPrimary,
+.butttonDanger,
+.fullWidth {
+  outline: none;
+  border: none;
+  padding: var(--smallPadding) var(--basePadding);
+  background-color: #444;
+  font-size: var(--text-h2);
+  color: var(--color-white);
+  border-radius: var(--baseRadius);
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1.5em;
+}
+
+.fullWidth {
+  margin: 16px 0;
+  width: 100%;
+}
+
+.buttonPrimary {
+  background-color: var(--color-primary);
+}
+
+.buttonPrimary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.buttonPrimary:active {
+  background-color: var(--color-primary-press);
+}
+
+.butttonDanger {
+  background-color: var(--color-danger);
+}
+
+.butttonDanger:hover {
+  background-color: var(--color-danger-hover);
+}
+
+.butttonDanger:active {
+  background-color: var(--color-danger-press);
+}
+
+.button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

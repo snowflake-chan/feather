@@ -1,0 +1,78 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.tree {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  white-space: nowrap;
+  @include texts.b12;
+  color: colors.$textWhiteSecondary;
+  background: colors.$background2;
+  position: relative;
+
+  &::-webkit-scrollbar {
+    height: 20px;
+    width: 0px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: solid colors.$background2;
+    border-width: 5px 8px;
+    background: radial-gradient(
+          farthest-side at bottom right,
+          transparent 100%,
+          colors.$background2 100%
+        )
+        top left / 5px 5px content-box,
+      radial-gradient(
+          farthest-side at top right,
+          transparent 100%,
+          colors.$background2 100%
+        )
+        bottom left / 5px 5px content-box,
+      radial-gradient(
+          farthest-side at bottom left,
+          transparent 100%,
+          colors.$background2 100%
+        )
+        top right / 5px 5px content-box,
+      radial-gradient(
+          farthest-side at top left,
+          transparent 100%,
+          colors.$background2 100%
+        )
+        bottom right/5px 5px content-box,
+      linear-gradient(colors.$background3, colors.$background3) content-box,
+      linear-gradient(colors.$background2, colors.$background2) padding-box;
+    background-repeat: no-repeat;
+  }
+
+  .scrollTree {
+    width: fit-content;
+    min-width: 100%;
+  }
+
+  .separator {
+    position: sticky;
+    left: 8px;
+    height: 1px;
+    margin: 6px 0;
+    border-top: dashed 1px colors.$opacityWhite6;
+  }
+
+  .connectLine {
+    height: 100%;
+    width: 12px;
+    position: relative;
+  }
+
+  .connectLine::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-end: 5.5px;
+    border-inline-end: 1px solid colors.$opacityWhite50;
+    content: '';
+  }
+}

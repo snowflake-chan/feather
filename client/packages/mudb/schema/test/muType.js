@@ -1,0 +1,31 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const test = require("tape");
+const index_1 = require("../index");
+test('schema.muType', (t) => {
+    t.equal(new index_1.MuVoid().muType, 'void');
+    t.equal(new index_1.MuBoolean().muType, 'boolean');
+    t.equal(new index_1.MuASCII().muType, 'ascii');
+    t.equal(new index_1.MuFixedASCII(0).muType, 'fixed-ascii');
+    t.equal(new index_1.MuUTF8().muType, 'utf8');
+    t.equal(new index_1.MuFloat32().muType, 'float32');
+    t.equal(new index_1.MuFloat64().muType, 'float64');
+    t.equal(new index_1.MuInt8().muType, 'int8');
+    t.equal(new index_1.MuInt16().muType, 'int16');
+    t.equal(new index_1.MuInt32().muType, 'int32');
+    t.equal(new index_1.MuUint8().muType, 'uint8');
+    t.equal(new index_1.MuUint16().muType, 'uint16');
+    t.equal(new index_1.MuUint32().muType, 'uint32');
+    t.equal(new index_1.MuDate().muType, 'date');
+    t.equal(new index_1.MuJSON().muType, 'json');
+    t.equal(new index_1.MuArray(new index_1.MuFloat32(), 0).muType, 'array');
+    t.equal(new index_1.MuSortedArray(new index_1.MuFloat32(), 0).muType, 'sorted-array');
+    t.equal(new index_1.MuStruct({}).muType, 'struct');
+    t.equal(new index_1.MuUnion({ f: new index_1.MuFloat32() }).muType, 'union');
+    t.equal(new index_1.MuBytes(new Uint8Array(1)).muType, 'bytes');
+    t.equal(new index_1.MuDictionary(new index_1.MuFloat32(), 0).muType, 'dictionary');
+    t.equal(new index_1.MuVector(new index_1.MuFloat32(), 5).muType, 'vector');
+    t.equal(new index_1.MuOption(new index_1.MuFloat32()).muType, 'option');
+    t.end();
+});
+//# sourceMappingURL=muType.js.map

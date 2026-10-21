@@ -1,0 +1,17 @@
+@use '../../common.module.scss' as common;
+
+.anchorInput {
+  .title {
+    @include common.topTitle;
+  }
+
+  .inputs {
+    display: flex;
+
+    justify-content: space-between;
+
+    & > div {
+      width: 106px;
+    }
+  }
+}

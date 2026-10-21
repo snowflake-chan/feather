@@ -2,12 +2,13 @@
 
 Static game body extracted from the official client. No Next page, no portal.
 
-Source is built from the official game checkout (default:
-`../box3-local-engine/apps/game`). Set `BOX_GAME_ROOT` to override it.
+All game-body source and local `@box/*` packages are vendored here. No
+other workspace is required.
 
 ```bash
 cd client
-node build.mjs
+pnpm install
+pnpm build
 node serve.mjs
 ```
 

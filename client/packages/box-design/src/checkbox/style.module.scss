@@ -1,0 +1,142 @@
+@use '../texts.module.scss' as texts;
+@use '../colors.module.scss' as colors;
+
+.checkbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .rect {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border: 1px solid colors.$textWhiteSecondary;
+  }
+
+  &:hover {
+    background-color: colors.$opacityWhite6;
+  }
+
+  &:active {
+    background-color: colors.$opacityWhite6;
+
+    .rect {
+      border-color: colors.$textWhitePrimary;
+    }
+  }
+
+  &.activated,
+  &.mixed {
+    .rect {
+      background-color: colors.$primary80;
+      border: none;
+    }
+  }
+
+  &.activated:hover,
+  &.mixed:hover {
+    background-color: var(--activated-hover-bg-color);
+  }
+
+  &.mixed {
+    .mixedChild {
+      background-color: colors.$background0;
+    }
+  }
+}
+
+.checkbox {
+  &.large {
+    width: 32px;
+    height: 32px;
+
+    border-radius: 4px;
+
+    .rect {
+      width: 20px;
+      height: 20px;
+
+      border-radius: 4px;
+    }
+
+    &.activated,
+    &.mixed {
+      .rect {
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
+    &.mixed {
+      .mixedChild {
+        width: 12px;
+        height: 2px;
+      }
+    }
+  }
+
+  &.medium {
+    width: 24px;
+    height: 24px;
+
+    border-radius: 3px;
+
+    .rect {
+      width: 16px;
+      height: 16px;
+
+      border-radius: 3px;
+    }
+
+    &.activated,
+    &.mixed {
+      .rect {
+        svg {
+          width: 12px;
+          height: 12px;
+        }
+      }
+    }
+
+    &.mixed {
+      .mixedChild {
+        width: 10px;
+        height: 2px;
+      }
+    }
+  }
+
+  &.small {
+    width: 20px;
+    height: 20px;
+
+    border-radius: 2px;
+
+    .rect {
+      width: 12px;
+      height: 12px;
+
+      border-radius: 2px;
+    }
+
+    &.activated,
+    &.mixed {
+      .rect {
+        svg {
+          width: 10px;
+          height: 10px;
+        }
+      }
+    }
+
+    &.mixed {
+      .mixedChild {
+        width: 8px;
+        height: 2px;
+      }
+    }
+  }
+}

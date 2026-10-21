@@ -1,0 +1,45 @@
+.home {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+.buttons {
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    .button {
+        width: 200px;
+        height: 50px;
+        border-radius: 5px;
+        background: #37b473;
+        margin: 0 10px;
+        cursor: pointer;
+        color: #fff;
+        text-align: center;
+        line-height: 50px;
+    }
+}
+.iframeWrap {
+    flex: 1;
+    background-color: #ccc;
+    position: relative;
+}
+
+.startBtn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 30px;
+    border-radius: 5px;
+    background: #37b473;
+    margin: 0 10px;
+    cursor: pointer;
+    color: #fff;
+    text-align: center;
+    line-height: 30px;
+}

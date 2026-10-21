@@ -1,0 +1,1 @@
+{"version":3,"file":"entity.d.ts","sourceRoot":"","sources":["../../../../src/server/modules/entity.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,OAAO,KAAK,EAAE,oBAAoB,EAAE,MAAM,UAAU,CAAC;AACrD,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,QAAQ,CAAC;AAE1C;;GAEG;AACH,MAAM,CAAC,OAAO,OAAO,UAAU;IAC7B;;OAEG;IACH,SAAS;IAET;;;OAGG;IACH,MAAM,EAAE,oBAAoB,CAAC;IAE7B;;OAEG;IACH,QAAQ,EAAE,WAAW,CAAC;CACvB"}

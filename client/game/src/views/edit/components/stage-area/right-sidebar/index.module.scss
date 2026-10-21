@@ -1,0 +1,22 @@
+@use '../../../../colors.module.scss' as colors;
+
+$header-height: 52px;
+
+.rightPanelContainer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  width: 0px;
+  height: calc(100vh - $header-height);
+  height: calc(var(--vh, 1vh) * 100 - $header-height);
+  min-height: 220px;
+
+  flex-shrink: 0;
+
+  background-color: colors.$boxBackground3;
+}
+
+.expandContainer {
+  width: 300px;
+}

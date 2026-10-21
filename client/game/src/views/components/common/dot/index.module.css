@@ -1,0 +1,34 @@
+.dotContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.dot {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: red;
+  /* width: 8px;
+    height: 8px; */
+  border-radius: 50%;
+}
+
+.dot.hide {
+  display: none;
+}
+
+.dot.leftside {
+  right: calc(100% + 4px);
+  top: calc(50% - 4px);
+}
+.dot.topRight {
+  right: -4px;
+  top: -4px;
+}
+.dotContainer.inside {
+  position: absolute;
+  right: 0;
+}
+.dotContainer.vertical {
+  display: block;
+}

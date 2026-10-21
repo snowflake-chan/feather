@@ -1,0 +1,33 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../../../../../texts.module.scss' as texts;
+
+.scrollWrapper {
+  padding-left: 16px;
+  padding-right: 0px;
+}
+.listWrapper {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 16px;
+  margin: 2px 0px;
+}
+.newModelBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 116px;
+  height: 116px;
+  background-color: #565656;
+  border-radius: 8px;
+  cursor: pointer;
+  &:hover {
+    border: 2px solid colors.$boxOpacityWhite50;
+  }
+  svg {
+    width: 32px;
+    height: 32px;
+    fill: colors.$boxOpacityWhite100;
+  }
+}

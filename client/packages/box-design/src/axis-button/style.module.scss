@@ -1,0 +1,114 @@
+@use '../colors.module.scss' as c;
+@use '../texts.module.scss' as t;
+
+.axisButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 4px;
+  clip-path: inset(0% round 4px);
+
+  > :first-child {
+    border-radius: 4px 0px 0px 4px;
+  }
+
+  > :last-child {
+    border-radius: 0px 4px 4px 0px;
+  }
+}
+
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  color: c.$textWhiteSecondary;
+  background: c.$opacityWhite6;
+}
+
+.axisButton {
+  font-family: 'Rubik-600', 'MiSans-Bold';
+  font-style: normal;
+  color: c.$textWhiteSecondary;
+
+  box-sizing: border-box;
+  height: 34px;
+  width: 34px;
+
+  background: c.$opacityWhite6;
+
+  border: none;
+  outline: none;
+
+  &:hover {
+    background: c.$opacityWhite9;
+  }
+
+  &:active {
+    background: c.$opacityWhite3;
+    color: c.$textWhitePrimary;
+  }
+
+  &:disabled {
+    background: c.$opacityWhite3;
+    color: c.$textWhiteDisabled;
+    text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.axisButton {
+  &.X {
+    border-radius: 4px 0px 0px 4px;
+
+    &.activated {
+      background: c.$gradientRed;
+    }
+  }
+
+  &.Y {
+    &.activated {
+      background: c.$gradientGreen;
+    }
+    // HACK: In iOS, the background color of the Y button will act like 'disappear', but X and Z are normal.
+    // But this will not happen in Android or PC. So I think this is maybe a bug of ios rendering.
+    // I've tried several solutions, all of which work, but I can't guarantee they won't cause other bugs.
+    // Therefore, I add this clip-path: circle(100%); which doesn't cut anything but enables the Y button to display its background color.
+    clip-path: circle(100%);
+  }
+
+  &.Z {
+    border-radius: 0px 4px 4px 0px;
+
+    &.activated {
+      background: c.$gradientBlue;
+    }
+  }
+}
+
+.bar {
+  height: 2px;
+  position: absolute;
+  bottom: 0px;
+
+  &.X.activated {
+    width: 34px;
+    background-color: c.$axisX;
+    border-bottom-left-radius: 4px;
+  }
+
+  &.Y.activated {
+    width: 34px;
+    background-color: c.$axisY;
+  }
+
+  &.Z.activated {
+    width: 34px;
+    background-color: c.$axisZ;
+    border-bottom-right-radius: 4px;
+  }
+}
+
+.tooltip {
+  position: relative;
+  width: 258px;
+}

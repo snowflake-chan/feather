@@ -1,0 +1,1 @@
+export const WEAK_PASSWORDS_RES:string = `QmVkeHEqq7CkzREBGBJf5j2kMeKb2SFTm7LyX2iAaaz4QP`;

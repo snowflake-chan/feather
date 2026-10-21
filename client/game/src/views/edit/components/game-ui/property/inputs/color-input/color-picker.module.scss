@@ -1,0 +1,146 @@
+@use '../../../../../../colors.module.scss' as colors;
+@use '../../../../../../texts.module.scss' as texts;
+
+.settings {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: 8px;
+  padding-right: 8px;
+  background-color: colors.$boxBackground2;
+
+  .title {
+    width: 100%;
+    height: 36px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    .name {
+      @include texts.h12;
+      font-family: var(--font-bold);
+      color: colors.$boxTextWhiteSecondary;
+    }
+    svg {
+      width: 16px;
+      height: 16px;
+      fill: colors.$boxTextWhiteSecondary;
+    }
+  }
+
+  .picker {
+    position: relative;
+    width: 100%;
+    height: 134px;
+    margin-bottom: 8px;
+    overflow: hidden;
+
+    clip-path: inset(0% round 6px);
+    mask-image: radial-gradient(white, black);
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+
+    @mixin commonBg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .background {
+      @include commonBg;
+    }
+
+    .backgroundSaturation {
+      @include commonBg;
+      background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+      pointer-events: none;
+    }
+
+    .backgroundValue {
+      @include commonBg;
+      background: linear-gradient(to top, #000, rgba(0, 0, 0, 0));
+      pointer-events: none;
+    }
+
+    .thumb {
+      pointer-events: none;
+    }
+  }
+
+  .thumb {
+    position: absolute;
+    top: 0px;
+    left: 9px;
+    border: 4px solid #ffffff;
+    border-radius: 9px;
+    width: 18px;
+    height: 18px;
+    transform-origin: center;
+  }
+
+  .slider {
+    width: 232px;
+    height: 24px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+
+    .bar {
+      position: relative;
+      width: 232px;
+      height: 12px;
+      background: linear-gradient(
+        90deg,
+        #ff0000 0%,
+        #ffd600 18.23%,
+        #42ff00 39.58%,
+        #00fff0 60.42%,
+        #5200ff 79.99%,
+        #ff0000 100%
+      );
+      border-radius: 8px;
+    }
+
+    .thumb {
+      position: absolute;
+      top: -3px;
+      transform-origin: center;
+      transform: translateX(-50%);
+    }
+  }
+
+  .inputs {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    color: colors.$boxTextWhiteTertiary;
+
+    .input {
+      width: 49px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 11px;
+
+      &.hex {
+        width: 68px;
+        height: 100%;
+      }
+
+      .value {
+        margin-bottom: 3px;
+      }
+
+      .label {
+        @include texts.b12;
+      }
+    }
+  }
+}

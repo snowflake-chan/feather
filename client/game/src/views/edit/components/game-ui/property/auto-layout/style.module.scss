@@ -1,0 +1,23 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../common.module.scss' as common;
+
+.autoLayout {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  .cellSize {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+
+    background-color: colors.$boxBackground5;
+  }
+}

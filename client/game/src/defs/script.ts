@@ -1,0 +1,2 @@
+export const VOXEL_ROTATION_SHIFT = 14;
+export const VOXEL_TYPE_MASK = ~(3 << VOXEL_ROTATION_SHIFT);

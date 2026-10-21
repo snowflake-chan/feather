@@ -1,0 +1,66 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.tabNav {
+  display: flex;
+
+  .tabPanel {
+    &.tabText {
+      display: flex;
+      height: 40px;
+      position: relative;
+      padding: 0px 12px;
+      justify-content: center;
+      align-items: center;
+      color: colors.$textWhiteSecondary;
+      @include texts.b16;
+
+      &.activated {
+        color: colors.$textWhitePrimary;
+      }
+
+      &:not(.disabled):hover {
+        color: colors.$textWhitePrimary;
+      }
+
+      &:not(.disabled):active {
+        color: colors.$textWhiteTertiary;
+      }
+
+      &.disabled {
+        color: colors.$textWhiteTertiary;
+      }
+
+      .selector {
+        height: 3px;
+        width: 16px;
+        border-radius: 1.5px;
+        background-color: colors.$primary90;
+        position: absolute;
+        bottom: 0;
+      }
+    }
+
+    &.tabIcon {
+      width: 28px;
+      height: 24px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      &.activated {
+        background: colors.$opacityWhite12;
+      }
+
+      &:hover:not([disabled]) {
+        background: colors.$opacityWhite9;
+      }
+
+      &:active:not([disabled]) {
+        background: colors.$opacityWhite3;
+      }
+    }
+  }
+}

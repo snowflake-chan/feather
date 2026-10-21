@@ -1,0 +1,131 @@
+@use '../../../../colors.module.scss' as colors;
+@use '../../../../texts.module.scss' as texts;
+
+.screenList {
+  height: 100%;
+
+  color: colors.$boxTextWhitePrimary;
+}
+
+.header {
+  display: flex;
+  height: 28px;
+  width: 100%;
+}
+
+.screenIcon {
+  margin: 0 4px;
+  min-width: 16px;
+  width: 16px;
+  height: 16px;
+  fill: colors.$arenaPrimary80;
+}
+
+.foldBtn {
+  height: 29px;
+  display: flex;
+  padding: 0 6px;
+  align-items: center;
+  border-bottom: 1px solid #333333;
+  @include texts.h12;
+  color: colors.$boxTextWhiteSecondary;
+  &.activable:active {
+    color: colors.$boxOpacityWhite100;
+    svg {
+      fill: colors.$boxOpacityWhite100;
+    }
+  }
+  &.activable:hover {
+    background: colors.$boxOpacityWhite12;
+    cursor: pointer;
+  }
+
+  & svg {
+    width: 16px;
+    height: 16px;
+    fill: colors.$boxTextWhiteSecondary;
+  }
+}
+
+.foldText {
+  margin-left: 4px;
+}
+
+.nameContainer {
+  display: flex;
+  flex: 1;
+  border-left: 1px solid colors.$boxOpacityWhite12;
+  border-bottom: 1px solid colors.$boxOpacityWhite12;
+  align-items: center;
+  overflow: hidden;
+  padding-right: 4px;
+}
+.screenName {
+  height: 100%;
+  @include texts.h12;
+  line-height: 28px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: colors.$arenaPrimary80;
+  padding-right: 4px;
+}
+
+.listContainer {
+  height: calc(100% - 28px);
+  overflow: auto;
+  padding: 8px;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.createBtn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 24px;
+  background: colors.$boxOpacityWhite6;
+  border-radius: 4px;
+
+  &:hover {
+    cursor: pointer;
+    background: colors.$boxOpacityWhite12;
+  }
+  &:active {
+    background: colors.$boxOpacityWhite6;
+  }
+  & svg {
+    width: 16px;
+    height: 16px;
+    fill: colors.$boxOpacityWhite100;
+  }
+}
+
+.newScreen {
+  color: colors.$boxTextWhitePrimary;
+  @include texts.h12;
+  margin-left: 8px;
+}
+
+.list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: colors.$boxTextWhitePrimary;
+  }
+
+  :global(.boxTree) {
+    background-color: unset;
+    height: calc(100% - 28px);
+  }
+}
+.draggingCursor {
+  cursor: url(../../../../../assets/cursor/drag-skin.svg) 0 0, default;
+}

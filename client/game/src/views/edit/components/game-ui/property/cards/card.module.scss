@@ -1,0 +1,41 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../../../../../texts.module.scss' as texts;
+
+.card {
+  width: 100%;
+
+  border-radius: 4px;
+  padding: 0 8px 8px 8px;
+
+  background-color: colors.$boxBackground4;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .header {
+    width: 100%;
+    height: 40px;
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    @include texts.h12;
+    font-family: var(--font-bold);
+    color: colors.$boxTextWhitePrimary;
+
+    border-bottom: 1px solid colors.$boxBackground5;
+
+    .menuButton:global(.boxButton) {
+      width: 24px;
+      height: 24px;
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}

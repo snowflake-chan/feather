@@ -1,0 +1,40 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../../../../../texts.module.scss' as texts;
+
+.tab {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  @include texts.b12;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: colors.$boxTextWhiteSecondary;
+
+  border-radius: 4px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+
+    fill: colors.$boxTextWhiteSecondary;
+  }
+
+  &:hover {
+    background-color: colors.$boxBackground4;
+  }
+
+  &:active,
+  &.selected {
+    color: colors.$boxTextWhitePrimary;
+    background-color: colors.$boxBackground4;
+
+    svg {
+      fill: colors.$boxTextWhitePrimary;
+    }
+  }
+}

@@ -1,0 +1,1 @@
+export const CHINESE_HOLIDAY_RES:string = `QmSqgFQ9qJTsp9fxrRX3ENBQ7NbXuVGFPa2XiCMtP3yTmi`;

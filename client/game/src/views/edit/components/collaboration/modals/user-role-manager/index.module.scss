@@ -1,0 +1,76 @@
+@use '../../../../../colors.module.scss' as colors;
+@use '../../../../../texts.module.scss' as texts;
+.container {
+  position: relative;
+  color: #fff;
+}
+
+.roleList {
+  max-height: 350px;
+  overflow-x: hidden;
+  overflow-y: overlay;
+  padding-right: 10px;
+  margin-top: 24px;
+  margin-right: -20px;
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 223px;
+    right: -20px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: colors.$boxBackground4;
+    border-radius: 50px;
+  }
+}
+
+.role {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  height: 24px;
+}
+
+.roleRadio {
+  width: 24px;
+  height: 24px;
+}
+
+.roleName {
+  height: 20px;
+  line-height: 22px;
+  margin-left: 8px;
+  display: inline-block;
+  max-width: 319px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guest {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 8px 0 0 0;
+}
+
+.userInfo {
+  margin-top: -16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  .avatar {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 8px;
+    background-color: colors.$boxTextWhitePrimary;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  .name {
+    @include texts.b12;
+    color: colors.$boxTextWhiteSecondary;
+  }
+}

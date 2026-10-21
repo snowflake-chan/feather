@@ -1,0 +1,27 @@
+<svg width="22" height="27" viewBox="0 0 22 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_d_422_43627)">
+<mask id="path-1-outside-1_422_43627" maskUnits="userSpaceOnUse" x="6" y="2" width="10" height="19" fill="black">
+<rect fill="white" x="6" y="2" width="10" height="19"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M8 15L10.5 15L10.5 8L8 8L11 4L14 8L11.5 8L11.5 15L14 15L11 19L8 15Z"/>
+</mask>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M8 15L10.5 15L10.5 8L8 8L11 4L14 8L11.5 8L11.5 15L14 15L11 19L8 15Z" fill="black"/>
+<path d="M10.5 15L10.5 16L11.5 16L11.5 15L10.5 15ZM8 15L8 14L6 14L7.2 15.6L8 15ZM10.5 8L11.5 8L11.5 7L10.5 7L10.5 8ZM8 8L7.2 7.4L6 9L8 9L8 8ZM11 4L11.8 3.4L11 2.33333L10.2 3.4L11 4ZM14 8L14 9L16 9L14.8 7.4L14 8ZM11.5 8L11.5 7L10.5 7L10.5 8L11.5 8ZM11.5 15L10.5 15L10.5 16L11.5 16L11.5 15ZM14 15L14.8 15.6L16 14L14 14L14 15ZM11 19L10.2 19.6L11 20.6667L11.8 19.6L11 19ZM10.5 14L8 14L8 16L10.5 16L10.5 14ZM9.5 8L9.5 15L11.5 15L11.5 8L9.5 8ZM10.5 7L8 7L8 9L10.5 9L10.5 7ZM8.8 8.6L11.8 4.6L10.2 3.4L7.2 7.4L8.8 8.6ZM10.2 4.6L13.2 8.6L14.8 7.4L11.8 3.4L10.2 4.6ZM14 7L11.5 7L11.5 9L14 9L14 7ZM12.5 15L12.5 8L10.5 8L10.5 15L12.5 15ZM14 14L11.5 14L11.5 16L14 16L14 14ZM11.8 19.6L14.8 15.6L13.2 14.4L10.2 18.4L11.8 19.6ZM7.2 15.6L10.2 19.6L11.8 18.4L8.8 14.4L7.2 15.6Z" fill="white" mask="url(#path-1-outside-1_422_43627)"/>
+<mask id="path-3-outside-2_422_43627" maskUnits="userSpaceOnUse" x="4" y="10" width="14" height="3" fill="black">
+<rect fill="white" x="4" y="10" width="14" height="3"/>
+<path d="M16.5 11C16.7761 11 17 11.2239 17 11.5C17 11.7761 16.7761 12 16.5 12L5.5 12C5.22386 12 5 11.7761 5 11.5C5 11.2239 5.22386 11 5.5 11L16.5 11Z"/>
+</mask>
+<path d="M16.5 11C16.7761 11 17 11.2239 17 11.5C17 11.7761 16.7761 12 16.5 12L5.5 12C5.22386 12 5 11.7761 5 11.5C5 11.2239 5.22386 11 5.5 11L16.5 11Z" fill="black"/>
+<path d="M16.5 11L5.5 11L5.5 13L16.5 13L16.5 11ZM5.5 12L16.5 12L16.5 10L5.5 10L5.5 12ZM6 11.5C6 11.7761 5.77614 12 5.5 12L5.5 10C4.67157 10 4 10.6716 4 11.5L6 11.5ZM5.5 11C5.77614 11 6 11.2239 6 11.5L4 11.5C4 12.3284 4.67157 13 5.5 13L5.5 11ZM16 11.5C16 11.2239 16.2239 11 16.5 11L16.5 13C17.3284 13 18 12.3284 18 11.5L16 11.5ZM18 11.5C18 10.6716 17.3284 10 16.5 10L16.5 12C16.2239 12 16 11.7761 16 11.5L18 11.5Z" fill="white" mask="url(#path-3-outside-2_422_43627)"/>
+</g>
+<defs>
+<filter id="filter0_d_422_43627" x="0" y="0.333984" width="22" height="26.332" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="2"/>
+<feGaussianBlur stdDeviation="2"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_422_43627"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_422_43627" result="shape"/>
+</filter>
+</defs>
+</svg>

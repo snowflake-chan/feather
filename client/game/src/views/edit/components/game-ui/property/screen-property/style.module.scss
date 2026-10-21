@@ -1,0 +1,36 @@
+@use '../../../../../texts.module.scss' as texts;
+@use '../../../../../colors.module.scss' as colors;
+
+.inputProperty {
+  display: flex;
+
+  flex-direction: column;
+  gap: 8px;
+
+  .textAreaInput {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .subTitle {
+    @include texts.h12;
+    color: colors.$boxOpacityWhite100;
+  }
+  .divider {
+    height: 1px;
+    background: colors.$boxBackground5;
+  }
+}
+
+.textArea {
+  & > textarea {
+    resize: none;
+  }
+}
+
+.textProperty {
+  display: flex;
+
+  flex-direction: column;
+  gap: 8px;
+}

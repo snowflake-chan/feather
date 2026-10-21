@@ -1,0 +1,39 @@
+@use '../../../../texts.module.scss' as texts;
+@use '../../../../colors.module.scss' as colors;
+
+@mixin title {
+  @include texts.b12;
+  color: colors.$boxTextWhiteTertiary;
+}
+
+@mixin topTitle {
+  @include title;
+
+  margin-bottom: 2px;
+}
+
+/* 属性卡片中 二级标题样式（比如“滚动”里的“滚动条”） */
+@mixin subTitle {
+  @include title;
+
+  color: colors.$boxTextWhitePrimary;
+}
+
+@mixin checkboxActive {
+  :global(.boxCheckbox) {
+    // 这里有两个处理
+    // - 通过#{}写法，让scss编译
+    // - 通过scss的transparentize函数，给hex颜色值增加透明色
+    --activated-hover-bg-color: #{transparentize(
+        $color: colors.$arenaPrimary80,
+        $amount: 0.95
+      )};
+  }
+}
+
+@mixin divider {
+  width: 100%;
+  height: 1px;
+
+  background-color: colors.$boxBackground5;
+}

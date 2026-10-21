@@ -1,0 +1,18 @@
+@use '../../../colors.module.scss' as colors;
+
+.navBar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: colors.$boxBackground3;
+  color: colors.$boxTextWhiteSecondary;
+  width: 100%;
+  min-height: 52px;
+  border-bottom: 1px solid colors.$boxOpacityWhite12;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

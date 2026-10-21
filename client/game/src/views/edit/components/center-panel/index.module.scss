@@ -1,0 +1,12 @@
+.centerModalWarp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  z-index: 10;
+  padding-top: 52px;
+  top: 0;
+  background-color: #00000099;
+}

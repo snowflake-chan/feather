@@ -1,0 +1,70 @@
+@use '../colors.module.scss' as colors;
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  :global(.boxButton) {
+    width: 20px;
+    height: 20px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .buttonDec {
+    margin-right: 4px;
+  }
+
+  .buttonInc {
+    margin-left: 4px;
+  }
+
+  .sliderWrapper {
+    position: relative;
+    height: 24px;
+    width: 89px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .rail {
+      height: 4px;
+      width: 100%;
+      background: colors.$opacityWhite12;
+      border-radius: 1px;
+    }
+
+    .track {
+      height: 4px;
+      width: 0px;
+      position: absolute;
+      left: 0px;
+      top: 10px;
+      background: colors.$systemNeutral95;
+      border-radius: 1px 0 0 1px;
+      pointer-events: none;
+    }
+
+    .handle {
+      width: 6px;
+      height: 10px;
+      position: absolute;
+      left: 0;
+      top: 7px;
+      background: colors.$systemNeutral95;
+      border-radius: 12px;
+      pointer-events: none;
+    }
+  }
+
+  &.disabled {
+    .track,
+    .handle {
+      background: colors.$systemNeutral40;
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "name": "@box/deployment-routing",
+  "version": "0.1.0",
+  "description": "Runtime public path adapters for BOX browser, Node and Next deployments",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./src/public-path.d.cts",
+      "default": "./src/public-path.cjs"
+    },
+    "./browser": {
+      "types": "./src/browser.d.cts",
+      "default": "./src/browser.cjs"
+    },
+    "./server": {
+      "types": "./src/server.d.cts",
+      "default": "./src/server.cjs"
+    },
+    "./next-webpack": {
+      "types": "./src/next-webpack.d.cts",
+      "default": "./src/next-webpack.cjs"
+    },
+    "./standalone": {
+      "types": "./src/standalone.d.cts",
+      "default": "./src/standalone.cjs"
+    },
+    "./react": "./src/react.cjs",
+    "./jsx-runtime": "./src/jsx-runtime.cjs",
+    "./package.json": "./package.json"
+  },
+  "main": "src/public-path.cjs",
+  "types": "src/public-path.d.cts",
+  "typesVersions": {
+    "*": {
+      "browser": [
+        "src/browser.d.cts"
+      ],
+      "server": [
+        "src/server.d.cts"
+      ],
+      "next-webpack": [
+        "src/next-webpack.d.cts"
+      ],
+      "standalone": [
+        "src/standalone.d.cts"
+      ]
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node -e \"require('./src/public-path.cjs');require('./src/server.cjs');require('./src/standalone.cjs')\"",
+    "test": "node --test test/*.test.cjs"
+  }
+}

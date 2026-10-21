@@ -1,0 +1,390 @@
+@use '../colors.module.scss' as colors;
+@use '../texts.module.scss' as texts;
+
+.button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+
+  font-family: Rubik, MiSans;
+
+  color: colors.$primary80;
+  background: colors.$opacityWhite6;
+  box-sizing: border-box;
+  border: none;
+
+  border-radius: 4px;
+
+  padding: 0;
+
+  position: relative;
+  clip-path: inset(0% round 4px);
+
+  p {
+    color: inherit;
+  }
+
+  &.large {
+    height: 44px;
+    width: 120px;
+    @include texts.b16;
+  }
+
+  &.medium {
+    height: 32px;
+    width: 88px;
+    @include texts.b14;
+  }
+
+  &.small {
+    height: 24px;
+    width: 64px;
+    @include texts.b12;
+  }
+}
+
+.button {
+  /* PRIMARY STYLE*/
+  &.primary {
+    color: colors.$primary20;
+    background: colors.$primary80;
+    border: 1px solid colors.$opacityWhite6;
+
+    &:hover:not([disabled]) {
+      background: colors.$primary70;
+    }
+
+    &:active:not([disabled]) {
+      background: colors.$primary60;
+    }
+
+    &:disabled {
+      color: colors.$textWhiteDisabled;
+      background: colors.$opacityWhite6;
+      border-color: colors.$opacityWhite9;
+    }
+  }
+
+  /* SECONDARY STYLE*/
+  &.secondary {
+    color: colors.$primary80;
+    background: colors.$opacityWhite6;
+    border: 1px solid colors.$opacityWhite6;
+
+    &:hover:not([disabled]) {
+      background: colors.$opacityWhite12;
+      border-color: colors.$opacityWhite12;
+    }
+
+    &:active:not([disabled]) {
+      background: colors.$opacityWhite3;
+    }
+
+    &:disabled {
+      color: colors.$textWhiteDisabled;
+      background: colors.$opacityWhite6;
+      border-color: colors.$opacityWhite9;
+    }
+  }
+
+  /* TEXT STYLE */
+  &.text {
+    color: colors.$primary80;
+    background: none;
+
+    &:hover:not([disabled]) {
+      background: colors.$opacityWhite6;
+      border: 1px solid colors.$opacityWhite6;
+    }
+
+    &:active:not([disabled]) {
+      background: colors.$opacityWhite3;
+      border: 1px solid colors.$opacityWhite3;
+    }
+
+    &:disabled {
+      color: colors.$textWhiteDisabled;
+      background: none;
+    }
+  }
+
+  /* WARNING STYLE*/
+  &.warning {
+    color: colors.$textBlackPrimary;
+    background: colors.$systemErrorPositive1;
+    border: 1px solid colors.$opacityWhite6;
+
+    &:hover:not([disabled]) {
+      background: colors.$systemErrorPositive2;
+    }
+
+    &:active:not([disabled]) {
+      background: colors.$systemErrorPositive2;
+    }
+
+    &:disabled {
+      color: colors.$textWhiteDisabled;
+      background: colors.$opacityWhite6;
+      border-color: colors.$opacityWhite9;
+    }
+  }
+
+  /* LOADING STYLE */
+  &.loading {
+    display: flex;
+    flex-direction: row;
+
+    &:after {
+      content: ' ';
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid colors.$primary20;
+      border-color: #1b3700 transparent #1b3700 #1b3700;
+      animation: loading 2s linear infinite;
+
+      &:disabled {
+        border: 2px solid colors.$textWhiteDisabled;
+        border-color: rgba(255, 255, 255, 0.25) transparent
+          rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.25);
+      }
+    }
+
+    @keyframes loading {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
+
+  /* HYPERLINK STYLE */
+  &.hyperLink {
+    background: none;
+    color: colors.$secondary80;
+    text-decoration-line: underline;
+
+    &:hover:not([disabled]) {
+      text-decoration-line: none;
+    }
+
+    &:active:not([disabled]) {
+      text-decoration-line: none;
+      color: colors.$secondary60;
+    }
+
+    &:disabled {
+      color: colors.$textWhiteDisabled;
+      background: colors.$opacityWhite6;
+      text-decoration-line: none;
+    }
+  }
+
+  /** ICON STYLE */
+  &.icon {
+    $color: colors.$textWhiteSecondary;
+
+    p {
+      margin-left: 4px;
+
+      color: $color;
+
+      @include texts.h12;
+    }
+
+    svg {
+      fill: $color;
+
+      use {
+        fill: $color;
+      }
+    }
+
+    &.large {
+      height: 44px;
+      width: 44px;
+    }
+
+    &.medium {
+      height: 32px;
+      width: 32px;
+    }
+
+    &.small {
+      height: 24px;
+      width: 24px;
+    }
+
+    background: none;
+
+    &.activated {
+      $color: colors.$primary80;
+
+      p {
+        color: $color;
+      }
+
+      svg {
+        fill: $color;
+
+        use {
+          fill: $color;
+        }
+      }
+    }
+
+    &:hover:not([disabled]) {
+      background-color: colors.$opacityWhite6;
+    }
+
+    &:active:not([disabled]) {
+      background-color: colors.$opacityWhite3;
+
+      $color: colors.$textWhitePrimary;
+
+      p {
+        color: $color;
+      }
+
+      svg {
+        fill: $color;
+
+        use {
+          fill: $color;
+        }
+      }
+    }
+
+    &:disabled {
+      $color: colors.$textWhiteDisabled;
+
+      p {
+        color: $color;
+      }
+
+      svg {
+        fill: $color;
+
+        use {
+          fill: $color;
+        }
+      }
+    }
+  }
+
+  /** ICON WITH BACKGROUND */
+  &.icon.background {
+    background-color: colors.$opacityWhite6;
+
+    &.activated {
+      background: linear-gradient(
+        360deg,
+        rgba(120, 213, 85, 0.28) 0%,
+        rgba(120, 213, 85, 0.06) 100%
+      );
+      /* Note: backdrop-filter has minimal browser support */
+      backdrop-filter: blur(8px);
+      $color: colors.$textWhitePrimary;
+
+      p {
+        color: $color;
+      }
+
+      svg {
+        fill: $color;
+
+        use {
+          fill: $color;
+        }
+      }
+
+      .selectedBar {
+        width: 100%;
+        height: 2px;
+        position: absolute;
+        bottom: 0px;
+        background-color: colors.$primary90;
+      }
+    }
+
+    &:hover:not([disabled]) {
+      background-color: colors.$opacityWhite9;
+    }
+
+    &:active:not([disabled]) {
+      background-color: colors.$opacityWhite6;
+
+      $color: colors.$textWhitePrimary;
+
+      p {
+        color: $color;
+      }
+
+      svg {
+        fill: $color;
+
+        use {
+          fill: $color;
+        }
+      }
+    }
+
+    &:disabled {
+      background-color: colors.$opacityWhite3;
+
+      svg {
+        opacity: 0.25;
+      }
+    }
+  }
+
+  // icon style for other types
+  &.large {
+    > svg {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  &.medium {
+    > svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &.small {
+    > svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  $color: colors.$primary20;
+
+  &.secondary {
+    $color: colors.$primary80;
+  }
+
+  svg {
+    fill: $color;
+
+    use {
+      fill: $color;
+    }
+  }
+
+  &:disabled svg {
+    fill: colors.$textWhiteDisabled;
+
+    use {
+      fill: colors.$textWhiteDisabled;
+    }
+  }
+}

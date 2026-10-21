@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ES2015",
+    "declarationDir": "dist",
+    "composite": false,
+    "incremental": false,
+    "inlineSources": false,
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"]
+}

@@ -1,0 +1,10 @@
+@use '../colors.module.scss' as colors;
+
+.icon {
+  width: 20px;
+  height: 20px;
+
+  use {
+    fill: colors.$textWhiteSecondary;
+  }
+}

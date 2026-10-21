@@ -1,0 +1,234 @@
+@use '../../../texts.module.scss' as texts;
+@use '../../../colors.module.scss' as colors;
+@value icon, scrollbarStyle, iconSmall from '../editor-common.css';
+
+@import '../editor-common.css';
+
+@mixin prefixIconContent {
+  content: '';
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  z-index: -1;
+}
+
+.container {
+  height: 100%;
+}
+
+.multiHelperBar {
+  background: var(--color-white-15);
+  height: 100%;
+  width: 100%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: var(--color-white);
+  position: relative;
+  padding: 0 var(--basePadding);
+}
+
+.clearBtn {
+  composes: iconSmall;
+  background-position: -144px -64px;
+  opacity: 0.6;
+  margin-right: 8px;
+}
+
+.addTreeNodeBtn {
+  composes: iconSmall;
+  background-position: -48px -112px;
+  opacity: 0.6;
+  position: absolute;
+  right: calc(3 * var(--basePadding));
+}
+
+.removeBtn {
+  composes: iconSmall;
+  background-position: -80px 0;
+  opacity: 0.6;
+  position: absolute;
+  right: var(--basePadding);
+}
+
+.clearBtn:active {
+  opacity: 1;
+}
+
+.addTreeNodeBtn:active {
+  opacity: 1;
+}
+
+.removeBtn:active {
+  opacity: 1;
+}
+
+.list {
+  color: var(--color-white);
+  height: 100%;
+  overflow: auto;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: colors.$boxTextWhiteSecondary;
+  }
+  :global(.boxTree) {
+    background-color: unset;
+    :global(.boxButton.boxButtonIcon) {
+      transition: all linear 200ms;
+    }
+
+    :global(.boxTreeNodePrefixIcon) {
+      background: colors.$boxBackground4;
+      svg {
+        fill: unset;
+      }
+    }
+
+    :global(.boxTreeNodeSelected) {
+      :global(.boxTreeNodePrefixIcon) {
+        &::before {
+          @include prefixIconContent;
+          background: colors.$boxOpacityWhite15;
+        }
+      }
+
+      &:not(:global(.boxTreeNodeDisableHover)):hover {
+        :global(.boxTreeNodePrefixIcon) {
+          &::before {
+            @include prefixIconContent;
+            background: colors.$boxOpacityWhite21;
+          }
+        }
+      }
+    }
+
+    :global(.boxTreeNodeRelativeSelected) {
+      :global(.boxTreeNodePrefixIcon) {
+        &::before {
+          @include prefixIconContent;
+          background: colors.$boxOpacityWhite6;
+        }
+      }
+
+      &:not(:global(.boxTreeNodeDisableHover)):hover {
+        :global(.boxTreeNodePrefixIcon) {
+          &::before {
+            @include prefixIconContent;
+            background: colors.$boxOpacityWhite21;
+          }
+        }
+      }
+    }
+
+    :global(.boxTreeNodeUnselected) {
+      &:not(:global(.boxTreeNodeDisableHover)):hover {
+        :global(.boxTreeNodePrefixIcon) {
+          &::before {
+            @include prefixIconContent;
+            background: colors.$boxOpacityWhite21;
+          }
+        }
+      }
+    }
+  }
+}
+
+.draggingCursor {
+  cursor: url(../../../../assets/cursor/drag-skin.svg) 0 0, default;
+}
+
+.notAllowedCursor {
+  cursor: url(../../../../assets/cursor/not-allowed.svg) 0 0, not-allowed;
+}
+
+.hierarchyIcon,
+.hierarchyIcon,
+.codeIcon {
+  composes: icon;
+  width: 24px;
+  height: 24px;
+  background-position: -216px -24px;
+}
+
+.modalContent {
+  margin-bottom: var(--basePadding);
+}
+
+.tipContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--color-white-60);
+  @include texts.b12;
+}
+
+.searchEmptyTip {
+  width: 100%;
+  height: calc(100%);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--color-white-60);
+}
+
+.tipButton {
+  width: 96px;
+  height: 40px;
+  background: #444;
+  margin-top: var(--basePadding);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.codeIcon {
+  background-position: -48px -24px;
+}
+
+.head {
+  padding: 6px 8px;
+  height: 36px;
+  align-content: center;
+  @include texts.b12;
+  color: colors.$boxTextWhiteTertiary;
+}
+
+.footer {
+  height: 40px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: colors.$boxBackground5;
+  @include texts.b12;
+  line-height: unset;
+  color: colors.$boxTextWhiteSecondary;
+}
+
+.leftFooter {
+  display: flex;
+  align-items: center;
+
+  .leftFooterContent {
+    padding-left: 4px;
+  }
+}
+
+.rightFooter {
+  display: flex;
+  width: 120px;
+  justify-content: space-between;
+  :global(.boxButton.boxButtonSmall) {
+    width: 56px;
+  }
+}

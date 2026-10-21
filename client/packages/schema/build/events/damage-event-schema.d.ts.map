@@ -1,0 +1,1 @@
+{"version":3,"file":"damage-event-schema.d.ts","sourceRoot":"","sources":["../../events/damage-event-schema.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AAE/D,eAAO,MAAM,eAAe;;;EAG1B,CAAC;AAEH,eAAO,MAAM,kBAAkB;;;GAAyC,CAAC;AAEzE,eAAO,MAAM,kBAAkB;;;EAG7B,CAAC;AAEH,eAAO,MAAM,qBAAqB;;;GAA4C,CAAC;AAE/E,eAAO,MAAM,iBAAiB;;;;;;;EAI5B,CAAC"}

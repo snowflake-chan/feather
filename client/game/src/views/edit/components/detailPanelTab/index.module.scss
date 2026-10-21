@@ -1,0 +1,69 @@
+@use '../../../colors.module.scss' as colors;
+@import '../editor-common.css';
+@value icon from '../editor-common.css';
+
+.tabList {
+  height: 100%;
+  background: colors.$boxBackground5;
+  overflow: auto;
+  opacity: 0.9;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: -17px;
+  bottom: 0;
+}
+
+.wrapper {
+  height: 100%;
+}
+
+.tab,
+.currentTab {
+  opacity: 1;
+  background: colors.$boxBackground5;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: colors.$boxTextWhiteSecondary;
+  }
+}
+
+.tab div {
+  opacity: 0.5;
+}
+
+.tab:hover {
+  background: colors.$boxBackground6;
+}
+
+.currentTab {
+  background: colors.$boxBackground6;
+  svg {
+    fill: colors.$boxTextWhitePrimary;
+  }
+}
+
+.closeIconContainer {
+  display: none;
+  width: 56px;
+  height: 100%;
+  background: var(--color-grey1-90);
+  padding: 8px 16px;
+}
+
+.closeIcon {
+  composes: icon;
+  background-position: -216px -96px;
+}
+
+.tabTitle {
+  display: none;
+}

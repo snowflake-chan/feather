@@ -1,0 +1,92 @@
+@value phone from '../breakpoints.css';
+
+.errorWrapper {
+  width: 100%;
+  height: 100%;
+  background-color: #0d0d0d;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  backdrop-filter: blur(25px);
+}
+.background {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(25px);
+  z-index: -1;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.header {
+  height: 96px;
+  width: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.logo {
+  display: block;
+  width: 4.3em;
+  height: 1em;
+  margin: 20px 0 0 32px;
+  font-size: 40px;
+}
+
+.errorContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 0 24px;
+}
+
+.text {
+  font-family: Montserrat-Bold;
+  font-style: normal;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+.errorTitle {
+  composes: text;
+  font-size: 24px;
+  line-height: 36px;
+  margin-bottom: 8px;
+}
+.errorMessage {
+  composes: text;
+  font-size: 16px;
+  line-height: 24px;
+  margin-bottom: 40px;
+}
+.btn {
+  composes: text;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 342px;
+  height: 56px;
+  border-radius: 100px;
+  background: #ffffff;
+  color: rgba(0, 0, 0, 0.95);
+  cursor: pointer;
+}
+.btn:hover {
+  background: #ffdb00;
+}
+@media phone {
+  .logo {
+    font-size: 30px;
+  }
+}

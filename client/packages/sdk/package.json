@@ -1,0 +1,33 @@
+{
+  "name": "@box/sdk",
+  "version": "1.4.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "main": "build/index.js",
+  "unpkg": "build/index.umd.js",
+  "module": "build/index.es.js",
+  "typings": "build/types/index.d.ts",
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "build:watch": "npm run build",
+    "dev": "rollup -c rollup.config.mjs -w",
+    "prepublishOnly": "npm run build",
+    "release": "npm run build && npm publish",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@box/dsbridge": "workspace:0.0.1",
+    "penpal": "6.2.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "28.0.3",
+    "@rollup/plugin-node-resolve": "16.0.1",
+    "@rollup/plugin-typescript": "12.1.2",
+    "@types/node": "20.16.15",
+    "rollup": "4.59.0",
+    "tslib": "2.3.1",
+    "typescript": "5.6.3"
+  },
+  "pkgName": "GameSDK"
+}

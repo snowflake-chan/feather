@@ -1,0 +1,177 @@
+@value phone from '../../breakpoints.css';
+@value scrollbarStyle from '../editor-common.css';
+
+.modal,
+.modalHidden,
+.fullScreen {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+  background: var(--color-grey1-60);
+  z-index: 999;
+}
+
+.modalContainer {
+  width: 520px;
+  background: var(--color-grey2);
+  border-radius: var(--baseRadius);
+  padding: var(--basePadding);
+  position: relative;
+  max-height: 90%;
+}
+
+.modalHidden {
+  display: none;
+}
+
+.title {
+  font-size: var(--text-h1);
+  line-height: 1.5em;
+  height: 1.5em;
+  color: var(--color-white);
+  position: relative;
+  margin: var(--basePadding) 0;
+}
+
+.title.smallTitle {
+  font-size: 15px;
+}
+
+.titleDecorator {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--basePadding));
+  width: 4px;
+  border-radius: 0 2px 2px 0;
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.content {
+  composes: scrollbarStyle;
+  width: 100%;
+  margin: var(--basePadding) 0;
+  margin-bottom: 60px;
+  max-height: calc(100% - 124px);
+  color: var(--color-white);
+}
+
+.content.overlay {
+  overflow: overlay;
+}
+
+.operations,
+.centerOperations {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  position: absolute;
+  width: 100%;
+  bottom: 16px;
+  padding-right: 16px;
+  padding-top: 16px;
+  right: 0;
+}
+
+.operationDivider {
+  border-top: 1px solid var(--color-white-30);
+}
+
+.centerOperations {
+  justify-content: center;
+}
+
+.cancelBtn,
+.confirmBtn {
+  margin-left: var(--basePadding);
+}
+
+.divider {
+  transform: translate(-16px, 0);
+  width: calc(100% + 32px);
+}
+.divider hr {
+  margin: 0;
+  border-color: var(--color-white-30);
+}
+
+@media phone {
+  .fullScreen .content {
+    max-height: none;
+  }
+
+  .modalContainer {
+    max-width: 90vw;
+  }
+
+  .fullScreen {
+    background: transparent;
+  }
+
+  .fullScreen .modalContainer {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    padding: 0;
+    background: var(--color-grey2-90);
+    border-radius: 0;
+
+    overflow-y: auto;
+    overflow-y: overlay;
+    overflow-x: hidden;
+  }
+
+  .fullScreen .operationDivider {
+    border-top: 0;
+  }
+
+  .fullScreen .title {
+    height: 44px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-grey1-90);
+    font-size: var(--text-h2);
+  }
+
+  .fullScreen .titleDecorator {
+    display: none;
+  }
+
+  .fullScreen .content {
+    padding: 0 16px;
+    margin-bottom: 0;
+  }
+
+  .fullScreen .operations {
+    height: 44px;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+
+  .fullScreen .cancelBtn button {
+    background: transparent;
+    color: #fff;
+  }
+
+  .fullScreen .confirmBtn {
+    margin-right: 16px;
+  }
+
+  .fullScreen .confirmBtn button {
+    background: transparent;
+    color: var(--color-primary);
+  }
+}

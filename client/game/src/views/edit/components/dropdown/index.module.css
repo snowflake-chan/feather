@@ -1,0 +1,122 @@
+@value scrollbarStyle from '../editor-common.css';
+
+.dropdownContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.dropdownValue {
+  padding-left: 16px;
+  padding-right: 30px;
+  height: 100%;
+  font-family: PingFangSC-Regular;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dropdownValue:hover {
+  cursor: pointer;
+}
+
+.dropdownValueDisable {
+  composes: dropdownValue;
+}
+
+.dropdownValueDisable:hover {
+  cursor: not-allowed;
+}
+
+.dropdownTriangle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dropdownTriangleUp {
+  transition: all 0.3s;
+  transform: rotate(180deg);
+}
+
+.dropdownTriangleDown {
+  transition: all 0.3s;
+  transform: rotate(0);
+}
+
+.dropdownMask {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.options,
+.optionsDark {
+  position: fixed;
+  width: 100%;
+  background: #f5f5f5;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  z-index: 2;
+  margin-top: 6px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.optionsDark {
+  background: #121212;
+}
+
+.optionsMask {
+  composes: scrollbarStyle;
+  display: flex;
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.optionColumn {
+  composes: scrollbarStyle;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.optionMultiColumn {
+  composes: scrollbarStyle;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.optionMultiColumn:first-child {
+  flex: 0 0 65px;
+  border-right: 1px solid var(--color-white-30);
+}
+
+.dropdownOption {
+  height: 40px;
+  line-height: 24px;
+  font-family: PingFangSC-Regular;
+  font-size: 16px;
+  color: #414b55;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+.optionsDark .dropdownOption {
+  color: #fff;
+}
+
+.dropdownOption:hover {
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.optionsDark .dropdownOption:hover {
+  background: #565656;
+}

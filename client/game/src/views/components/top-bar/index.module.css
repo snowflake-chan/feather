@@ -1,0 +1,194 @@
+@value phoneLandscape, phonePortrait, phone from '../breakpoints.css';
+
+.iconWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+.iconWrapper:last-child {
+  margin-right: 0;
+}
+
+.iconSetting {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.container {
+  position: relative;
+}
+
+.Setting_option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: var(--color-primary);
+  line-height: 24px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: 0px 2px 6px 0px rgba(252, 131, 8, 0.32);
+  border-radius: 20px;
+  background: #ffffff;
+  width: 168px;
+  height: 40px;
+  margin: 16px 0;
+}
+
+.Setting_option__selected {
+  color: var(--color-white);
+  background-color: var(--color-primary);
+  box-shadow: 0px 2px 6px 0px rgba(252, 131, 8, 0.32);
+  font-family: PingFangSC-Semibold;
+  border-radius: 20px;
+  width: 168px;
+  height: 40px;
+}
+
+.modalWrapper {
+  width: 340px;
+  max-width: 100%;
+  padding: 32px;
+}
+
+.modalGraphicWrapper {
+  width: 340px;
+  max-width: 100%;
+  padding: 32px;
+}
+
+.modalTitleWrapper {
+  display: flex;
+  justify-content: space-between;
+  color: #000;
+  margin-bottom: 32px;
+  font-weight: bold;
+}
+
+.modalContentWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+.modalGraphicContentWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.shareWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.qrCodeText {
+  font-size: 14px;
+  color: var(--color-black-90);
+  width: 100%;
+  text-align: center;
+}
+
+.qrCodeImg {
+  width: 156px;
+  height: 156px;
+}
+
+.qrCodeImg img {
+  width: 100%;
+  height: 100%;
+}
+
+.infoWrapper {
+  width: 100%;
+  padding-right: 5px;
+}
+
+.shareMapName {
+  font-size: 12px;
+  color: #808080;
+  max-height: 32px;
+  overflow: overlay;
+  word-break: break-all;
+}
+
+.shareMapDesc {
+  font-size: 12px;
+  color: #808080;
+  max-height: 64px;
+  overflow: overlay;
+  word-break: break-all;
+}
+
+.shareButton {
+  width: 100%;
+  height: 40px;
+  box-shadow: 0px 2px 6px 0px rgba(252, 131, 8, 0.32);
+  border-radius: 20px;
+  background: var(--color-primary);
+  text-align: center;
+  color: white;
+  line-height: 40px;
+  margin-top: 32px;
+  cursor: pointer;
+}
+
+.shareIcon {
+  --color9: white;
+}
+
+@media phone {
+  .iconWrapper {
+    width: 24px;
+  }
+}
+
+@media phonePortrait {
+  .modalGraphicWrapper {
+    width: 100%;
+  }
+
+  .modalWrapper {
+    width: 100%;
+  }
+}
+
+@media phoneLandscape {
+  .modalContentWrapper {
+    flex-direction: row;
+    width: 250px;
+  }
+
+  .shareButton {
+    width: 250px;
+    margin: auto;
+  }
+
+  .modalWrapper {
+    width: 480px;
+  }
+
+  .infoWrapper {
+    flex: 1;
+  }
+
+  .shareWrapper {
+    flex: 1;
+  }
+
+  .qrCodeImg {
+    width: 119px;
+    height: 119px;
+  }
+}

@@ -1,0 +1,146 @@
+@value colorAccent, colorAccentDark, colorAccentLight, colorWhite, colorGreyDark, colorBlack, colorBlue, colorBlueDark, colorBlueLight, colorRed, colorRedLight, colorWebsiteYellow from '../../colors.css';
+.button,
+.buttonGhost,
+.buttonPrimary,
+.buttonBlue,
+.buttonRed {
+  outline: none;
+  padding: 6px 12px;
+  background-color: colorWhite;
+  min-width: 50px;
+  font-size: 16px;
+  color: colorBlack;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid colorGreyDark;
+  display: inline-block;
+  transition: all 0.2s;
+  margin: 5px;
+}
+.button:hover {
+  border-color: colorBlue;
+  color: colorBlue;
+}
+.button:active {
+  border-color: colorBlueDark;
+  color: colorBlueDark;
+  animation: clickAnimation linear 0.4s;
+}
+
+.buttonPrimary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: colorWhite;
+}
+.buttonPrimary:hover {
+  color: colorWhite;
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.buttonPrimary:active {
+  color: colorWhite;
+  animation: clickAnimation linear 0.4s;
+  background-color: var(--color-primary-press);
+  border-color: var(--color-primary-press);
+}
+
+.buttonBlue {
+  background-color: colorBlue;
+  border-color: colorBlue;
+  color: colorWhite;
+}
+
+.buttonBlue:hover {
+  background-color: colorBlueDark;
+  border-color: colorBlueDark;
+  color: colorWhite;
+}
+
+.buttonBlue:active {
+  background-color: colorBlueLight;
+  border-color: colorBlueLight;
+  color: colorWhite;
+}
+
+.buttonRed {
+  background-color: colorRed;
+  color: colorWhite;
+}
+.buttonRed:hover {
+  background-color: colorRedLight;
+  border-color: colorRedLight;
+  color: colorWhite;
+}
+
+.buttonGhost {
+  background-color: transparent;
+  border-color: colorWhite;
+  color: colorWhite;
+}
+
+.button:disable,
+.button.disabled {
+  color: colorGreyDark;
+  background-color: colorWhite;
+  cursor: not-allowed;
+  border-color: colorGreyDark;
+}
+
+.buttonGhost.buttonPrimary {
+  color: colorAccent;
+  border-color: colorAccent;
+  background-color: transparent;
+}
+
+.buttonGhost.buttonPrimary:hover {
+  color: colorAccentLight;
+  background-color: transparent;
+}
+
+.buttonGhost.buttonPrimary:active {
+  color: colorAccentDark;
+  background-color: transparent;
+}
+
+.btnOrangeBorder {
+  border: 1px solid rgba(247, 179, 10, 1);
+  background-color: var(--color-white);
+  color: rgba(0, 0, 0, 0.88);
+}
+.btnOrangeBorder:hover {
+  border: 1px solid rgba(247, 179, 10, 1);
+  background-color: rgba(247, 179, 10, 0.1);
+  color: rgba(0, 0, 0, 0.88);
+}
+.btnOrangeBorder:active {
+  border: 1px solid rgba(247, 179, 10, 1);
+  background-color: rgba(247, 179, 10, 0.2);
+  color: rgba(0, 0, 0, 0.88);
+}
+.btnOrangeBorder:disabled {
+  cursor: not-allowed;
+}
+
+.websitePrimary {
+  color: white;
+  background-color: colorWebsiteYellow;
+}
+
+.websitePrimary:hover {
+  background-color: color(colorWebsiteYellow, rgba(255, 255, 255, 0.2));
+}
+
+.websitePrimary:active {
+  background-color: color(colorWebsiteYellow, rgba(0, 0, 0, 0.1));
+}
+
+@keyframes clickAnimation {
+  0% {
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+  }
+
+  100% {
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0);
+  }
+}

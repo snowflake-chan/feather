@@ -1,0 +1,148 @@
+@use '../../../../../texts.module.scss' as texts;
+@use '../../../../../colors.module.scss' as colors;
+
+.imageProperty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  .header {
+    width: 100%;
+    height: 24px;
+
+    @include texts.h12;
+    font-weight: 700;
+    color: colors.$boxTextWhiteSecondary;
+    line-height: 36px;
+  }
+
+  .item {
+    width: 100%;
+    height: 168px;
+
+    .opacity {
+      width: 100%;
+      height: 24px;
+
+      margin-bottom: 4px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      @include texts.b12;
+      color: colors.$boxTextWhiteTertiary;
+
+      :global(.boxInput) {
+        width: 38px;
+        padding-left: 0;
+        padding-right: 0;
+
+        :global(.boxInputInnerInput) {
+          width: 100%;
+          text-align: right;
+        }
+      }
+    }
+
+    .preview {
+      position: relative;
+
+      width: 100%;
+      height: 140px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      border-radius: 4px;
+      outline: 1px solid colors.$boxOpacityWhite12;
+      background: colors.$boxOpacityWhite6;
+
+      overflow: hidden;
+
+      svg {
+        width: 16px;
+        height: 16px;
+        fill: colors.$boxTextWhitePrimary;
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+
+        object-fit: contain;
+      }
+
+      .imgWidthHeight {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+
+        height: 16px;
+        padding: 0 6px;
+        background-color: colors.$boxOpacityBlack40;
+        border-radius: 0 3px;
+
+        @include texts.b12;
+        color: colors.$boxTextWhitePrimary;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+      }
+
+      .editMask {
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        display: none;
+
+        justify-content: center;
+        align-items: center;
+
+        width: 100%;
+        height: 100%;
+
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(1px);
+      }
+
+      &:hover .editMask {
+        display: flex;
+      }
+
+      :global(.boxMenu) {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+
+        transform: translate(-50%, -50%);
+      }
+
+      .iconAdd {
+        width: 24px;
+        height: 24px;
+
+        fill: colors.$boxTextWhiteSecondary;
+      }
+    }
+
+    &.selected .editMask {
+      display: flex;
+    }
+
+    &.empty:not(.selected) {
+      .preview:hover {
+        background-color: colors.$boxOpacityWhite9;
+      }
+
+      .preview:active {
+        background-color: colors.$boxOpacityWhite12;
+      }
+    }
+  }
+
+  .selectInput {
+    width: 100%;
+  }
+}

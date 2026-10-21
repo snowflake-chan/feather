@@ -1,0 +1,153 @@
+.loading {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+.loading-img {
+  width: 200px;
+  height: 200px;
+  background: url('../../assets/loading.svg');
+  z-index: 9999;
+}
+
+.loading-arena {
+  width: 132px;
+  height: 132px;
+  background: url('../../assets/arena.svg');
+  z-index: 9999;
+  margin-bottom: 4px;
+}
+
+.loadingWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: min(250px, calc(100vw - 48px));
+  color: white;
+  padding-bottom: 14px;
+}
+
+.progressBar {
+  position: relative;
+  overflow: hidden;
+  width: 160px;
+  height: 10px;
+  border: 1px solid #ff7d00;
+  margin: 32px 0 14px;
+  border-radius: 23px;
+  box-sizing: content-box;
+  background: rgba(255, 125, 0, 0.08);
+}
+
+.progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 10px;
+  border-radius: 10px;
+  background-color: #ff7d00;
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.progressIndeterminate {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 42%;
+  border-radius: 10px;
+  background-color: #ff7d00;
+  animation: arenaLoading 1.3s ease-in-out infinite;
+}
+
+.loadingMessage {
+  width: min(440px, calc(100vw - 48px));
+  margin: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loadingError .progressBar {
+  border-color: #ff4d4f;
+}
+
+.loadingError .progress,
+.loadingError .progressIndeterminate {
+  background-color: #ff4d4f;
+}
+
+.loadingActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.loadingActions button {
+  min-width: 92px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #ff7d00;
+  border-radius: 6px;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.loadingActions button:first-child {
+  color: #111;
+  background: #ff7d00;
+}
+
+@keyframes arenaLoading {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(350%);
+  }
+}
+
+.progressing {
+  position: relative;
+  height: 10px;
+  border-radius: 10px 0 0 10px;
+  background-color: var(--color-primary);
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.progress::before,
+.progressing::before {
+  position: absolute;
+  content: '';
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 85px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.24),
+    rgba(255, 255, 255, 0.24) 10px,
+    transparent 11px,
+    transparent 19px,
+    rgba(255, 255, 255, 0.24) 20px
+  );
+  background-position: 0 0;
+  background-repeat: no-repeat;
+}

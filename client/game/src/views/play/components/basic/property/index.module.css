@@ -1,0 +1,93 @@
+.property,
+.propertyDisabled {
+  margin: 8px 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #333;
+}
+
+.propertyDisabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.propertyWrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.propName {
+  font-family: inherit;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
+  line-height: 28px;
+  font-weight: 700;
+}
+
+.propValue {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  line-height: 28px;
+}
+
+.inputSlider {
+  width: 100%;
+}
+
+.inputSliderWithIcon {
+  display: flex;
+}
+
+.inputSliderIconWrapper {
+  width: 24px;
+  height: 24px;
+}
+
+.switchWrapper {
+  margin-top: 1px;
+}
+
+.rotationController .btnGrop {
+  display: flex;
+}
+
+.rotationController .btnGrop button {
+  flex: 1;
+  margin: 0 10px;
+  height: 30px;
+  background: #565656;
+  color: white;
+  font-size: 16px;
+  line-height: 29px;
+  border-radius: 5px;
+}
+
+.rotationController .btnGrop button.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.rotationController label,
+.rotationDisplayWrapper label {
+  color: var(--color-white-60);
+  font-size: var(--text-h2);
+  line-height: 26px;
+  display: block;
+}
+
+.rotationController label {
+  margin-top: 17px;
+  margin-bottom: -20px;
+}
+
+.rotationDisplayWrapper .rotationDisplay {
+  height: 28px;
+  background: transparent;
+  text-align: end;
+  width: 100%;
+  border: 1px solid #797c77;
+  outline: none;
+  border-radius: 7px;
+  color: white;
+}

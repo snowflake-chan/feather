@@ -1,0 +1,433 @@
+{
+  "name": "@box/build-system",
+  "entries": [
+    {
+      "version": "0.3.1",
+      "tag": "@box/build-system_v0.3.1",
+      "date": "Wed, 03 Sep 2025 07:32:05 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/content-server\" to `1.0.7`"
+          },
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.4.2` to `0.4.3`"
+          },
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.1.0`"
+          },
+          {
+            "comment": "Updating dependency \"@box/vb-parser\" from `1.0.6` to `1.0.7`"
+          },
+          {
+            "comment": "Updating dependency \"@box/voxa-project\" from `1.3.4` to `1.3.5`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.3.0",
+      "tag": "@box/build-system_v0.3.0",
+      "date": "Mon, 03 Mar 2025 06:15:30 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Upgrade UI RDA with rotation"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.23` to `0.4.0`"
+          },
+          {
+            "comment": "Updating dependency \"@box/voxa-project\" from `1.3.3` to `1.3.4`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.23",
+      "tag": "@box/build-system_v0.2.23",
+      "date": "Mon, 02 Dec 2024 07:48:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update prebake"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/content-server\" to `1.0.6`"
+          },
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.19` to `0.3.20`"
+          },
+          {
+            "comment": "Updating dependency \"@box/voxa-project\" from `1.3.2` to `1.3.3`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.22",
+      "tag": "@box/build-system_v0.2.22",
+      "date": "Thu, 21 Nov 2024 07:21:05 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update bake function"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/content-server\" to `1.0.5`"
+          },
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.18` to `~0.3.19`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.21",
+      "tag": "@box/build-system_v0.2.21",
+      "date": "Mon, 18 Nov 2024 07:05:53 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add richText for game u"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.16` to `~0.3.17`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.20",
+      "tag": "@box/build-system_v0.2.20",
+      "date": "Wed, 06 Nov 2024 11:11:31 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update prebake"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.19",
+      "tag": "@box/build-system_v0.2.19",
+      "date": "Thu, 31 Oct 2024 07:50:33 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update project rda 0.3.28"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.13` to `~0.3.14`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.18",
+      "tag": "@box/build-system_v0.2.18",
+      "date": "Tue, 29 Oct 2024 09:57:36 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update version for project migration"
+          },
+          {
+            "comment": "upgrade project version"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.11` to `~0.3.12`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.17",
+      "tag": "@box/build-system_v0.2.17",
+      "date": "Thu, 24 Oct 2024 08:13:51 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix prebake"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.16",
+      "tag": "@box/build-system_v0.2.16",
+      "date": "Thu, 24 Oct 2024 02:46:59 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add migrateGroupProject"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.10` to `~0.3.11`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.15",
+      "tag": "@box/build-system_v0.2.15",
+      "date": "Tue, 08 Oct 2024 07:04:05 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update prebake"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.14",
+      "tag": "@box/build-system_v0.2.14",
+      "date": "Sun, 29 Sep 2024 09:33:19 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update prebake"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.13",
+      "tag": "@box/build-system_v0.2.13",
+      "date": "Thu, 19 Sep 2024 08:43:08 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix storing project"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.12",
+      "tag": "@box/build-system_v0.2.12",
+      "date": "Thu, 19 Sep 2024 07:37:54 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix group audios migration error"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.11",
+      "tag": "@box/build-system_v0.2.11",
+      "date": "Mon, 09 Sep 2024 14:38:11 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update groupProject migrations"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.8` to `~0.3.9`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.10",
+      "tag": "@box/build-system_v0.2.10",
+      "date": "Fri, 06 Sep 2024 10:31:38 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.7` to `~0.3.8`"
+          },
+          {
+            "comment": "Updating dependency \"@box/vb-parser\" from `1.0.5` to `1.0.6`"
+          },
+          {
+            "comment": "Updating dependency \"@box/voxa-project\" from `1.3.1` to `1.3.2`"
+          },
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.0.3`"
+          },
+          {
+            "comment": "Updating dependency \"@box/content-server\" to `1.0.4`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.9",
+      "tag": "@box/build-system_v0.2.9",
+      "date": "Tue, 03 Sep 2024 02:47:44 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update version"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.6` to `~0.3.7`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.8",
+      "tag": "@box/build-system_v0.2.8",
+      "date": "Mon, 02 Sep 2024 06:51:13 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.5` to `~0.3.6`"
+          },
+          {
+            "comment": "Updating dependency \"@box/vb-parser\" from `1.0.4` to `1.0.5`"
+          },
+          {
+            "comment": "Updating dependency \"@box/voxa-project\" from `1.3.0` to `1.3.1`"
+          },
+          {
+            "comment": "Updating dependency \"@box/utils\" to `2.0.2`"
+          },
+          {
+            "comment": "Updating dependency \"@box/content-server\" to `1.0.3`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.7",
+      "tag": "@box/build-system_v0.2.7",
+      "date": "Thu, 15 Aug 2024 06:42:23 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update version"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.3` to `~0.3.4`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.6",
+      "tag": "@box/build-system_v0.2.6",
+      "date": "Mon, 05 Aug 2024 06:17:23 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "change retrieve script"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.5",
+      "tag": "@box/build-system_v0.2.5",
+      "date": "Thu, 25 Jul 2024 08:01:03 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "add store to s3 file type"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/content-server\" to `1.0.2`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.4",
+      "tag": "@box/build-system_v0.2.4",
+      "date": "Thu, 18 Jul 2024 04:42:39 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix migrate skin"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.3",
+      "tag": "@box/build-system_v0.2.3",
+      "date": "Thu, 11 Jul 2024 02:18:10 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/voxa-project\" from `1.2.0` to `1.3.0`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.2",
+      "tag": "@box/build-system_v0.2.2",
+      "date": "Wed, 10 Jul 2024 09:39:52 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/content-server\" to `1.0.1`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.1",
+      "tag": "@box/build-system_v0.2.1",
+      "date": "Fri, 28 Jun 2024 11:01:43 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update hotproject version"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/schema\" from `~0.3.1` to `~0.3.2`"
+          }
+        ]
+      }
+    },
+    {
+      "version": "0.2.0",
+      "tag": "@box/build-system_v0.2.0",
+      "date": "Wed, 29 May 2024 06:34:23 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "implements skin migration"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@box/voxa-project\" from `1.1.3` to `1.2.0`"
+          }
+        ]
+      }
+    }
+  ]
+}

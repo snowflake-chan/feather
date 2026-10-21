@@ -1,0 +1,101 @@
+@use '../../../../../texts.module.scss' as texts;
+@use '../../../../../colors.module.scss' as colors;
+
+.rightPanelContainer {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  background-color: colors.$boxBackground3;
+
+  :global(.boxCollapse) {
+    background: none;
+  }
+
+  .panel {
+    :global(.boxCollapseHeader) {
+      height: 36px;
+      border-bottom: 1px solid colors.$boxBackground5;
+    }
+  }
+}
+
+.expandContainer {
+  width: 300px;
+}
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  .resizeHandle {
+    width: 100%;
+    height: 6px;
+    opacity: 1;
+    position: absolute;
+    border-top: 2px solid colors.$boxBackground1;
+  }
+  .allowResize {
+    &:hover {
+      cursor: url(../../../../../../assets/cursor/cursor-drag.svg) 12 12,
+        row-resize;
+    }
+  }
+}
+.dragging {
+  cursor: url(../../../../../../assets/cursor/cursor-drag.svg) 12 12, row-resize;
+}
+
+.disabledMask {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  backdrop-filter: blur(2px);
+  .runningIcon {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    svg {
+      width: 60px;
+      height: 60px;
+    }
+    .topIcon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      animation: topRunningRotate 8s linear infinite;
+    }
+    .bottomIcon {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      transform: rotate(22.5deg);
+      animation: bottomRunningRotate 8s linear infinite;
+    }
+  }
+  .disabledTips {
+    margin-top: 24px;
+    @include texts.b12;
+    font-family: var(--font-regular);
+    color: colors.$boxTextWhiteSecondary;
+  }
+}
+
+@keyframes topRunningRotate {
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes bottomRunningRotate {
+  100% {
+    transform: rotate(382.5deg);
+  }
+}

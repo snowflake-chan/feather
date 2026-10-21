@@ -1,0 +1,8 @@
+import * as React from 'react';
+import { forwardRef, memo } from 'react';
+const IconScreenUiSet = (props, ref) => (React.createElement("svg", Object.assign({ viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", ref: ref }, props),
+    React.createElement("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M2.98 19a1.905 1.905 0 0 1-1.396-.584A1.906 1.906 0 0 1 1 17.02V4.995c0-.546.195-1.015.584-1.407C1.974 3.196 2.439 3 2.98 3h15.025a1.92 1.92 0 0 1 1.407.588c.392.392.588.86.588 1.407v3.13a8.623 8.623 0 0 0-1.995-.109V4.995H2.98V13h7.775A8.44 8.44 0 0 0 10 16.5c0 .87.131 1.71.375 2.5H2.98Zm19.248-3.725c.035.241.068.472.068.725s-.033.484-.067.724l-.005.032 1.368 1.212-1.2 2.076-1.74-.588a4.376 4.376 0 0 1-1.296.756L18.996 22h-2.4l-.36-1.788a4.376 4.376 0 0 1-1.296-.756l-1.74.588-1.2-2.076 1.368-1.212-.005-.032c-.034-.24-.067-.471-.067-.724s.033-.484.068-.725l.004-.031L12 14.032l1.2-2.076 1.74.588a4.376 4.376 0 0 1 1.296-.756l.36-1.788h2.4l.36 1.788c.48.18.912.432 1.296.756l1.74-.588 1.2 2.076-1.368 1.212.005.031ZM15.396 16c0 1.32 1.08 2.4 2.4 2.4 1.32 0 2.4-1.08 2.4-2.4 0-1.32-1.08-2.4-2.4-2.4-1.32 0-2.4 1.08-2.4 2.4Z" })));
+const ForwardRef = forwardRef(IconScreenUiSet);
+const Memo = memo(ForwardRef);
+export default Memo;
+//# sourceMappingURL=IconScreenUiSet.js.map

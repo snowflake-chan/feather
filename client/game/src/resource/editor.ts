@@ -1,0 +1,1 @@
+export const EDITOR_RES:{ 'hacking':string } = <any>JSON.parse(`{"hacking":"QmZ43qGAGb7n56wNxYjDbgtdtenRC48QDp6ASJxwTMTcLy.png"}`);

@@ -1,0 +1,36 @@
+.icon {
+  width: 24px;
+  height: 24px;
+  background-image: url(../assets/icons.png);
+  background-size: 240px 176px;
+  background-repeat: no-repeat;
+}
+
+.iconSmall {
+  width: 16px;
+  height: 16px;
+  background-image: url(../assets/icons.png);
+  background-size: 160px 117px;
+  background-repeat: no-repeat;
+}
+
+.playIcon {
+  background-image: url(../assets/icon_sprites.svg);
+  background-size: 168.8vw 86.4vw;
+  background-repeat: no-repeat;
+}
+
+.scrollbarStyle::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbarStyle::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.scrollbarStyle::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0);
+  border-radius: 2px;
+}
