@@ -2,7 +2,7 @@
 
 This directory is copied from:
 
-`box3-local-engine/apps/local-engine/src`
+`box3-local-engine/apps/local-engine/src`（workspace package `@feather/local-engine`）
 
 Source project: https://github.com/createra/box3-local-engine
 

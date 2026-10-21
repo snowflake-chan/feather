@@ -1,0 +1,16 @@
+{
+  "name": "@feather/local-engine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vendored official box3 local-engine project publish/package flow",
+  "main": "src/project-manager.js",
+  "scripts": {
+    "check": "node -e \"require('./src/project-manager.js'); console.log('local-engine load ok')\""
+  },
+  "dependencies": {
+    "@box/apis": "workspace:*",
+    "@box/build-system": "workspace:*",
+    "@box/content-server": "workspace:*",
+    "@box/utils": "workspace:*"
+  }
+}

@@ -197,6 +197,21 @@ importers:
         specifier: 10.4.0
         version: 10.4.0(@swc/core@1.4.13)(@types/node@20.16.15)(typescript@5.6.3)
 
+  local-engine:
+    dependencies:
+      '@box/apis':
+        specifier: workspace:*
+        version: link:../vendor/apis
+      '@box/build-system':
+        specifier: workspace:*
+        version: link:../vendor/build-system
+      '@box/content-server':
+        specifier: workspace:*
+        version: link:../vendor/content-server
+      '@box/utils':
+        specifier: workspace:*
+        version: link:../vendor/utils
+
   protocol:
     dependencies:
       '@box/mudb':

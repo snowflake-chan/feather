@@ -1,6 +1,7 @@
 packages:
   - protocol
   - transport
+  - local-engine
   - shell
   - engine
   - daemon
