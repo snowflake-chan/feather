@@ -4,12 +4,12 @@ import { spawn } from 'node:child_process';
 
 import { DaemonClient } from './client';
 
-export function daemonSocketPath(workspaceRoot: string) {
-  return path.join(workspaceRoot, '.feather', 'daemon.sock');
+export function daemonSocketPath(dataRoot: string) {
+  return path.join(dataRoot, 'daemon.sock');
 }
 
-export function daemonClient(workspaceRoot: string) {
-  return new DaemonClient({ socketPath: daemonSocketPath(workspaceRoot) });
+export function daemonClient(dataRoot: string) {
+  return new DaemonClient({ socketPath: daemonSocketPath(dataRoot) });
 }
 
 export async function isDaemonUp(client: DaemonClient) {
@@ -20,15 +20,15 @@ export async function isDaemonUp(client: DaemonClient) {
   }
 }
 
-export async function ensureDaemon(workspaceRoot: string, foreground = false): Promise<DaemonClient> {
-  const socketPath = daemonSocketPath(workspaceRoot);
+export async function ensureDaemon(dataRoot: string, foreground = false): Promise<DaemonClient> {
+  const socketPath = daemonSocketPath(dataRoot);
   const client = new DaemonClient({ socketPath });
   if (await isDaemonUp(client)) return client;
-  const dataDir = path.join(workspaceRoot, '.feather');
+  const dataDir = dataRoot;
   fs.mkdirSync(path.join(dataDir, 'logs'), { recursive: true });
   const daemonMain = require.resolve('@feather/daemon/main');
   if (foreground) {
-    const child = spawn(process.execPath, [daemonMain, '--workspace', workspaceRoot, '--socket', socketPath], {
+    const child = spawn(process.execPath, [daemonMain, '--workspace', dataRoot, '--data-dir', dataRoot, '--socket', socketPath], {
       stdio: 'inherit',
     });
     await waitForDaemon(client, 15_000);
@@ -40,7 +40,7 @@ export async function ensureDaemon(workspaceRoot: string, foreground = false): P
   try {
     const child = spawn(
       process.execPath,
-      [daemonMain, '--workspace', workspaceRoot, '--socket', socketPath],
+      [daemonMain, '--workspace', dataRoot, '--data-dir', dataRoot, '--socket', socketPath],
       {
         detached: true,
         stdio: ['ignore', logFd, logFd],

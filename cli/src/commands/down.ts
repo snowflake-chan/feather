@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { resolveDataRoot } from '../data-root';
 import { daemonClient, daemonSocketPath } from '../daemon-process';
-import { findWorkspaceRoot } from '../workspace-spec';
 
-export async function downCommand(rootArg?: string) {
-  const root = rootArg ? path.resolve(rootArg) : findWorkspaceRoot();
+export async function downCommand(dataDir?: string) {
+  const root = resolveDataRoot(dataDir);
   const client = daemonClient(root);
   try {
     const maps = await client.listMaps();
@@ -24,7 +24,7 @@ export async function downCommand(rootArg?: string) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   if (fs.existsSync(socket)) {
-    const pidFile = path.join(root, '.feather', 'daemon.pid');
+    const pidFile = path.join(root, 'daemon.pid');
     if (fs.existsSync(pidFile)) {
       const pid = Number(fs.readFileSync(pidFile, 'utf8').trim());
       if (pid > 0) {

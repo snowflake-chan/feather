@@ -58,6 +58,7 @@ export interface MapStatus {
   error?: string;
   restartPolicy?: RestartPolicy;
   autoStart?: boolean;
+  volume?: string;
   labels?: Record<string, string>;
 }
 

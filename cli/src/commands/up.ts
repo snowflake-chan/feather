@@ -1,22 +1,24 @@
-import path from 'node:path';
-
 import { ApiError } from '../client';
+import { resolveDataRoot } from '../data-root';
 import { ensureDaemon } from '../daemon-process';
-import { findWorkspaceRoot, loadWorkspace } from '../workspace-spec';
+import { loadMaps } from '../workspace-spec';
 
-export async function upCommand(options: { root?: string; foreground?: boolean } = {}) {
-  const root = options.root ? path.resolve(options.root) : findWorkspaceRoot();
-  const workspace = loadWorkspace(root);
-  const client = await ensureDaemon(root, options.foreground);
+export async function upCommand(
+  options: { maps?: string[]; dataDir?: string; foreground?: boolean } = {},
+) {
+  const dataRoot = resolveDataRoot(options.dataDir);
+  const mapDirs = options.maps?.length ? options.maps : [process.cwd()];
+  const loaded = loadMaps(mapDirs, dataRoot);
+  const client = await ensureDaemon(dataRoot, options.foreground);
   const existing = new Map((await client.listMaps()).map((map) => [map.id, map]));
-  // Create every map first so daemon shard assignment sees the full workspace.
-  for (const spec of workspace.maps) {
+  // Create every map first so daemon shard assignment sees the full set.
+  for (const spec of loaded.maps) {
     if (!existing.has(spec.id)) {
       const status = await client.createMap(spec);
       existing.set(spec.id, status);
     }
   }
-  for (const spec of workspace.maps) {
+  for (const spec of loaded.maps) {
     const status = existing.get(spec.id)!;
     if (spec.autoStart !== false && status.state !== 'running') {
       await ensureRunning(client, spec.id);
@@ -26,7 +28,7 @@ export async function upCommand(options: { root?: string; foreground?: boolean }
       `${current.id}\t${current.state}\t${current.url || '-'}\tshard=${current.shardId || '-'}\n`,
     );
   }
-  process.stdout.write(`workspace: ${workspace.root}\n`);
+  process.stdout.write(`data: ${dataRoot}\n`);
 }
 
 async function ensureRunning(client: import('../client').DaemonClient, id: string) {

@@ -12,21 +12,22 @@ function usage() {
 feather load <archive> [options]
 
 Commands:
-  load <archive>       load a .boxplay/.boxproject into a workspace
-  up                   create/start workspace maps
+  load <archive>       load a .boxplay/.boxproject into a directory
+  up [mapDir...]       register/start one or more maps (default: current directory)
   ps                   list maps
   stop <id>            stop a map
   logs <id> [-f]       show map logs
-  exec <id> -- <code>  eval in the map script shell (daemon must enable exec)
+  exec <id> -- <code>  eval in the map script shell
   down                 stop maps and daemon
   daemon               run daemon in foreground
 
-Workspace: run inside a directory containing feather.toml.
+Data root:
+  --data-dir <path>    daemon state/data (default: ~/.feather or FEATHER_DATA_DIR)
 
-Options:
-  --dir <path>    workspace directory (default: ./<name>)
-  --name <name>   workspace name
-  --force         overwrite a non-empty workspace
+Load options:
+  --dir <path>         output directory (default: ./<name>)
+  --name <name>        output name
+  --force              overwrite a non-empty directory
 `);
 }
 
@@ -36,6 +37,25 @@ function getArg(args: string[], name: string) {
   return args[index + 1];
 }
 
+function positional(args: string[], start = 1): string[] {
+  const takesValue = new Set(['--data-dir', '--dir', '--name']);
+  const out: string[] = [];
+  for (let i = start; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--') {
+      out.push(...args.slice(i + 1));
+      break;
+    }
+    if (arg.startsWith('--')) {
+      if (takesValue.has(arg)) i++;
+      continue;
+    }
+    if (arg.startsWith('-')) continue;
+    out.push(arg);
+  }
+  return out;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
@@ -43,18 +63,23 @@ async function main() {
     usage();
     return;
   }
+  const dataDir = getArg(args, '--data-dir');
   if (command === 'up') {
-    await upCommand({ root: getArg(args, '--workspace') || getArg(args, '-C'), foreground: args.includes('--foreground') });
+    await upCommand({
+      maps: positional(args),
+      dataDir,
+      foreground: args.includes('--foreground'),
+    });
     return;
   }
   if (command === 'ps') {
-    await psCommand(getArg(args, '--workspace') || getArg(args, '-C'));
+    await psCommand(dataDir);
     return;
   }
   if (command === 'stop') {
     const id = args[1];
     if (!id) throw new Error('missing map id');
-    await stopCommand(id, getArg(args, '--workspace') || getArg(args, '-C'));
+    await stopCommand(id, dataDir);
     return;
   }
   if (command === 'exec') {
@@ -63,7 +88,7 @@ async function main() {
     const separator = args.indexOf('--');
     const code = (separator >= 0 ? args.slice(separator + 1) : args.slice(2)).join(' ');
     if (!code.trim()) throw new Error('missing code');
-    await execCommand(id, code, getArg(args, '--workspace') || getArg(args, '-C'));
+    await execCommand(id, code, dataDir);
     return;
   }
   if (command === 'logs') {
@@ -72,16 +97,16 @@ async function main() {
     await logsCommand(id, {
       follow: args.includes('-f') || args.includes('--follow'),
       tail: Number(getArg(args, '--tail') || 0) || undefined,
-      root: getArg(args, '--workspace') || getArg(args, '-C'),
+      root: dataDir,
     });
     return;
   }
   if (command === 'down') {
-    await downCommand(getArg(args, '--workspace') || getArg(args, '-C'));
+    await downCommand(dataDir);
     return;
   }
   if (command === 'daemon') {
-    await daemonCommand(getArg(args, '--workspace') || getArg(args, '-C'));
+    await daemonCommand(dataDir);
     return;
   }
   if (command !== 'load') {

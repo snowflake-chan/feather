@@ -4,55 +4,39 @@ import { parse } from 'smol-toml';
 
 import type { MapSpec } from '@feather/daemon/contract';
 
-interface MapToml {
-  id: string;
-  name?: string;
-  path: string;
-  port?: number;
-  auto_start?: boolean;
-  data_dir?: string;
-  database_url?: string;
-  /** 逻辑 SQLite 卷名；默认 map id，显式同名共享同一个 .db */
-  volume?: string;
-  env?: Record<string, string>;
-  mode?: 'play' | 'edit';
-  /** 单图脚本 worker 的内存上限（MB）；不填则用全局 SCRIPT_MEMORY_LIMIT */
-  memory_mb?: number;
-  /** 单图玩家上限 */
-  player_limit?: number;
-}
-
-interface WorkspaceToml {
-  workspace?: { name?: string; data_dir?: string };
-  storage?: { driver?: string; mode?: 'shared' | 'isolated'; group_namespace?: string; path?: string };
+interface MapFileToml {
+  schema_version?: number;
+  map?: {
+    id?: string;
+    name?: string;
+    port?: number;
+    data_dir?: string;
+    mode?: 'play' | 'edit';
+    memory_mb?: number;
+    player_limit?: number;
+    env?: Record<string, string>;
+  };
+  storage?: {
+    /** 逻辑 SQLite 卷名；默认 map id，显式同名共享同一个 .db */
+    volume?: string;
+    path?: string;
+    database_url?: string;
+    group_namespace?: string;
+  };
   runtime?: { script_worker_entry?: string };
-  maps?: MapToml[];
 }
 
-export interface LoadedWorkspace {
-  root: string;
-  name: string;
+export interface LoadedMaps {
   maps: MapSpec[];
-}
-
-export function findWorkspaceRoot(start = process.cwd()): string {
-  let current = path.resolve(start);
-  for (;;) {
-    if (fs.existsSync(path.join(current, 'feather.toml'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) throw new Error('feather.toml not found; run inside a workspace');
-    current = parent;
-  }
 }
 
 function readManifest(mapDir: string): { permissionHash?: string; contentId?: number } {
   const file = path.join(mapDir, 'manifest.json');
   if (!fs.existsSync(file)) return {};
-  const value = JSON.parse(fs.readFileSync(file, 'utf8')) as {
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as {
     permissionHash?: string;
     contentId?: number;
   };
-  return value;
 }
 
 function sqliteUrl(file: string) {
@@ -69,69 +53,77 @@ function normalizeVolume(value: string | undefined, fallback: string): string {
   return name;
 }
 
-export function loadWorkspace(root: string): LoadedWorkspace {
-  const file = path.join(root, 'feather.toml');
-  const parsed = parse(fs.readFileSync(file, 'utf8')) as unknown as WorkspaceToml;
-  const workspaceName = parsed.workspace?.name || path.basename(root);
-  const storage = parsed.storage || {};
-  const groupNamespace = storage.group_namespace || workspaceName;
-  const scriptWorkerEntry = parsed.runtime?.script_worker_entry
-    ? path.resolve(root, parsed.runtime.script_worker_entry)
-    : path.resolve(__dirname, '../../shell/tools/worker-entry/worker-entry.js');
-  const maps: MapSpec[] = [];
-  for (const entry of parsed.maps || []) {
-    const mapDir = path.resolve(root, entry.path);
-    const projectStatePath = path.join(mapDir, 'data', 'project-state.json');
-    const contentDir = path.join(mapDir, 'data', 'blobs');
-    if (!fs.existsSync(projectStatePath)) {
-      throw new Error(`map ${entry.id}: missing ${projectStatePath}`);
-    }
-    if (!fs.existsSync(contentDir)) {
-      throw new Error(`map ${entry.id}: missing ${contentDir}`);
-    }
-    const manifest = readManifest(mapDir);
-    const id = entry.id;
-    const volume = normalizeVolume(
-      entry.volume,
-      storage.mode === 'shared' && storage.group_namespace ? storage.group_namespace : id,
-    );
-    const databaseUrl = entry.database_url
-      ? entry.database_url
-      : sqliteUrl(
-          storage.path
-            ? path.resolve(root, storage.path, `${volume}.db`)
-            : path.join(root, '.feather', 'volumes', `${volume}.db`),
-        );
-    maps.push({
-      id,
-      name: entry.name,
-      workspaceId: workspaceName,
-      projectHash: manifest.permissionHash,
-      projectStatePath,
-      contentDir,
-      port: entry.port ?? 0,
-      scriptWorkerEntry,
-      dataDir: path.resolve(root, entry.data_dir || path.join('.feather', 'data', id)),
-      mode: entry.mode || 'play',
-      method: 'local',
-      databaseUrl,
-      volume,
-      groupNamespace:
-        entry.volume?.trim()
-          ? volume
-          : storage.mode === 'shared'
-            ? groupNamespace
-            : id,
-      dataStorageNamespace: id,
-      contentId: manifest.contentId ?? 0,
-      env: entry.env,
-      limits: {
-        memoryMb: entry.memory_mb,
-        players: entry.player_limit,
-      },
-      autoStart: entry.auto_start !== false,
-      labels: { workspace: workspaceName },
-    });
+function readToml<T>(file: string): T {
+  return parse(fs.readFileSync(file, 'utf8')) as unknown as T;
+}
+
+function loadMap(mapDir: string, dataRoot: string): MapSpec {
+  const mapFile = path.join(mapDir, 'feather.toml');
+  if (!fs.existsSync(mapFile)) {
+    throw new Error(`map config not found: ${mapFile}`);
   }
-  return { root, name: workspaceName, maps };
+  const parsed = readToml<MapFileToml>(mapFile);
+  const id = String(parsed.map?.id || '').trim();
+  if (!id) throw new Error(`missing [map].id: ${mapFile}`);
+
+  const projectStatePath = path.join(mapDir, 'data', 'project-state.json');
+  const contentDir = path.join(mapDir, 'data', 'blobs');
+  if (!fs.existsSync(projectStatePath)) {
+    throw new Error(`map ${id}: missing ${projectStatePath}`);
+  }
+  if (!fs.existsSync(contentDir)) {
+    throw new Error(`map ${id}: missing ${contentDir}`);
+  }
+
+  const manifest = readManifest(mapDir);
+  const storage = parsed.storage || {};
+  const volume = normalizeVolume(storage.volume, id);
+  const databaseRoot = storage.path
+    ? path.resolve(mapDir, storage.path)
+    : path.join(dataRoot, 'volumes');
+  const databaseUrl = storage.database_url
+    ? storage.database_url
+    : sqliteUrl(path.join(databaseRoot, `${volume}.db`));
+  const scriptWorkerEntry = parsed.runtime?.script_worker_entry
+    ? path.resolve(mapDir, parsed.runtime.script_worker_entry)
+    : path.resolve(__dirname, '../../shell/tools/worker-entry/worker-entry.js');
+
+  return {
+    id,
+    name: parsed.map?.name,
+    workspaceId: id,
+    projectHash: manifest.permissionHash,
+    projectStatePath,
+    contentDir,
+    port: parsed.map?.port ?? 0,
+    scriptWorkerEntry,
+    dataDir: parsed.map?.data_dir
+      ? path.resolve(mapDir, parsed.map.data_dir)
+      : path.join(dataRoot, 'maps', id, 'data'),
+    mode: parsed.map?.mode || 'play',
+    method: 'local',
+    databaseUrl,
+    volume,
+    groupNamespace: storage.volume?.trim() ? volume : (storage.group_namespace || id),
+    dataStorageNamespace: id,
+    contentId: manifest.contentId ?? 0,
+    env: parsed.map?.env,
+    limits: {
+      memoryMb: parsed.map?.memory_mb,
+      players: parsed.map?.player_limit,
+    },
+    autoStart: true,
+    labels: { map: id },
+  };
+}
+
+export function loadMaps(mapDirs: string[], dataRoot: string): LoadedMaps {
+  if (mapDirs.length === 0) throw new Error('no map directories provided');
+  const byId = new Map<string, MapSpec>();
+  for (const dir of mapDirs) {
+    const map = loadMap(path.resolve(dir), dataRoot);
+    if (byId.has(map.id)) throw new Error(`duplicate map id: ${map.id}`);
+    byId.set(map.id, map);
+  }
+  return { maps: [...byId.values()] };
 }

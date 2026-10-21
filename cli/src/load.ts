@@ -30,47 +30,41 @@ function copyPlayBundle(
   temp: string,
   workspace: string,
   bundle: PlayBundle,
-) {
-  const source = path.join(workspace, 'maps', bundle.mapGroupId);
-  fs.mkdirSync(source, { recursive: true });
-  fs.copyFileSync(path.join(temp, 'bundle.json'), path.join(source, 'bundle.json'));
-  fs.cpSync(path.join(temp, 'worlds'), path.join(source, 'worlds'), {
-    recursive: true,
-    dereference: true,
-  });
-  return source;
+): string[] {
+  const dirs: string[] = [];
+  const seen = new Set<string>();
+  fs.copyFileSync(path.join(temp, 'bundle.json'), path.join(workspace, 'bundle.json'));
+  for (const member of bundle.members) {
+    const dirName = safeName(member.id, 'map');
+    if (seen.has(dirName)) throw new Error(`duplicate map directory: ${dirName}`);
+    seen.add(dirName);
+    const mapDir = path.join(workspace, dirName);
+    fs.cpSync(path.join(temp, 'worlds', member.id), mapDir, {
+      recursive: true,
+      dereference: true,
+    });
+    const lines: string[] = [];
+    lines.push('schema_version = 1');
+    lines.push('');
+    lines.push('[map]');
+    lines.push(`id = ${tomlString(member.id)}`);
+    if (member.name) lines.push(`name = ${tomlString(member.name)}`);
+    lines.push('');
+    lines.push('[storage]');
+    // group 成员共享同一个 volume；单图也会得到 <groupId>.db
+    lines.push(`volume = ${tomlString(bundle.mapGroupId)}`);
+    lines.push('');
+    fs.writeFileSync(path.join(mapDir, 'feather.toml'), lines.join('\n'));
+    dirs.push(mapDir);
+  }
+  return dirs;
 }
 
 function writePlayWorkspace(
   workspace: string,
   archive: string,
   bundle: PlayBundle,
-  name: string,
 ) {
-  const lines: string[] = [];
-  lines.push('[workspace]');
-  lines.push(`name = ${tomlString(name)}`);
-  lines.push('data_dir = ".feather/data"');
-  lines.push('');
-  lines.push('[storage]');
-  lines.push('driver = "sqlite"');
-  lines.push('');
-  for (let i = 0; i < bundle.members.length; ++i) {
-    const member = bundle.members[i];
-    lines.push('[[maps]]');
-    lines.push(`id = ${tomlString(member.id)}`);
-    if (member.name) lines.push(`name = ${tomlString(member.name)}`);
-    lines.push(
-      `path = ${tomlString(`maps/${bundle.mapGroupId}/worlds/${member.id}`)}`,
-    );
-    // group 成员显式共享同一个 volume；单图也会得到 <groupId>.db
-    lines.push(`volume = ${tomlString(bundle.mapGroupId)}`);
-    lines.push(`port = ${3001 + i}`);
-    lines.push('auto_start = true');
-    lines.push('');
-  }
-  fs.writeFileSync(path.join(workspace, 'feather.toml'), lines.join('\n'));
-
   fs.writeFileSync(
     path.join(workspace, 'feather.lock'),
     JSON.stringify(
@@ -102,19 +96,20 @@ function loadPlayBundle(
     );
   const workspace = path.resolve(options.dir || name);
   ensureEmptyDir(workspace, !!options.force);
-  const source = copyPlayBundle(temp, workspace, bundle);
-  writePlayWorkspace(workspace, archive, bundle, name);
+  const mapDirs = copyPlayBundle(temp, workspace, bundle);
+  writePlayWorkspace(workspace, archive, bundle);
   writeGitignore(workspace);
 
-  console.log(`workspace: ${workspace}`);
+  console.log(`output:    ${workspace}`);
   console.log(`format:    boxplay (${bundle.version || 'unversioned'})`);
   console.log(`group:     ${bundle.mapGroupId}`);
   console.log(`maps:      ${bundle.members.map((m) => m.id).join(', ')}`);
-  console.log(`source:    ${source}`);
   console.log('');
   console.log('next:');
   console.log(`  cd ${workspace}`);
-  console.log('  feather up   # coming next');
+  console.log(
+    `  feather up ${mapDirs.map((dir) => `./${path.relative(workspace, dir)}`).join(' ')}`,
+  );
 }
 
 function loadProjectArchive(

@@ -126,6 +126,7 @@ export class Daemon implements DaemonHandle {
       runtime: 'worker',
       restartPolicy: spec.restartPolicy,
       autoStart: spec.autoStart,
+      volume: spec.volume || spec.id,
       labels: spec.labels,
     };
     this._records.set(spec.id, { spec, status });

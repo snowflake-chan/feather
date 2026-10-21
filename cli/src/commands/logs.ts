@@ -1,10 +1,10 @@
 import path from 'node:path';
 
 import { daemonClient } from '../daemon-process';
-import { findWorkspaceRoot } from '../workspace-spec';
+import { resolveDataRoot } from '../data-root';
 
 export async function logsCommand(id: string, options: { follow?: boolean; tail?: number; root?: string } = {}) {
-  const root = options.root ? path.resolve(options.root) : findWorkspaceRoot();
+  const root = resolveDataRoot(options.root);
   const client = daemonClient(root);
   const query = new URLSearchParams();
   if (options.follow) query.set('follow', '1');

@@ -11,7 +11,7 @@ function arg(name: string) {
 
 async function main() {
   const workspaceRoot = path.resolve(arg('--workspace') || process.cwd());
-  const dataDir = path.join(workspaceRoot, '.feather');
+  const dataDir = path.resolve(arg('--data-dir') || path.join(workspaceRoot, '.feather'));
   fs.mkdirSync(dataDir, { recursive: true });
   const tcp = process.argv.includes('--tcp');
   const socketPath = arg('--socket') || path.join(dataDir, 'daemon.sock');
