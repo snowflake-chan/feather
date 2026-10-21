@@ -101,10 +101,41 @@ async function stopMap(id: string) {
       error: `close: ${error instanceof Error ? error.message : String(error)}`,
     });
   }
+  const httpServer = handle.result.httpServer as typeof handle.result.httpServer & {
+    closeAllConnections?: () => void;
+    closeIdleConnections?: () => void;
+  };
+  // A connected player keeps an HTTP keep-alive socket open. Node's
+  // httpServer.close() then waits forever for that connection, so the daemon
+  // never receives mapStopped and restart times out on the first attempt.
+  try {
+    httpServer.closeAllConnections?.();
+    httpServer.closeIdleConnections?.();
+    // closeAllConnections() does not destroy sockets upgraded to WebSocket.
+    // Those are the exact sockets kept alive by a connected player.
+    const connections = (httpServer as any)._connections;
+    if (connections && typeof connections.forEach === 'function') {
+      for (const socket of connections) {
+        try {
+          socket.destroy();
+        } catch {
+          // already gone
+        }
+      }
+    }
+  } catch {
+    // Best effort; close() below still runs.
+  }
   await new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, 1000);
+    timer.unref();
     try {
-      handle.result.httpServer.close(() => resolve());
+      httpServer.close(() => {
+        clearTimeout(timer);
+        resolve();
+      });
     } catch {
+      clearTimeout(timer);
       resolve();
     }
   });
