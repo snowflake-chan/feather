@@ -1,11 +1,11 @@
 {
-  "name": "@feather/local-engine",
+  "name": "@feather/builder",
   "version": "0.0.0",
   "private": true,
-  "description": "Vendored official box3 local-engine project publish/package flow",
+  "description": "Native Arena project builder and publish/package flow",
   "main": "src/project-manager.js",
   "scripts": {
-    "check": "node -e \"require('./src/project-manager.js'); console.log('local-engine load ok')\""
+    "check": "node -e \"require('./src/project-manager.js'); console.log('builder load ok')\""
   },
   "dependencies": {
     "@box/apis": "workspace:*",
