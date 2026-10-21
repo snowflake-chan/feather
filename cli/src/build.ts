@@ -4,6 +4,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parse } from 'smol-toml';
 
+import { buildProjectArchive } from '@feather/builder/feather';
+
 import { FmapManifest, hashContent, writeFmapManifest } from './fmap';
 
 interface BuildToml {
@@ -20,6 +22,7 @@ interface BuildToml {
 export interface BuildOptions {
   root?: string;
   output?: string;
+  version?: string;
 }
 
 function readManifest(root: string): BuildToml {
@@ -92,6 +95,18 @@ function scanAssets(
 
 export async function buildCommand(options: BuildOptions = {}) {
   const root = path.resolve(options.root || process.cwd());
+  if (fs.existsSync(root) && fs.statSync(root).isFile()) {
+    if (path.extname(root).toLowerCase() !== '.boxproject') {
+      throw new Error(`unsupported build input: ${root} (expected .boxproject or a workspace)`);
+    }
+    const result = buildProjectArchive(root, options.output, {
+      version: options.version,
+    });
+    process.stdout.write(`built:  ${result.output}\n`);
+    process.stdout.write(`map:    ${result.manifest.map.id}\n`);
+    process.stdout.write(`content: ${result.manifest.content.hash}\n`);
+    return;
+  }
   const cfg = readManifest(root);
   const id = String(cfg.project?.id || '').trim();
   if (!id) throw new Error('feather.toml is missing [project].id');

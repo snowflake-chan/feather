@@ -148,10 +148,19 @@ bedwars.fmap
     blobs/
 ```
 
-当前构建**不做**：
+也支持直接构建官方 `.boxproject`：
+
+```bash
+feather build ./pet-raising-island.boxproject --version 1.0.0
+```
+
+这条路径调用 `@feather/builder` 里 vendored 的官方
+`project-manager.importProject` / `publishProject`，再把 release 的
+`data/project-state.json + data/blobs` 打成 fmap。
+
+当前 native workspace 构建**不做**：
 
 - 从 `mesh/` / `audio/` / `image/` 源树生成 prebake
-- 从 `.boxproject` 直接构建
 - 上传 Creator
 
 它只是把 native Arena 的 `project-state + blobs` 打成 fmap。

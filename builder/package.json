@@ -12,5 +12,10 @@
     "@box/build-system": "workspace:*",
     "@box/content-server": "workspace:*",
     "@box/utils": "workspace:*"
-  }
+  },
+  "exports": {
+    ".": "./src/project-manager.js",
+    "./feather": "./src/feather.js"
+  },
+  "types": "./feather.d.ts"
 }

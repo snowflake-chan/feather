@@ -13,7 +13,7 @@ function usage() {
 feather load <archive> [options]
 
 Commands:
-  build [workspace]    build a native arena workspace into a .fmap
+  build <workspace|.boxproject>  build a native arena workspace or official project into .fmap
   load <archive>       extract a .boxplay into the data root
   up [mapId...]        start maps from the data root (default: all)
   ps                   list maps
@@ -47,7 +47,11 @@ async function main() {
   const dataDir = getArg(args, '--data-dir');
   if (command === 'build') {
     const root = getArg(args, '--workspace') || getArg(args, '-C') || args.find((arg, i) => i > 0 && !arg.startsWith('-')) || process.cwd();
-    await buildCommand({ root, output: getArg(args, '--output') });
+    await buildCommand({
+      root,
+      output: getArg(args, '--output'),
+      version: getArg(args, '--version'),
+    });
     return;
   }
   if (command === 'up') {

@@ -25,6 +25,9 @@ importers:
 
   cli:
     dependencies:
+      '@feather/builder':
+        specifier: workspace:*
+        version: link:../builder
       '@feather/daemon':
         specifier: workspace:*
         version: link:../daemon
