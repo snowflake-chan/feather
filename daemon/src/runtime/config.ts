@@ -64,6 +64,9 @@ export function buildMapConfig(
     port: spec.port ?? 0,
     method: spec.method ?? 'local',
     mode: spec.mode ?? 'play',
+    // Local feather maps are served over plain HTTP. Without this, the
+    // engine advertises https/wss URLs even though its HTTP server is not TLS.
+    isHttps: false,
     hash: spec.projectHash ?? '',
     contentId: spec.contentId ?? 0,
     containerName: spec.id,
