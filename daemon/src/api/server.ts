@@ -126,7 +126,7 @@ export async function startApiServer(
           return json(res, 202, await daemon.startMap(id));
         }
         if (action === 'stop' && req.method === 'POST') {
-          const timeoutMs = Number(url.searchParams.get('timeout') || 10) * 1000;
+          const timeoutMs = Number(url.searchParams.get('timeout') || 30) * 1000;
           return json(res, 202, await daemon.stopMap(id, {
             timeoutMs,
             force: url.searchParams.get('force') === '1',

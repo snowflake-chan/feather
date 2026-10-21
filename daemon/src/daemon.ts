@@ -211,7 +211,7 @@ export class Daemon implements DaemonHandle {
     this._event({ type: 'map.stopping', mapId: id, time: now() });
     try {
       const shard = record.shardId ? this._shards.get(record.shardId) : undefined;
-      if (shard) await shard.stopMap(id, opts.timeoutMs ?? 10_000);
+      if (shard) await shard.stopMap(id, opts.timeoutMs ?? 30_000);
       record.status.state = 'stopped';
       record.status.port = undefined;
       record.status.url = undefined;

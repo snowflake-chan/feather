@@ -177,7 +177,7 @@ export class ShardRuntime {
     return port;
   }
 
-  public async stopMap(id: string, timeoutMs = 10_000): Promise<void> {
+  public async stopMap(id: string, timeoutMs = 30_000): Promise<void> {
     const state = this.maps.get(id);
     if (!state) return;
     if (!this._worker) throw new Error('shard not started');
@@ -194,7 +194,7 @@ export class ShardRuntime {
     this.maps.delete(id);
   }
 
-  public async exec(id: string, command: string, timeoutMs = 10_000): Promise<string> {
+  public async exec(id: string, command: string, timeoutMs = 30_000): Promise<string> {
     if (!this._worker) throw new Error('shard not started');
     if (!this.maps.get(id)?.ready) throw new Error(`map is not ready: ${id}`);
     const requestId = ++this._execSeq;
