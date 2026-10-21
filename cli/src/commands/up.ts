@@ -1,13 +1,22 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { ApiError } from '../client';
 import { resolveDataRoot } from '../data-root';
 import { ensureDaemon } from '../daemon-process';
 import { loadMaps } from '../workspace-spec';
 
 export async function upCommand(
-  options: { maps?: string[]; dataDir?: string; foreground?: boolean } = {},
+  options: { ids?: string[]; dataDir?: string; foreground?: boolean } = {},
 ) {
   const dataRoot = resolveDataRoot(options.dataDir);
-  const mapDirs = options.maps?.length ? options.maps : [process.cwd()];
+  const mapsRoot = path.join(dataRoot, 'maps');
+  const mapDirs = options.ids?.length
+    ? options.ids.map((id) => path.join(mapsRoot, id))
+    : fs
+        .readdirSync(mapsRoot, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => path.join(mapsRoot, entry.name));
   const loaded = loadMaps(mapDirs, dataRoot);
   const client = await ensureDaemon(dataRoot, options.foreground);
   const existing = new Map((await client.listMaps()).map((map) => [map.id, map]));

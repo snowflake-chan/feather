@@ -1,29 +1,32 @@
 # Map / Data Root
 
-feather 没有 workspace 编排文件。一张地图就是一个目录：
-
-```text
-bedwars-lobby/
-  feather.toml
-  manifest.json
-  data/
-    project-state.json
-    blobs/
-```
-
-daemon 是全机唯一的；地图目录只放配置和内容，运行数据在 daemon 的 data root。
+feather 没有 workspace 编排文件。一张地图是一个目录，**load 后固定进 data root**：
 
 ```text
 ~/.feather/                 # 默认 data root，可用 FEATHER_DATA_DIR 覆盖
+  maps/<mapId>/             # 可玩地图内容 + play 配置
+    feather.toml
+    manifest.json
+    data/
+      project-state.json
+      blobs/
+  volumes/<volume>.db       # 所有地图 SQLite
   daemon.sock
   daemon.pid
   state.json
-  volumes/<volume>.db
-  maps/<mapId>/data/
   logs/
 ```
 
+默认 `~/.feather`，也可：
+
+```bash
+FEATHER_DATA_DIR=/var/lib/feather
+feather load map.boxplay
+```
+
 ## `feather.toml`
+
+当前 play 目录里的单图配置：
 
 ```toml
 schema_version = 1
@@ -86,38 +89,40 @@ volume = "bedwars-group"
 
 ```bash
 pnpm --filter @feather/cli build
-node cli/bin/feather load /path/to/map.boxplay --dir ./my-maps
+node cli/bin/feather load /path/to/map.boxplay
 ```
 
-输出是平铺的地图目录：
+输出固定：
 
 ```text
-my-maps/
+~/.feather/maps/
   cloud-4e84.../
     feather.toml
+    manifest.json
+    data/
+    feather.lock
   cloud-3b56.../
     feather.toml
-  feather.lock
+    manifest.json
+    data/
+    feather.lock
 ```
 
-然后：
-
-```bash
-cd my-maps
-feather up ./cloud-4e84... ./cloud-3b56...
-```
+不会再把地图解到任意 `--dir`。`--force` 会替换同 id 的地图目录。
 
 ## 运行
 
 ```bash
-# 当前目录是一张地图
+# 启动 data root 下所有 map
 feather up
 
-# 多张地图
-feather up ./bedwars-lobby ./bedwars-s2
+# 只启动指定 map
+feather up cloud-4e84... cloud-3b56...
 
 # 自定义 data root
-feather up ./bedwars-lobby --data-dir /var/lib/feather
+FEATHER_DATA_DIR=/var/lib/feather feather up
+# 或
+feather up --data-dir /var/lib/feather
 
 feather ps
 feather logs <id> -f
@@ -125,15 +130,7 @@ feather stop <id>
 feather down
 ```
 
-`feather up` 会：
-
-1. 读取每个 map 目录的 `feather.toml`
-2. 没有 daemon 就在 data root 启动 daemon
-3. 注册缺失的 map
-4. 启动所有 map
-5. 打印 `map -> http://127.0.0.1:<port>`
-
-daemon 是全机的，不跟随某个地图目录；`ps` / `logs` / `stop` / `exec` 默认访问同一个 data root。
+`feather load` 在 data root 里创建 map；`feather up` 注册到全机唯一 daemon。
 
 ## `.boxplay` vs `.boxproject`
 

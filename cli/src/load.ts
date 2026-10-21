@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { resolveDataRoot } from './data-root';
 import { withTempExtract } from './archive';
 import {
   ensureEmptyDir,
@@ -10,13 +11,11 @@ import {
   readJson,
   safeName,
   tomlString,
-  writeGitignore,
 } from './workspace';
 
 export interface LoadOptions {
   archive: string;
-  dir?: string;
-  name?: string;
+  dataDir?: string;
   force?: boolean;
 }
 
@@ -28,17 +27,23 @@ function sha256(file: string) {
 
 function copyPlayBundle(
   temp: string,
-  workspace: string,
+  dataRoot: string,
   bundle: PlayBundle,
+  force: boolean,
 ): string[] {
+  const mapsRoot = path.join(dataRoot, 'maps');
+  fs.mkdirSync(mapsRoot, { recursive: true });
   const dirs: string[] = [];
   const seen = new Set<string>();
-  fs.copyFileSync(path.join(temp, 'bundle.json'), path.join(workspace, 'bundle.json'));
   for (const member of bundle.members) {
     const dirName = safeName(member.id, 'map');
     if (seen.has(dirName)) throw new Error(`duplicate map directory: ${dirName}`);
     seen.add(dirName);
-    const mapDir = path.join(workspace, dirName);
+    const mapDir = path.join(mapsRoot, dirName);
+    if (fs.existsSync(mapDir)) {
+      if (!force) throw new Error(`map already exists: ${mapDir} (use --force)`);
+      fs.rmSync(mapDir, { recursive: true, force: true });
+    }
     fs.cpSync(path.join(temp, 'worlds', member.id), mapDir, {
       recursive: true,
       dereference: true,
@@ -61,12 +66,12 @@ function copyPlayBundle(
 }
 
 function writePlayWorkspace(
-  workspace: string,
+  mapDir: string,
   archive: string,
   bundle: PlayBundle,
 ) {
   fs.writeFileSync(
-    path.join(workspace, 'feather.lock'),
+    path.join(mapDir, 'feather.lock'),
     JSON.stringify(
       {
         format: 'boxplay',
@@ -88,28 +93,17 @@ function loadPlayBundle(
   options: LoadOptions,
 ) {
   const bundle = readJson<PlayBundle>(path.join(temp, 'bundle.json'));
-  const name =
-    options.name ||
-    safeName(
-      bundle.members.find((m) => m.id === bundle.mainProjectId)?.name ||
-        bundle.mapGroupId,
-    );
-  const workspace = path.resolve(options.dir || name);
-  ensureEmptyDir(workspace, !!options.force);
-  const mapDirs = copyPlayBundle(temp, workspace, bundle);
-  writePlayWorkspace(workspace, archive, bundle);
-  writeGitignore(workspace);
+  const dataRoot = resolveDataRoot(options.dataDir);
+  const mapDirs = copyPlayBundle(temp, dataRoot, bundle, !!options.force);
+  for (const mapDir of mapDirs) writePlayWorkspace(mapDir, archive, bundle);
 
-  console.log(`output:    ${workspace}`);
+  console.log(`data:      ${dataRoot}`);
   console.log(`format:    boxplay (${bundle.version || 'unversioned'})`);
   console.log(`group:     ${bundle.mapGroupId}`);
   console.log(`maps:      ${bundle.members.map((m) => m.id).join(', ')}`);
   console.log('');
   console.log('next:');
-  console.log(`  cd ${workspace}`);
-  console.log(
-    `  feather up ${mapDirs.map((dir) => `./${path.relative(workspace, dir)}`).join(' ')}`,
-  );
+  console.log(`  feather up ${bundle.members.map((m) => safeName(m.id, 'map')).join(' ')}`);
 }
 
 function loadProjectArchive(
@@ -118,11 +112,13 @@ function loadProjectArchive(
   options: LoadOptions,
 ) {
   const group = readJson<MapGroupDescriptor>(path.join(temp, 'group.json'));
-  const name =
-    options.name || safeName(group.mapGroupId);
-  const workspace = path.resolve(options.dir || name);
-  ensureEmptyDir(workspace, !!options.force);
-  const target = path.join(workspace, 'projects', group.mapGroupId);
+  const workspace = path.join(resolveDataRoot(options.dataDir), 'projects');
+  fs.mkdirSync(workspace, { recursive: true });
+  const target = path.join(workspace, group.mapGroupId);
+  if (fs.existsSync(target) && !options.force) {
+    throw new Error(`project already exists: ${target} (use --force)`);
+  }
+  if (fs.existsSync(target)) fs.rmSync(target, { recursive: true, force: true });
   fs.mkdirSync(target, { recursive: true });
   fs.cpSync(path.join(temp, 'projects'), path.join(target, 'projects'), {
     recursive: true,
@@ -130,7 +126,7 @@ function loadProjectArchive(
   });
   fs.copyFileSync(path.join(temp, 'group.json'), path.join(target, 'group.json'));
   fs.writeFileSync(
-    path.join(workspace, 'feather.lock'),
+    path.join(target, 'feather.lock'),
     JSON.stringify(
       {
         format: 'boxproject',

@@ -12,8 +12,8 @@ function usage() {
 feather load <archive> [options]
 
 Commands:
-  load <archive>       load a .boxplay/.boxproject into a directory
-  up [mapDir...]       register/start one or more maps (default: current directory)
+  load <archive>       extract a .boxplay into the data root
+  up [mapId...]        start maps from the data root (default: all)
   ps                   list maps
   stop <id>            stop a map
   logs <id> [-f]       show map logs
@@ -25,9 +25,7 @@ Data root:
   --data-dir <path>    daemon state/data (default: ~/.feather or FEATHER_DATA_DIR)
 
 Load options:
-  --dir <path>         output directory (default: ./<name>)
-  --name <name>        output name
-  --force              overwrite a non-empty directory
+  --force              replace existing maps with the same id
 `);
 }
 
@@ -35,25 +33,6 @@ function getArg(args: string[], name: string) {
   const index = args.indexOf(name);
   if (index < 0) return undefined;
   return args[index + 1];
-}
-
-function positional(args: string[], start = 1): string[] {
-  const takesValue = new Set(['--data-dir', '--dir', '--name']);
-  const out: string[] = [];
-  for (let i = start; i < args.length; i++) {
-    const arg = args[i];
-    if (arg === '--') {
-      out.push(...args.slice(i + 1));
-      break;
-    }
-    if (arg.startsWith('--')) {
-      if (takesValue.has(arg)) i++;
-      continue;
-    }
-    if (arg.startsWith('-')) continue;
-    out.push(arg);
-  }
-  return out;
 }
 
 async function main() {
@@ -65,8 +44,18 @@ async function main() {
   }
   const dataDir = getArg(args, '--data-dir');
   if (command === 'up') {
+    const ids: string[] = [];
+    for (let i = 1; i < args.length; i++) {
+      const arg = args[i];
+      if (arg === '--data-dir') {
+        i++;
+        continue;
+      }
+      if (arg.startsWith('-')) continue;
+      ids.push(arg);
+    }
     await upCommand({
-      maps: positional(args),
+      ids,
       dataDir,
       foreground: args.includes('--foreground'),
     });
@@ -124,8 +113,7 @@ async function main() {
   }
   await loadCommand({
     archive,
-    dir: getArg(args, '--dir'),
-    name: getArg(args, '--name'),
+    dataDir,
     force: args.includes('--force'),
   });
 }
