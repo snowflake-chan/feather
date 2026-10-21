@@ -1,0 +1,318 @@
+openapi: 3.1.0
+info:
+  title: Feather Auth API
+  version: 1.0.0
+  description: |
+    Lightweight, in-process auth for feather. The auth module is a library
+    loaded by feather-daemon; this document defines the HTTP contract exposed
+    under /v1/auth.
+
+    There is no OAuth/OIDC implementation here. A trusted local portal
+    authenticates the user however it wants and calls POST /v1/auth/session
+    with its service token. Providers are opaque namespaces.
+
+servers:
+  - url: http://127.0.0.1:3000
+    description: Local daemon HTTP endpoint (or a local reverse proxy)
+  - url: http://unix:/data/feather/daemon.sock:
+    description: Daemon Unix socket (OpenAPI tooling may not support UDS)
+
+tags:
+  - name: auth
+  - name: service
+
+paths:
+  /v1/auth/config:
+    get:
+      tags: [auth]
+      operationId: getAuthConfig
+      summary: Public auth capabilities
+      responses:
+        '200':
+          description: Auth feature flags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthConfig'
+
+  /v1/auth/guest:
+    post:
+      tags: [auth]
+      operationId: createGuest
+      summary: Create an anonymous guest player and session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGuestRequest'
+      responses:
+        '201':
+          description: Guest session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '403':
+          $ref: '#/components/responses/GuestDisabled'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /v1/auth/session:
+    post:
+      tags: [service]
+      operationId: createSession
+      summary: Create/link a session for a trusted provider
+      description: |
+        Service-to-service only. The caller must present the auth service token.
+        The provider/subject pair is idempotent: the same pair always maps to
+        the same playerId.
+      security:
+        - serviceToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '200':
+          description: Existing player session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '201':
+          description: New player/session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/InvalidServiceToken'
+        '403':
+          $ref: '#/components/responses/ProviderNotAllowed'
+
+  /v1/auth/me:
+    get:
+      tags: [auth]
+      operationId: getMe
+      summary: Return the current player
+      security:
+        - sessionToken: []
+      responses:
+        '200':
+          description: Current player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/InvalidSession'
+
+  /v1/auth/revoke:
+    post:
+      tags: [auth]
+      operationId: revokeSession
+      summary: Revoke the current session
+      security:
+        - sessionToken: []
+      responses:
+        '204':
+          description: Session revoked
+        '401':
+          $ref: '#/components/responses/InvalidSession'
+
+  /v1/auth/ticket:
+    post:
+      tags: [auth]
+      operationId: createMapTicket
+      summary: Exchange a session for a short-lived map ticket
+      security:
+        - sessionToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+      responses:
+        '200':
+          description: Map ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapTicket'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/InvalidSession'
+
+components:
+  securitySchemes:
+    sessionToken:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Opaque session token from guest/session creation.
+    serviceToken:
+      type: apiKey
+      in: header
+      name: X-Feather-Service-Token
+      description: Long random token held by the local portal only.
+
+  schemas:
+    AuthConfig:
+      type: object
+      required: [guestEnabled]
+      properties:
+        guestEnabled:
+          type: boolean
+        providers:
+          type: array
+          items:
+            type: string
+          description: Provider names accepted by /v1/auth/session.
+
+    CreateGuestRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 64
+
+    CreateSessionRequest:
+      type: object
+      required: [provider, subject]
+      properties:
+        provider:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9._-]{0,63}$'
+          examples: [my-portal, discord, local]
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: Stable user ID inside the provider.
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 64
+        linkSession:
+          type: string
+          description: Optional guest session token to upgrade to this identity.
+
+    Player:
+      type: object
+      required: [id, displayName, kind]
+      properties:
+        id:
+          type: string
+          examples: [plr_7f3c...]
+        displayName:
+          type: string
+        kind:
+          type: string
+          enum: [guest, identity]
+        provider:
+          type: string
+          description: Present for identity players.
+
+    Session:
+      type: object
+      required: [playerId, displayName, sessionToken, expiresAt, kind]
+      properties:
+        playerId:
+          type: string
+        displayName:
+          type: string
+        sessionToken:
+          type: string
+          description: Opaque; return once, store only its hash.
+        expiresAt:
+          type: integer
+          format: int64
+          description: Unix milliseconds.
+        kind:
+          type: string
+          enum: [guest, identity]
+
+    CreateTicketRequest:
+      type: object
+      required: [audience]
+      properties:
+        audience:
+          type: string
+          examples: ['map:bedwars-lobby']
+        ttlSeconds:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 60
+
+    MapTicket:
+      type: object
+      required: [ticket, audience, expiresAt]
+      properties:
+        ticket:
+          type: string
+          description: Compact signed ticket (Ed25519 or HMAC).
+        audience:
+          type: string
+        expiresAt:
+          type: integer
+          format: int64
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: [INVALID_SESSION]
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    GuestDisabled:
+      description: Guest access is disabled
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InvalidSession:
+      description: Session missing, expired, or revoked
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InvalidServiceToken:
+      description: Service token missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ProviderNotAllowed:
+      description: Provider is not enabled
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Too many guest sessions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
