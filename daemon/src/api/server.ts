@@ -133,7 +133,11 @@ export async function startApiServer(
           }));
         }
         if (action === 'restart' && req.method === 'POST') {
-          return json(res, 202, await daemon.restartMap(id));
+          const timeoutMs = Number(url.searchParams.get('timeout') || 60) * 1000;
+          return json(res, 202, await daemon.restartMap(id, {
+            timeoutMs,
+            force: url.searchParams.get('force') === '1',
+          }));
         }
         if (action === 'stats' && req.method === 'GET') {
           return json(res, 200, await daemon.stats(id));

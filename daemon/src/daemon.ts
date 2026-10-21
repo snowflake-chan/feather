@@ -237,8 +237,11 @@ export class Daemon implements DaemonHandle {
     }
   }
 
-  public async restartMap(id: string): Promise<Operation> {
-    await this.stopMap(id);
+  public async restartMap(id: string, opts: StopOptions = {}): Promise<Operation> {
+    await this.stopMap(id, {
+      timeoutMs: opts.timeoutMs ?? 60_000,
+      force: opts.force,
+    });
     return this.startMap(id);
   }
 
