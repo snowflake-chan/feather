@@ -35,6 +35,8 @@ export interface MapSpec {
   mode?: 'play' | 'edit';
   method?: 'local';
   databaseUrl?: string;
+  /** SQLite 逻辑卷名。默认等于 map id；显式同名会共享同一个 .db。 */
+  volume?: string;
   groupNamespace?: string;
   dataStorageNamespace?: string;
   contentId?: number;

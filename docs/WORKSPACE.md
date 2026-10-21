@@ -121,3 +121,37 @@ shard 行为（按核数分配）：
 - map logs 目前是 shard 级 stdout/stderr，未按图打标
 - 不做热迁移；shard 崩溃按 map 重启策略恢复
 - 不做反代；端口直接暴露
+## storage volume
+
+`volume` 是逻辑 SQLite 文件。默认等于 map id，显式同名会共享同一个 `.db`。
+
+```toml
+[[maps]]
+id = "bedwars-lobby"
+path = "maps/.../worlds/bedwars-lobby"
+# 不写 volume => bedwars-lobby.db
+
+[[maps]]
+id = "bedwars-s2"
+path = "maps/.../worlds/bedwars-s2"
+volume = "bedwars-group"   # => bedwars-group.db
+```
+
+数据文件默认在：
+
+```text
+<workspace>/.feather/volumes/<volume>.db
+```
+
+如果配置了 `storage.path`，则：
+
+```text
+<storage.path>/<volume>.db
+```
+
+规则：
+
+- `volume` 只允许 `[A-Za-z0-9._-]`，且禁止 `..`
+- 不写：每张图独立 DB
+- 显式同名：共享 DB，同时作为 group namespace
+- `database_url` 显式配置时优先级最高

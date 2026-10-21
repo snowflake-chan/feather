@@ -54,8 +54,6 @@ function writePlayWorkspace(
   lines.push('');
   lines.push('[storage]');
   lines.push('driver = "sqlite"');
-  lines.push('mode = "shared"');
-  lines.push(`group_namespace = ${tomlString(bundle.mapGroupId)}`);
   lines.push('');
   for (let i = 0; i < bundle.members.length; ++i) {
     const member = bundle.members[i];
@@ -65,6 +63,8 @@ function writePlayWorkspace(
     lines.push(
       `path = ${tomlString(`maps/${bundle.mapGroupId}/worlds/${member.id}`)}`,
     );
+    // group 成员显式共享同一个 volume；单图也会得到 <groupId>.db
+    lines.push(`volume = ${tomlString(bundle.mapGroupId)}`);
     lines.push(`port = ${3001 + i}`);
     lines.push('auto_start = true');
     lines.push('');

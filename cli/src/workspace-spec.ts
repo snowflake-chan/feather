@@ -12,6 +12,8 @@ interface MapToml {
   auto_start?: boolean;
   data_dir?: string;
   database_url?: string;
+  /** 逻辑 SQLite 卷名；默认 map id，显式同名共享同一个 .db */
+  volume?: string;
   env?: Record<string, string>;
   mode?: 'play' | 'edit';
   /** 单图脚本 worker 的内存上限（MB）；不填则用全局 SCRIPT_MEMORY_LIMIT */
@@ -57,6 +59,16 @@ function sqliteUrl(file: string) {
   return `sqlite:///${path.resolve(file)}`;
 }
 
+const VOLUME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+
+function normalizeVolume(value: string | undefined, fallback: string): string {
+  const name = (value ?? '').trim() || fallback;
+  if (!VOLUME_RE.test(name) || name.includes('..')) {
+    throw new Error(`invalid volume name: ${JSON.stringify(name)}`);
+  }
+  return name;
+}
+
 export function loadWorkspace(root: string): LoadedWorkspace {
   const file = path.join(root, 'feather.toml');
   const parsed = parse(fs.readFileSync(file, 'utf8')) as unknown as WorkspaceToml;
@@ -79,13 +91,16 @@ export function loadWorkspace(root: string): LoadedWorkspace {
     }
     const manifest = readManifest(mapDir);
     const id = entry.id;
-    const isolated = storage.mode === 'isolated';
+    const volume = normalizeVolume(
+      entry.volume,
+      storage.mode === 'shared' && storage.group_namespace ? storage.group_namespace : id,
+    );
     const databaseUrl = entry.database_url
       ? entry.database_url
       : sqliteUrl(
           storage.path
-            ? path.resolve(root, storage.path, `${isolated ? id : groupNamespace}.sqlite`)
-            : path.join(root, '.feather', 'sqlite', `${isolated ? id : groupNamespace}.sqlite`),
+            ? path.resolve(root, storage.path, `${volume}.db`)
+            : path.join(root, '.feather', 'volumes', `${volume}.db`),
         );
     maps.push({
       id,
@@ -100,7 +115,13 @@ export function loadWorkspace(root: string): LoadedWorkspace {
       mode: entry.mode || 'play',
       method: 'local',
       databaseUrl,
-      groupNamespace,
+      volume,
+      groupNamespace:
+        entry.volume?.trim()
+          ? volume
+          : storage.mode === 'shared'
+            ? groupNamespace
+            : id,
       dataStorageNamespace: id,
       contentId: manifest.contentId ?? 0,
       env: entry.env,
