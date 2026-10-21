@@ -91,6 +91,69 @@ database_url
 
 暂不支持 `"instance"`；实例 isolation 以后再做。
 
+## 原生构建
+
+第一版接受已经带 `project-state.json + blobs` 的 native Arena 源目录：
+
+```text
+my-map/
+  feather.toml
+  source/
+    project-state.json
+    blobs/
+```
+
+`feather.toml`：
+
+```toml
+schema_version = 1
+
+[project]
+id = "bedwars"
+name = "起床战争"
+version = "1.0.0"
+
+[build]
+source = "source"
+output = "bedwars.fmap"
+
+[storage]
+volume = "bedwars-group"
+
+[runtime]
+port = 0
+autoStart = true
+memoryMb = 512
+playerLimit = 32
+```
+
+构建：
+
+```bash
+feather build ./my-map
+# 或
+feather build --workspace ./my-map --output ./dist/bedwars.fmap
+```
+
+产物：
+
+```text
+bedwars.fmap
+  feather.json
+  content/
+    project-state.json
+    blobs/
+```
+
+当前构建**不做**：
+
+- 从 `mesh/` / `audio/` / `image/` 源树生成 prebake
+- 从 `.boxproject` 直接构建
+- 上传 Creator
+
+它只是把 native Arena 的 `project-state + blobs` 打成 fmap。  
+真正的源树编译（prebake builder）是下一步。
+
 ## 从 `.boxplay` 导入
 
 ```bash

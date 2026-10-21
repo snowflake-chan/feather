@@ -5,6 +5,7 @@ import { logsCommand } from './commands/logs';
 import { psCommand } from './commands/ps';
 import { stopCommand } from './commands/stop';
 import { upCommand } from './commands/up';
+import { buildCommand } from './build';
 import { loadCommand } from './load';
 
 function usage() {
@@ -12,6 +13,7 @@ function usage() {
 feather load <archive> [options]
 
 Commands:
+  build [workspace]    build a native arena workspace into a .fmap
   load <archive>       extract a .boxplay into the data root
   up [mapId...]        start maps from the data root (default: all)
   ps                   list maps
@@ -43,6 +45,11 @@ async function main() {
     return;
   }
   const dataDir = getArg(args, '--data-dir');
+  if (command === 'build') {
+    const root = getArg(args, '--workspace') || getArg(args, '-C') || args.find((arg, i) => i > 0 && !arg.startsWith('-')) || process.cwd();
+    await buildCommand({ root, output: getArg(args, '--output') });
+    return;
+  }
   if (command === 'up') {
     const ids: string[] = [];
     for (let i = 1; i < args.length; i++) {
