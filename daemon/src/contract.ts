@@ -137,6 +137,7 @@ export type DaemonEventType =
   | 'daemon.ready'
   | 'daemon.shutdown'
   | 'map.created'
+  | 'map.updated'
   | 'map.starting'
   | 'map.running'
   | 'map.stopping'

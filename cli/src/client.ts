@@ -94,6 +94,9 @@ export class DaemonClient {
   createMap(spec: MapSpec) {
     return this._request<MapStatus>('POST', '/v1/maps', spec);
   }
+  updateMap(spec: MapSpec) {
+    return this._request<MapStatus>('PUT', `/v1/maps/${encodeURIComponent(spec.id)}`, spec);
+  }
   startMap(id: string) {
     return this._request<Operation>('POST', `/v1/maps/${encodeURIComponent(id)}/start`);
   }

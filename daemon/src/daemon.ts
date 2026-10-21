@@ -134,6 +134,30 @@ export class Daemon implements DaemonHandle {
     return { ...status };
   }
 
+  public async updateMap(id: string, spec: MapSpec): Promise<MapStatus> {
+    const record = this._requireMap(id);
+    if (record.status.state === 'running' || record.status.state === 'starting') {
+      throw new DaemonError('OPERATION_IN_PROGRESS', `map is busy: ${id}`);
+    }
+    if (spec.id !== id) {
+      throw new DaemonError('INVALID_SPEC', `map id mismatch: ${spec.id} !== ${id}`);
+    }
+    record.spec = spec;
+    record.status = {
+      ...record.status,
+      name: spec.name,
+      workspaceId: spec.workspaceId,
+      state: 'created',
+      error: undefined,
+      restartPolicy: spec.restartPolicy,
+      volume: spec.volume || spec.id,
+      labels: spec.labels,
+    };
+    this._persist();
+    this._event({ type: 'map.updated', mapId: id, time: now() });
+    return { ...record.status };
+  }
+
   public async startMap(id: string): Promise<Operation> {
     const record = this._requireMap(id);
     if (record.status.state === 'running') {

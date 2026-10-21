@@ -112,6 +112,10 @@ export async function startApiServer(
             ? json(res, 200, status)
             : error(res, 404, 'MAP_NOT_FOUND', `map not found: ${id}`);
         }
+        if (!action && req.method === 'PUT') {
+          const body = (await readJson(req)) as MapSpec;
+          return json(res, 200, await daemon.updateMap(id, body));
+        }
         if (!action && req.method === 'DELETE') {
           const force = url.searchParams.get('force') === '1';
           await daemon.destroyMap(id, { force });

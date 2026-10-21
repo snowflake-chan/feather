@@ -22,9 +22,13 @@ export async function upCommand(
   const existing = new Map((await client.listMaps()).map((map) => [map.id, map]));
   // Create every map first so daemon shard assignment sees the full set.
   for (const spec of loaded.maps) {
-    if (!existing.has(spec.id)) {
-      const status = await client.createMap(spec);
-      existing.set(spec.id, status);
+    const status = existing.get(spec.id);
+    if (!status) {
+      existing.set(spec.id, await client.createMap(spec));
+      continue;
+    }
+    if (status.state !== 'running' && status.state !== 'starting') {
+      existing.set(spec.id, await client.updateMap(spec));
     }
   }
   for (const spec of loaded.maps) {
