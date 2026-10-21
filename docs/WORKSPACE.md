@@ -40,7 +40,6 @@ feather 没有 workspace 编排文件。一个可玩地图是 data root 下的�
   },
   "runtime": {
     "port": 0,
-    "autoStart": true,
     "memoryMb": null,
     "playerLimit": 32
   },
@@ -62,7 +61,7 @@ feather 没有 workspace 编排文件。一个可玩地图是 data root 下的�
 - `map`：地图 id、名称、内容版本
 - `content`：初始状态和内容寻址 blobs
 - `storage.volume`：SQLite 卷名；不写默认 `map.id`
-- `runtime`：端口、自动启动、脚本内存、玩家上限
+- `runtime`：端口、脚本内存、玩家上限
 - `source`：从哪个 `.boxplay` 导入
 - `requires`：feather 兼容性
 
@@ -122,7 +121,6 @@ volume = "bedwars-group"
 
 [runtime]
 port = 0
-autoStart = true
 memoryMb = 512
 playerLimit = 32
 ```

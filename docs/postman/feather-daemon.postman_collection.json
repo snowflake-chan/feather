@@ -87,7 +87,7 @@
             "description": "Create a map. Replace ABS and projectHash with real paths/hash.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id\": \"my-map\",\n  \"name\": \"My Map\",\n  \"projectStatePath\": \"/ABS/workspace/maps/group/worlds/my-map/data/project-state.json\",\n  \"contentDir\": \"/ABS/workspace/maps/group/worlds/my-map/data/blobs\",\n  \"projectHash\": \"Qm...\",\n  \"port\": 0,\n  \"scriptWorkerEntry\": \"/ABS/feather/shell/tools/worker-entry/worker-entry.js\",\n  \"databaseUrl\": \"sqlite:////ABS/workspace/.feather/sqlite/group.sqlite\",\n  \"groupNamespace\": \"group\",\n  \"dataStorageNamespace\": \"my-map\",\n  \"dataDir\": \"/ABS/workspace/.feather/data/my-map\",\n  \"contentId\": 100,\n  \"limits\": { \"players\": 32, \"memoryMb\": 512 },\n  \"autoStart\": true\n}",
+              "raw": "{\n  \"id\": \"my-map\",\n  \"name\": \"My Map\",\n  \"projectStatePath\": \"/ABS/workspace/maps/group/worlds/my-map/data/project-state.json\",\n  \"contentDir\": \"/ABS/workspace/maps/group/worlds/my-map/data/blobs\",\n  \"projectHash\": \"Qm...\",\n  \"port\": 0,\n  \"scriptWorkerEntry\": \"/ABS/feather/shell/tools/worker-entry/worker-entry.js\",\n  \"databaseUrl\": \"sqlite:////ABS/workspace/.feather/sqlite/group.sqlite\",\n  \"groupNamespace\": \"group\",\n  \"dataStorageNamespace\": \"my-map\",\n  \"dataDir\": \"/ABS/workspace/.feather/data/my-map\",\n  \"contentId\": 100,\n  \"limits\": { \"players\": 32, \"memoryMb\": 512 }\n}",
               "options": {
                 "raw": {
                   "language": "json"

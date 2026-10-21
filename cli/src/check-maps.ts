@@ -28,7 +28,7 @@ function map(id: string, volume?: string): string {
       hash: hashContent(path.join(dir, 'content')),
     },
     storage: volume === undefined ? undefined : { volume },
-    runtime: { port: 0, autoStart: true },
+    runtime: { port: 0 },
     requires: { feather: '>=0.1.0', format: 1 },
   });
   return dir;

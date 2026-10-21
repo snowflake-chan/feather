@@ -32,19 +32,6 @@ async function main() {
   });
   const pidFile = path.join(dataDir, 'daemon.pid');
   fs.writeFileSync(pidFile, `${process.pid}\n`);
-  // Restore autoStart maps before the API becomes ready, so `feather up`
-  // doesn't race with daemon boot. CLI `up` is idempotent.
-  for (const map of await daemon.listMaps()) {
-    if (map.autoStart && map.state !== 'running') {
-      try {
-        await daemon.startMap(map.id);
-      } catch (error) {
-        process.stderr.write(
-          `autoStart ${map.id} failed: ${error instanceof Error ? error.message : String(error)}\n`,
-        );
-      }
-    }
-  }
   let api: Awaited<ReturnType<typeof startApiServer>> | undefined;
   const shutdown = async () => {
     await api?.close().catch(() => {});

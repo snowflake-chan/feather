@@ -11,7 +11,6 @@ interface BuildToml {
   storage?: { volume?: string };
   runtime?: {
     port?: number;
-    autoStart?: boolean;
     memoryMb?: number | null;
     playerLimit?: number | null;
   };
@@ -71,7 +70,6 @@ export async function buildCommand(options: BuildOptions = {}) {
       storage: cfg.storage?.volume ? { volume: cfg.storage.volume } : undefined,
       runtime: {
         port: cfg.runtime?.port ?? 0,
-        autoStart: cfg.runtime?.autoStart ?? true,
         memoryMb: cfg.runtime?.memoryMb ?? null,
         playerLimit: cfg.runtime?.playerLimit ?? null,
       },

@@ -105,7 +105,6 @@ function installPlayBundle(
       storage: { volume: bundle.mapGroupId },
       runtime: {
         port: 0,
-        autoStart: true,
         memoryMb: null,
         playerLimit: null,
       },

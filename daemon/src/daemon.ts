@@ -125,7 +125,6 @@ export class Daemon implements DaemonHandle {
       state: 'created',
       runtime: 'worker',
       restartPolicy: spec.restartPolicy,
-      autoStart: spec.autoStart,
       volume: spec.volume || spec.id,
       labels: spec.labels,
     };
@@ -492,8 +491,7 @@ export class Daemon implements DaemonHandle {
             state: 'stopped',
             runtime: 'worker',
             restartPolicy: spec.restartPolicy,
-            autoStart: spec.autoStart,
-            labels: spec.labels,
+                  labels: spec.labels,
           },
         });
       }

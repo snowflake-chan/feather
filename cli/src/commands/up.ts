@@ -29,7 +29,7 @@ export async function upCommand(
   }
   for (const spec of loaded.maps) {
     const status = existing.get(spec.id)!;
-    if (spec.autoStart !== false && status.state !== 'running') {
+    if (status.state !== 'running') {
       await ensureRunning(client, spec.id);
     }
     const current = await client.getMap(spec.id);

@@ -70,7 +70,6 @@ function loadOne(mapDir: string, dataRoot: string): MapSpec {
       memoryMb: runtime.memoryMb ?? undefined,
       players: runtime.playerLimit ?? undefined,
     },
-    autoStart: runtime.autoStart !== false,
     labels: {
       version: manifest.map.version || '',
       source: manifest.source?.kind || '',

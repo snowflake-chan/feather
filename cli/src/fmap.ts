@@ -20,7 +20,6 @@ export interface FmapManifest {
   };
   runtime?: {
     port?: number;
-    autoStart?: boolean;
     memoryMb?: number | null;
     playerLimit?: number | null;
   };

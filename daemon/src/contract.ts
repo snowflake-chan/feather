@@ -30,7 +30,6 @@ export interface MapSpec {
   env?: Record<string, string>;
   limits?: MapLimits;
   restartPolicy?: RestartPolicy;
-  autoStart?: boolean;
   dataDir?: string;
   mode?: 'play' | 'edit';
   method?: 'local';
@@ -57,7 +56,6 @@ export interface MapStatus {
   engine?: EngineStatus;
   error?: string;
   restartPolicy?: RestartPolicy;
-  autoStart?: boolean;
   volume?: string;
   labels?: Record<string, string>;
 }

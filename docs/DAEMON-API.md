@@ -152,7 +152,6 @@ Content-Type: application/json
   "env": { "SCRIPT_MEMORY_LIMIT": "512" },
   "limits": { "players": 32, "memoryMb": 512 },
   "restartPolicy": "on-failure",
-  "autoStart": true
 }
 ```
 
@@ -234,7 +233,7 @@ GET /v1/events?since=...
 - 资源指标按 shard 采（`worker.cpuUsage()` / `worker.getHeapStatistics()`），不再用 `process.*` —— 后者在 worker 里读的是整个进程，多 shard 会串号
 - `feather up/ps/stop/logs/down` 已接入
 - `feather-daemon` 默认 `<workspace>/.feather/daemon.sock`
-- daemon 重启会从 `.feather/state.json` 读取 spec，`autoStart` 的图自动拉起
+- daemon 重启只恢复 map 注册表，不自动启动图；需要显式 `start`
 
 Postman Collection：[docs/postman/feather-daemon.postman_collection.json](postman/feather-daemon.postman_collection.json)（导入后改 `daemonSocket` 变量）。
 
