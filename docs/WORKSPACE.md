@@ -38,6 +38,11 @@ feather 没有 workspace 编排文件。一个可玩地图是 data root 下的�
   "storage": {
     "volume": "bedwars-group"
   },
+  "assets": {
+    "mesh/cube.vb": { "hash": "sha256:...", "type": "mesh" },
+    "audio/theme.mp3": { "hash": "sha256:...", "type": "audio" },
+    "image/icon.png": { "hash": "sha256:...", "type": "image" }
+  },
   "runtime": {
     "port": 0,
     "memoryMb": null,
@@ -149,7 +154,26 @@ bedwars.fmap
 - 从 `.boxproject` 直接构建
 - 上传 Creator
 
-它只是把 native Arena 的 `project-state + blobs` 打成 fmap。  
+它只是把 native Arena 的 `project-state + blobs` 打成 fmap。
+
+同时会扫描源树里的：
+
+```text
+mesh/**
+audio/**
+image/**
+```
+
+写入：
+
+```text
+content/blobs/<sha256>
+feather.json.assets
+```
+
+`assets` 的逻辑 key 保持 shell 路径，例如 `mesh/cube.vb`、`audio/theme.mp3`。  
+这些资源已经进包、可被后续 prebake compiler 使用；当前还不会自动注入 project-state/prebake，所以地图脚本暂时不能直接依赖新加的树资源。
+
 真正的源树编译（prebake builder）是下一步。
 
 ## 从 `.boxplay` 导入

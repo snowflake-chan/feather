@@ -32,6 +32,10 @@ fs.writeFileSync(
   JSON.stringify({ formatVersion: 1 }),
 );
 fs.writeFileSync(path.join(source, 'blobs', 'blob-a'), 'hello');
+fs.mkdirSync(path.join(root, 'mesh'), { recursive: true });
+fs.writeFileSync(path.join(root, 'mesh', 'cube.vb'), 'mesh-data');
+fs.mkdirSync(path.join(root, 'audio'), { recursive: true });
+fs.writeFileSync(path.join(root, 'audio', 'theme.mp3'), 'audio-data');
 
 async function main() {
 try {
@@ -63,6 +67,8 @@ try {
     if (manifest.map.id !== 'native-test') throw new Error('wrong map id');
     if (manifest.storage?.volume !== 'native-group') throw new Error('wrong volume');
     if (!manifest.content.hash?.startsWith('sha256:')) throw new Error('missing content hash');
+    if (manifest.assets?.['mesh/cube.vb']?.type !== 'mesh') throw new Error('missing mesh asset');
+    if (manifest.assets?.['audio/theme.mp3']?.type !== 'audio') throw new Error('missing audio asset');
   } finally {
     fs.rmSync(extract, { recursive: true, force: true });
   }

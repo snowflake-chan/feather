@@ -18,6 +18,7 @@ export interface FmapManifest {
   storage?: {
     volume?: string;
   };
+  assets?: Record<string, { hash: string; type: 'mesh' | 'audio' | 'image' }>;
   runtime?: {
     port?: number;
     memoryMb?: number | null;

@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -31,6 +32,43 @@ function ensureDir(dir: string) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+const ASSET_DIRS = ['mesh', 'audio', 'image'] as const;
+
+function hashFile(file: string): string {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
+
+function scanAssets(
+  roots: string[],
+  blobs: string,
+): Record<string, { hash: string; type: 'mesh' | 'audio' | 'image' }> {
+  const assets: Record<string, { hash: string; type: 'mesh' | 'audio' | 'image' }> = {};
+  fs.mkdirSync(blobs, { recursive: true });
+  for (const root of roots) {
+    for (const dir of ASSET_DIRS) {
+      const base = path.join(root, dir);
+      if (!fs.existsSync(base) || !fs.statSync(base).isDirectory()) continue;
+      const walk = (current: string) => {
+        for (const name of fs.readdirSync(current).sort()) {
+          const full = path.join(current, name);
+          const stat = fs.statSync(full);
+          if (stat.isDirectory()) {
+            walk(full);
+            continue;
+          }
+          if (!stat.isFile()) continue;
+          const logical = path.relative(root, full).split(path.sep).join('/');
+          const digest = hashFile(full);
+          fs.copyFileSync(full, path.join(blobs, digest));
+          assets[logical] = { hash: `sha256:${digest}`, type: dir };
+        }
+      };
+      walk(base);
+    }
+  }
+  return assets;
+}
+
 export async function buildCommand(options: BuildOptions = {}) {
   const root = path.resolve(options.root || process.cwd());
   const cfg = readManifest(root);
@@ -53,6 +91,7 @@ export async function buildCommand(options: BuildOptions = {}) {
       recursive: true,
       dereference: true,
     });
+    const assets = scanAssets([root, source], path.join(content, 'blobs'));
 
     const manifest: FmapManifest = {
       format: 'feather.map',
@@ -67,6 +106,7 @@ export async function buildCommand(options: BuildOptions = {}) {
         blobs: 'content/blobs',
         hash: hashContent(content),
       },
+      assets: Object.keys(assets).length ? assets : undefined,
       storage: cfg.storage?.volume ? { volume: cfg.storage.volume } : undefined,
       runtime: {
         port: cfg.runtime?.port ?? 0,
