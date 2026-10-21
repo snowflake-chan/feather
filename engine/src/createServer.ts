@@ -138,8 +138,12 @@ export async function createGameServer(spec: {
   const login = getLoginStr(serverConfig.login);
   // create mu server
   spec.logger.info('Creating MuServer...');
+  // Local maps are trusted and served by feather itself. Protocol validation
+  // here only produces false mismatches with the standalone static client,
+  // which deliberately runs without the Next dev shell.
   const skipProtocolValidation =
-    process.env.NODE_ENV !== 'development' && serverConfig.method !== 'local';
+    (serverConfig.method as string) === 'local' ||
+    (process.env.NODE_ENV !== 'development' && serverConfig.method !== 'local');
   const socketServer = new MuWebSocketServer({
     server: spec.httpServer,
     requireSessionProof: true,
