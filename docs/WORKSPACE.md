@@ -97,7 +97,16 @@ database_url
 
 ## 原生构建
 
-第一版接受已经带 `project-state.json + blobs` 的 native Arena 源目录：
+第一版可以接受两种 native Arena 输入：
+
+1. 已经带 `project-state.json + blobs` 的 prebaked 源目录
+2. `index.js` + `mesh/` + `audio/` + `image/` 的源树
+
+如果缺少 `source/project-state.json`，`feather build` 会调用
+`builder/src/generate.js`，复用官方 `createDefaultProject` /
+`storeProject` / `createDefaultPermissions` 生成状态。
+
+prebaked 源目录：
 
 ```text
 my-map/
@@ -163,8 +172,6 @@ feather build ./pet-raising-island.boxproject --version 1.0.0
 - 从 `mesh/` / `audio/` / `image/` 源树生成 prebake
 - 上传 Creator
 
-它只是把 native Arena 的 `project-state + blobs` 打成 fmap。
-
 同时会扫描源树里的：
 
 ```text
@@ -183,7 +190,9 @@ feather.json.assets
 `assets` 的逻辑 key 保持 shell 路径，例如 `mesh/cube.vb`、`audio/theme.mp3`；hash 使用 content-server 的 base58 multihash。  
 这些资源已经进包、可被后续 prebake compiler 使用；当前还不会自动注入 project-state/prebake，所以地图脚本暂时不能直接依赖新加的树资源。
 
-真正的源树编译（prebake builder）是下一步。
+当前 generator 已经能生成空白 world + scripts + audio/image 资源索引；
+mesh 的 model metadata 仍需补官方模型元数据，fake `.vb` 会导致
+`error when get model ... meta data`。真正的 prebake builder 仍要接官方模型导入流程。
 
 ## 从 `.boxplay` 导入
 

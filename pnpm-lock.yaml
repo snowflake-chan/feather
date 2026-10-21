@@ -19,9 +19,18 @@ importers:
       '@box/content-server':
         specifier: workspace:*
         version: link:../vendor/content-server
+      '@box/mudb':
+        specifier: workspace:*
+        version: link:../vendor/mudb
+      '@box/schema':
+        specifier: workspace:*
+        version: link:../vendor/schema
       '@box/utils':
         specifier: workspace:*
         version: link:../vendor/utils
+      feather-engine:
+        specifier: workspace:*
+        version: link:../engine
 
   cli:
     dependencies:

@@ -11,11 +11,15 @@
     "@box/apis": "workspace:*",
     "@box/build-system": "workspace:*",
     "@box/content-server": "workspace:*",
-    "@box/utils": "workspace:*"
+    "@box/utils": "workspace:*",
+    "feather-engine": "workspace:*",
+    "@box/mudb": "workspace:*",
+    "@box/schema": "workspace:*"
   },
   "exports": {
     ".": "./src/project-manager.js",
-    "./feather": "./src/feather.js"
+    "./feather": "./src/feather.js",
+    "./generate": "./src/generate.js"
   },
   "types": "./feather.d.ts"
 }

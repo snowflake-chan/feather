@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { parse } from 'smol-toml';
 
 import { buildProjectArchive } from '@feather/builder/feather';
+import { generateProject } from '@feather/builder/generate';
 
 import { FmapManifest, hashContent, writeFmapManifest } from './fmap';
 
@@ -113,20 +114,24 @@ export async function buildCommand(options: BuildOptions = {}) {
   const source = path.resolve(root, cfg.build?.source || 'source');
   const stateFile = path.join(source, 'project-state.json');
   const blobs = path.join(source, 'blobs');
-  if (!fs.existsSync(stateFile)) throw new Error(`missing ${stateFile}`);
-  if (!fs.existsSync(blobs) || !fs.statSync(blobs).isDirectory()) {
-    throw new Error(`missing ${blobs}`);
+  const hasPackagedState = fs.existsSync(stateFile) && fs.existsSync(blobs);
+  if (!hasPackagedState && !fs.existsSync(path.join(root, 'index.js'))) {
+    throw new Error(`missing ${stateFile} or ${path.join(root, 'index.js')}`);
   }
 
   const staging = fs.mkdtempSync(path.join(root, '.feather-build-'));
   try {
     const content = path.join(staging, 'content');
     ensureDir(content);
-    fs.copyFileSync(stateFile, path.join(content, 'project-state.json'));
-    fs.cpSync(blobs, path.join(content, 'blobs'), {
-      recursive: true,
-      dereference: true,
-    });
+    if (hasPackagedState) {
+      fs.copyFileSync(stateFile, path.join(content, 'project-state.json'));
+      fs.cpSync(blobs, path.join(content, 'blobs'), {
+        recursive: true,
+        dereference: true,
+      });
+    } else {
+      await generateProject(root, staging);
+    }
     const assets = scanAssets([root, source], path.join(content, 'blobs'));
 
     const manifest: FmapManifest = {
