@@ -17,7 +17,7 @@
 6. `data root` 是 **daemon 配置**。客户端命令一律不接受 `--data-root`。
 7. `socket` 是**客户端端点**，独立于 data root。客户端只靠 `--socket` / `FEATHER_SOCKET` 找 daemon。
 8. daemon **复制 dockerd**：前台进程、信号停止、不自动拉起、没有 `down` 命令。
-9. `load` 走 daemon（流式 import）；`unpack` 是本地操作（archive → workspace）；`build` 是本地操作（workspace → archive）。
+9. `load` / `build` / `unpack` 都走 daemon。CLI 只发请求和展示结果，不解析 workspace、不打 archive。
 10. CLI **不读 data root**。P2 之后，`cli/src` 里不应出现 `resolveDataRoot` / `maps/` / `blobs/` 的路径拼接。
 
 ---
@@ -78,9 +78,9 @@ workspace ──build──▶ archive ──load(daemon)──▶ map (created 
                                             map (stopped = cached)
 ```
 
-- `build`：本地，workspace → archive。
+- `build`：经 daemon，workspace → archive；CLI 只发 job。
 - `load`：**经 daemon**，archive → map（`created`）。
-- `unpack`：本地，project archive → workspace。
+- `unpack`：经 daemon，project archive → workspace；CLI 只发 job。
 - `up`：经 daemon，cached map → running map。
 
 ### 2.2 Map 生命周期
@@ -222,7 +222,7 @@ feather unpack <project archive> [--dir <workspace>] [--kind baked|boxproject] [
 - 默认 `--kind baked`：先把 archive 的 hash DAG 展开成工作区——`chunks/<x>,<y>,<z>.bin`、各 JSON section、`scripts/`、`assets/`——再写 `feather.toml` 和 `feather.lock.json`。布局见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2、§7.4。
 - `--kind boxproject`：只把归档放进 workspace，`[build].kind = "boxproject"`；构建时重跑官方 publish。
 - 产出必须**不需要任何修改就能 `feather build`**，且 `content.hash` 与源归档一致。
-- `unpack` 是本地操作，**不碰 data root，不需要 daemon**。
+- `unpack` 由 daemon 执行；CLI 不解析 archive、不碰 data root。
 - 目标目录非空时拒绝，除非 `--force`。
 - 默认目录名 = 归档 basename。
 
@@ -246,7 +246,7 @@ feather build <workspace|project archive> [--output <file>] [--project-version <
 - 版本覆盖用 `--project-version`。
 - `--check`：校验 `feather.lock.json` 与当前工作区一致（inputs 树 hash + outputs `contentHash`）；不一致 exit 1。
 - `--locked`：拒绝更新 lock；CI 用。
-- 构建是本地操作，不碰 data root，不需要 daemon。
+- 构建由 daemon 执行；CLI 只发送 workspace/output 路径和参数。
 
 ---
 
@@ -323,8 +323,8 @@ daemon 侧：
 | 命令 | 层 | 需要 daemon | 幂等 | 说明 |
 |---|---|---|---|---|
 | `feather daemon [--data-root <p>] [--socket <p>]` | daemon | — | — | 前台；信号停止 |
-| `feather build <workspace\|.boxproject>` | workspace → archive | ❌ | 覆盖输出 | 本地 |
-| `feather unpack <project archive>` | archive → workspace | ❌ | `--force` | 本地；默认 baked |
+| `feather build <workspace\|.boxproject>` | workspace → archive | ✅ | 覆盖输出 | daemon job |
+| `feather unpack <project archive>` | archive → workspace | ✅ | `--force` | daemon job；默认 baked |
 | `feather load <archive>` | archive → map | ✅ | `--replace` | 只接受 `.fmap` / `.boxplay` |
 | `feather up [map...]` | cached → running | ✅ | 是 | 无参 = 所有已导入 map |
 | `feather stop <map...>` | running → cached | ✅ | 是 | 不删内容 |
@@ -501,8 +501,8 @@ feather ps                                              # 能看到 created
 
 ### P3 — workspace / unpack
 
-- `builder/src/feather.js`：把 release 内容暴露给 `unpack`（或支持直接输出到 workspace）。
-- 新增 `cli/src/unpack.ts`；按 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2/§7.4 展开成 `chunks/` + JSON sections + `scripts/` + `assets/` + `feather.toml` + `feather.lock.json`。
+- daemon：把 `builder` 的 release 内容暴露给 `unpack`（或支持直接输出到 workspace）。
+- 在 daemon 新增 unpack/build job；CLI 只调用 daemon API；按 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2/§7.4 展开成 `chunks/` + JSON sections + `scripts/` + `assets/` + `feather.toml` + `feather.lock.json`。
 - `build` 支持 `kind = baked|native|boxproject`；加 `--check` / `--locked` / `--project-version`。
 - `feather merge-chunk` driver + `feather doctor --install-merge-driver`（[MAP-AUTHORING.md](MAP-AUTHORING.md) §9）。
 - 删除 `.boxproject` 的 `load` 分支和 `<dataRoot>/projects/`。
