@@ -223,6 +223,7 @@ feather unpack <project archive> [--dir <workspace>] [--kind baked|boxproject] [
 - `--kind boxproject`：只把归档放进 workspace，`[build].kind = "boxproject"`；构建时重跑官方 publish。
 - 产出必须**不需要任何修改就能 `feather build`**，且 `content.hash` 与源归档一致。
 - `unpack` 由一次性 `featherd unpack` 执行；CLI 不解析 archive、不碰 data root。
+- 当前实现先写预烘焙 workspace（`source/project-state.json` + `source/blobs`），可直接 `feather build`；完整 `chunks/` + JSON sections 展开仍是 P3 后续。
 - 目标目录非空时拒绝，除非 `--force`。
 - 默认目录名 = 归档 basename。
 
