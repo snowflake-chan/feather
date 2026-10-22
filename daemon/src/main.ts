@@ -85,6 +85,11 @@ async function main() {
 
 main().catch((error) => {
   const code = (error as { code?: string })?.code;
-  console.error(code ? `${code}: ${error instanceof Error ? error.message : String(error)}` : error);
+  const tool = process.argv[2] === 'build' || process.argv[2] === 'unpack';
+  if (tool) {
+    console.error(code ? `${code}: ${error instanceof Error ? error.message : String(error)}` : (error instanceof Error ? error.message : String(error)));
+  } else {
+    console.error(code ? `${code}: ${error instanceof Error ? error.message : String(error)}` : error);
+  }
   process.exitCode = 1;
 });
