@@ -9,6 +9,10 @@ import { generateProject } from '@feather/builder/generate';
 
 import { FmapManifest, hashContent, writeFmapManifest } from './fmap';
 
+const { buildBakedWorkspace } = require('@feather/builder/workspace') as {
+  buildBakedWorkspace: (workspace: string, contentDir: string) => Promise<{ projectHash: string; permissionHash: string }>;
+};
+
 interface BuildToml {
   schema_version?: number;
   project?: { id?: string; name?: string; version?: string };
@@ -114,19 +118,26 @@ export async function buildCommand(options: BuildOptions = {}) {
   const cfg = readManifest(root);
   const id = String(cfg.project?.id || '').trim();
   if (!id) throw new Error('feather.toml is missing [project].id');
+  const kind = cfg.build?.kind || (fs.existsSync(path.join(root, 'project')) ? 'baked' : 'native');
+  if (kind !== 'baked' && kind !== 'native' && kind !== 'boxproject') {
+    throw new Error(`unsupported build.kind: ${kind}`);
+  }
   const source = path.resolve(root, cfg.build?.source || 'source');
   const stateFile = path.join(source, 'project-state.json');
   const blobs = path.join(source, 'blobs');
+  const baked = kind === 'baked' && fs.existsSync(path.join(root, 'project'));
   const hasPackagedState = fs.existsSync(stateFile) && fs.existsSync(blobs);
-  if (!hasPackagedState && !fs.existsSync(path.join(root, 'index.js'))) {
-    throw new Error(`missing ${stateFile} or ${path.join(root, 'index.js')}`);
+  if (!baked && !hasPackagedState && !fs.existsSync(path.join(root, 'index.js'))) {
+    throw new Error(`missing project/ or ${stateFile} or ${path.join(root, 'index.js')}`);
   }
 
   const staging = fs.mkdtempSync(path.join(root, '.feather-build-'));
   try {
     const content = path.join(staging, 'content');
     ensureDir(content);
-    if (hasPackagedState) {
+    if (baked) {
+      await buildBakedWorkspace(root, content);
+    } else if (hasPackagedState) {
       fs.copyFileSync(stateFile, path.join(content, 'project-state.json'));
       fs.cpSync(blobs, path.join(content, 'blobs'), {
         recursive: true,
@@ -158,7 +169,7 @@ export async function buildCommand(options: BuildOptions = {}) {
         playerLimit: cfg.runtime?.playerLimit ?? null,
       },
       source: {
-        kind: 'native',
+        kind,
         version: cfg.project?.version,
       },
       requires: { feather: '>=0.1.0', format: 1 },

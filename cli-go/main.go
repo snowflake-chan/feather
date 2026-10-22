@@ -51,7 +51,6 @@ var valueOptions = map[string]map[string]bool{
 }
 var flagOptions = map[string]map[string]bool{
 	"daemon": {"--enable-eval": true, "--tcp": true},
-	"build":  {"--check": true, "--locked": true},
 	"unpack": {"--force": true},
 	"load":   {"--replace": true, "--purge-data": true},
 	"logs":   {"-f": true, "--follow": true},
@@ -290,12 +289,6 @@ func run(p *parsed) error {
 		}
 		if value := p.values["--project-version"]; value != "" {
 			args = append(args, "--project-version", value)
-		}
-		if p.flags["--check"] {
-			args = append(args, "--check")
-		}
-		if p.flags["--locked"] {
-			args = append(args, "--locked")
 		}
 		if p.json {
 			args = append(args, "--json")

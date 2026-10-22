@@ -21,7 +21,7 @@ Usage: feather [--socket <path>] [--json] <command> [options]
 
 Commands:
   daemon [--data-root <path>] [--socket <path>] [--enable-eval]
-  build <workspace|.boxproject> [--output <file>] [--project-version <v>] [--check] [--locked]
+  build <workspace|.boxproject> [--output <file>] [--project-version <v>]
   unpack <project archive> [--dir <path>] [--kind baked|boxproject] [--force]
   load <archive> [--replace] [--purge-data]
   up [map...]

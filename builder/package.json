@@ -19,7 +19,8 @@
   "exports": {
     ".": "./src/project-manager.js",
     "./feather": "./src/feather.js",
-    "./generate": "./src/generate.js"
+    "./generate": "./src/generate.js",
+    "./workspace": "./src/workspace.js"
   },
   "types": "./feather.d.ts"
 }

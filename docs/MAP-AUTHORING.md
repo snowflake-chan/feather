@@ -121,14 +121,14 @@ assets/**          -diff
 | 想改 | 去哪里 | 命令 |
 |---|---|---|
 | 地图 id / version | `feather.toml` | 手动改 |
-| 显示名 / 描述 / 封面 | `info.json` | `feather info set` |
-| 天气 / 时间 / 雾 | `environment.json` | `feather weather set` |
-| 实体 / NPC / 刷怪点 | `entities/<id>.json` | `feather entity add\|rm\|set` |
+| 显示名 / 描述 / 封面 | `project/info.json` | `feather info set` |
+| 天气 / 时间 / 雾 | `project/environment.json` | `feather weather set` |
+| 实体 / NPC / 刷怪点 | `project/entities/<id>.json` | `feather entity add\|rm\|set` |
 | UI 屏幕 | `ui/<screen>.json`、`ui.json` | `feather ui ...` |
-| spawn / 移动 | `player.json` | `feather player set` |
-| 物理 | `physics.json` | `feather physics set` |
-| 区域 | `zones.json` | `feather zone ...` |
-| 权限 | `permissions.json` | `feather permission ...` |
+| spawn / 移动 | `project/player.json` | `feather player set` |
+| 物理 | `project/physics.json` | `feather physics set` |
+| 区域 | `project/zones.json` | `feather zone ...` |
+| 权限 | `project/permissions.json` | `feather permission ...` |
 | 体素 | `chunks/*.bin` | `feather terrain ...` |
 | 人数 / 端口 / 视距 | `server.toml` | 手动改 / 运维 |
 | token / DB URL | 环境变量 | 运维 |
@@ -192,19 +192,19 @@ version = "1.2.0"
 
 | 文件 | ProjectRDA 字段 | 合并策略 |
 |---|---|---|
-| `info.json` | `info` | 单对象，文本合并 |
-| `environment.json` | `environment` | 单对象，文本合并 |
-| `player.json` | `player` | 单对象，文本合并 |
-| `physics.json` | `physics` | 单对象，文本合并 |
-| `collision-filter.json` | `collisionFilter` | 单对象，文本合并 |
-| `zones.json` | `zones` | 键值 / 数组，按 id |
-| `gamepad.json` | `gamepad` | 单对象，文本合并 |
-| `ambient-sound.json` | `ambientSound` | 单对象，文本合并 |
-| `features.json` | `features` | 单对象，文本合并 |
-| `permissions.json` | `permissions` | 单对象，文本合并 |
-| `entities/<id>.json` | `entitiesTree` | 按 id 拆文件，零冲突 |
-| `ui/<screenId>.json` | `uiTree` | 按 screen 拆文件，零冲突 |
-| `ui.json` | `defaultScreenId` + 全局 UI | 单对象 |
+| `project/info.json` | `info` | 单对象，文本合并 |
+| `project/environment.json` | `environment` | 单对象，文本合并 |
+| `project/player.json` | `player` | 单对象，文本合并 |
+| `project/physics.json` | `physics` | 单对象，文本合并 |
+| `project/collision-filter.json` | `collisionFilter` | 单对象，文本合并 |
+| `project/zones.json` | `zones` | 键值 / 数组，按 id |
+| `project/gamepad.json` | `gamepad` | 单对象，文本合并 |
+| `project/ambient-sound.json` | `ambientSound` | 单对象，文本合并 |
+| `project/features.json` | `features` | 单对象，文本合并 |
+| `project/permissions.json` | `permissions` | 单对象，文本合并 |
+| `project/entities/<id>.json` | `entitiesTree` | 按 id 拆文件，零冲突 |
+| `project/ui/<screenId>.json` | `uiTree` | 按 screen 拆文件，零冲突 |
+| `project/ui.json` | `defaultScreenId` + 全局 UI | 单对象 |
 | `chunks/*.bin` | `voxels.chunks` | 按坐标拆，见 §6 |
 | `scripts/` | `assets` / `scriptAssets` | 文本 |
 | `assets/` | `assets` | 二进制 |
@@ -394,7 +394,7 @@ git config merge.feather-voxel.driver "feather merge-chunk %O %A %B"
 
 ## 10. 确定性
 
-没有确定性，lock 每次变、merge 每次都冲突、`--check` 永远失败。build 前必须先满足：
+没有确定性，build 每次都会变化，merge 也会不断冲突。build 前必须先满足：
 
 1. **没有 `Math.random`。** 地形/噪声生成必须从 `feather.toml` 的 seed 或固定常量来。
 2. **没有时间戳进内容。** `ProjectRDA` 的 `timestamp` / `prevHash` / `committerId` / `storageMode` 固定成确定值；`generate.js` 的 `updatedAt` 从内容 hash 中排除。
@@ -443,7 +443,7 @@ feather preview --out preview.png
 feather diff --out diff.png
 
 # 构建 / 校验 / 打包
-feather build --check
+featherd build my-map
 feather pack
 
 # 运行
@@ -535,8 +535,8 @@ level = "info"
 ### B. 工作区展开 / 组装
 
 - `unpack`：archive → `chunks/` + JSON sections + `scripts/` + `assets/` + toml + lock。
-- `build`：反向组装，`--check` 校验 `content.hash`。
-- 验收：`unpack x.boxproject && cd x && feather build --check` 通过。
+- `build`：反向组装，校验 `content.hash`。
+- 验收：`unpack x.boxproject && cd x && featherd build x` 通过。
 
 ### C. 合并
 
