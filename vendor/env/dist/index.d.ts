@@ -18,6 +18,21 @@ export type Projects = keyof DataIdMap;
 export type Variant = 'default' | 'global';
 export type ConfigType<T extends Projects> = CommonRuntimeConfig & DataIdMap[T];
 /**
+ * 这里原本是 `import { defaultTo, mergeDeepRight, mergeDeepWith } from 'ramda'`。
+ *
+ * ramda 的入口是几百个独立文件，`require('ramda')` 实测要 8.3 秒（本机冷 FS），
+ * 而整棵 engine 模块图总共才 17.6 秒——一个 merge 工具占了近一半启动时间。
+ * 我们只用到三个纯函数，所以本地实现，零依赖。
+ *
+ * 与 ramda 的差异：ramda 把数组当对象按下标递归合并，这里直接替换。
+ * 配置合并场景下替换才是预期语义（`FEATURE_FLAGS: ['a']` 覆盖 `['b','c']`
+ * 不应该变成 `['a','c']`）。
+ */
+type PlainObject = Record<string, unknown>;
+export declare function defaultTo<D, T>(fallback: D, value: T | null | undefined): T | D;
+export declare function mergeDeepRight<L extends PlainObject, R extends PlainObject>(left: L, right: R): L & R;
+export declare function mergeDeepWith(resolve: (left: unknown, right: unknown) => unknown, left: PlainObject, right: PlainObject): PlainObject;
+/**
  * 注入 .env.local 文件到环境变量中（如果有的话
  * 如果 NODE_ENV 为 development 或 undefined，再注入 .env.development 作为默认开发配置
  * @returns 被注入的内容对象

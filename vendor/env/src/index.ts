@@ -3,7 +3,6 @@ import defineDebug from 'debug';
 import { config } from 'dotenv';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { defaultTo, mergeDeepRight, mergeDeepWith } from 'ramda';
 import { parse } from 'yaml';
 
 import { axios } from './request';
@@ -47,6 +46,58 @@ const SCHEMA_MAP = {
 
 const debug = defineDebug('@box/env');
 const ajv = new Ajv();
+
+/**
+ * 这里原本是 `import { defaultTo, mergeDeepRight, mergeDeepWith } from 'ramda'`。
+ *
+ * ramda 的入口是几百个独立文件，`require('ramda')` 实测要 8.3 秒（本机冷 FS），
+ * 而整棵 engine 模块图总共才 17.6 秒——一个 merge 工具占了近一半启动时间。
+ * 我们只用到三个纯函数，所以本地实现，零依赖。
+ *
+ * 与 ramda 的差异：ramda 把数组当对象按下标递归合并，这里直接替换。
+ * 配置合并场景下替换才是预期语义（`FEATURE_FLAGS: ['a']` 覆盖 `['b','c']`
+ * 不应该变成 `['a','c']`）。
+ */
+type PlainObject = Record<string, unknown>;
+
+function isPlainObject(value: unknown): value is PlainObject {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export function defaultTo<D, T>(fallback: D, value: T | null | undefined): T | D {
+  return value === null || value === undefined || value !== value ? fallback : value;
+}
+
+export function mergeDeepRight<L extends PlainObject, R extends PlainObject>(
+  left: L,
+  right: R,
+): L & R {
+  const result: PlainObject = { ...left };
+  for (const [key, rightValue] of Object.entries(right)) {
+    const leftValue = result[key];
+    result[key] =
+      isPlainObject(leftValue) && isPlainObject(rightValue)
+        ? mergeDeepRight(leftValue, rightValue)
+        : rightValue;
+  }
+  return result as L & R;
+}
+
+export function mergeDeepWith(
+  resolve: (left: unknown, right: unknown) => unknown,
+  left: PlainObject,
+  right: PlainObject,
+): PlainObject {
+  const result: PlainObject = { ...left };
+  for (const [key, rightValue] of Object.entries(right)) {
+    const leftValue = result[key];
+    result[key] =
+      isPlainObject(leftValue) && isPlainObject(rightValue)
+        ? mergeDeepWith(resolve, leftValue, rightValue)
+        : resolve(leftValue, rightValue);
+  }
+  return result;
+}
 
 /**
  * 注入 .env.local 文件到环境变量中（如果有的话

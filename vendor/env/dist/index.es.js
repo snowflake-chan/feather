@@ -3,7 +3,6 @@ import defineDebug from 'debug';
 import { config } from 'dotenv';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { mergeDeepRight, mergeDeepWith, defaultTo } from 'ramda';
 import { parse } from 'yaml';
 import GlobalAxios from 'axios';
 
@@ -433,6 +432,32 @@ const SCHEMA_MAP = {
 };
 const debug = defineDebug('@box/env');
 const ajv = new Ajv();
+function isPlainObject(value) {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+function defaultTo(fallback, value) {
+    return value === null || value === undefined || value !== value ? fallback : value;
+}
+function mergeDeepRight(left, right) {
+    const result = {
+        ...left
+    };
+    for (const [key, rightValue] of Object.entries(right)){
+        const leftValue = result[key];
+        result[key] = isPlainObject(leftValue) && isPlainObject(rightValue) ? mergeDeepRight(leftValue, rightValue) : rightValue;
+    }
+    return result;
+}
+function mergeDeepWith(resolve, left, right) {
+    const result = {
+        ...left
+    };
+    for (const [key, rightValue] of Object.entries(right)){
+        const leftValue = result[key];
+        result[key] = isPlainObject(leftValue) && isPlainObject(rightValue) ? mergeDeepWith(resolve, leftValue, rightValue) : resolve(leftValue, rightValue);
+    }
+    return result;
+}
 /**
  * 注入 .env.local 文件到环境变量中（如果有的话
  * 如果 NODE_ENV 为 development 或 undefined，再注入 .env.development 作为默认开发配置
@@ -603,5 +628,5 @@ function getBaseUrl(nacosServer) {
     return `${protocol}${nacosServer}/nacos/v1`;
 }
 
-export { createConfig, createConfigByProjects, initConfig, initDebug, initLocalEnv };
+export { createConfig, createConfigByProjects, defaultTo, initConfig, initDebug, initLocalEnv, mergeDeepRight, mergeDeepWith };
 //# sourceMappingURL=index.es.js.map

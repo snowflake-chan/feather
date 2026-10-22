@@ -5,7 +5,6 @@ var defineDebug = require('debug');
 var dotenv = require('dotenv');
 var fs = require('fs');
 var path = require('path');
-var ramda = require('ramda');
 var yaml = require('yaml');
 var GlobalAxios = require('axios');
 
@@ -435,6 +434,32 @@ const SCHEMA_MAP = {
 };
 const debug = defineDebug('@box/env');
 const ajv = new Ajv();
+function isPlainObject(value) {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+function defaultTo(fallback, value) {
+    return value === null || value === undefined || value !== value ? fallback : value;
+}
+function mergeDeepRight(left, right) {
+    const result = {
+        ...left
+    };
+    for (const [key, rightValue] of Object.entries(right)){
+        const leftValue = result[key];
+        result[key] = isPlainObject(leftValue) && isPlainObject(rightValue) ? mergeDeepRight(leftValue, rightValue) : rightValue;
+    }
+    return result;
+}
+function mergeDeepWith(resolve, left, right) {
+    const result = {
+        ...left
+    };
+    for (const [key, rightValue] of Object.entries(right)){
+        const leftValue = result[key];
+        result[key] = isPlainObject(leftValue) && isPlainObject(rightValue) ? mergeDeepWith(resolve, leftValue, rightValue) : resolve(leftValue, rightValue);
+    }
+    return result;
+}
 /**
  * 注入 .env.local 文件到环境变量中（如果有的话
  * 如果 NODE_ENV 为 development 或 undefined，再注入 .env.development 作为默认开发配置
@@ -498,7 +523,7 @@ async function createConfig(project, externalConfig) {
     const rawConfigs = await Promise.all(configPromises);
     // 解析并合并所有配置
     const commonConfig = yaml.parse(rawConfigs[0])[variant] || {};
-    const projectConfigs = rawConfigs.slice(1).map((raw)=>yaml.parse(raw)[variant] || {}).reduce((acc, curr)=>ramda.mergeDeepRight(acc, curr), {});
+    const projectConfigs = rawConfigs.slice(1).map((raw)=>yaml.parse(raw)[variant] || {}).reduce((acc, curr)=>mergeDeepRight(acc, curr), {});
     let resultConfig = {
         ...commonConfig,
         ...projectConfigs,
@@ -507,11 +532,11 @@ async function createConfig(project, externalConfig) {
         }
     };
     if (externalConfig) {
-        resultConfig = ramda.mergeDeepWith(ramda.defaultTo, resultConfig, externalConfig);
+        resultConfig = mergeDeepWith(defaultTo, resultConfig, externalConfig);
     }
     // 合并所有相关 schema 用于校验
     const combinedSchema = projects.reduce((acc, project)=>{
-        return ramda.mergeDeepRight(acc, SCHEMA_MAP[project]);
+        return mergeDeepRight(acc, SCHEMA_MAP[project]);
     }, COMMON_SCHEMA);
     debug('Validating combined project config.');
     const result = validateWithSchema(resultConfig, combinedSchema);
@@ -532,10 +557,10 @@ async function createConfigWithSchema(args) {
             ...projectResult
         };
         if (externalConfig) {
-            resultConfig = ramda.mergeDeepWith(ramda.defaultTo, resultConfig, externalConfig);
+            resultConfig = mergeDeepWith(defaultTo, resultConfig, externalConfig);
         }
         debug('Validating local config from %s.', localConfigPath);
-        return validateWithSchema(resultConfig, project ? ramda.mergeDeepRight(COMMON_SCHEMA, SCHEMA_MAP[project]) : COMMON_SCHEMA);
+        return validateWithSchema(resultConfig, project ? mergeDeepRight(COMMON_SCHEMA, SCHEMA_MAP[project]) : COMMON_SCHEMA);
     }
     const { NEXT_PUBLIC_APP_ENV } = process.env; // APP_ENV 在 staging 和 production 环境不一致，不能取 Build Time 的值
     const APP_EDITION = process.env.NEXT_PUBLIC_APP_EDITION;
@@ -567,10 +592,10 @@ async function createConfigWithSchema(args) {
         }
     };
     if (externalConfig) {
-        resultConfig = ramda.mergeDeepWith(ramda.defaultTo, resultConfig, externalConfig);
+        resultConfig = mergeDeepWith(defaultTo, resultConfig, externalConfig);
     }
     debug('Validating project config.');
-    const result = validateWithSchema(resultConfig, project ? ramda.mergeDeepRight(COMMON_SCHEMA, SCHEMA_MAP[project]) : COMMON_SCHEMA);
+    const result = validateWithSchema(resultConfig, project ? mergeDeepRight(COMMON_SCHEMA, SCHEMA_MAP[project]) : COMMON_SCHEMA);
     debug('Validating project config finished.');
     return result;
 }
@@ -607,7 +632,10 @@ function getBaseUrl(nacosServer) {
 
 exports.createConfig = createConfig;
 exports.createConfigByProjects = createConfigByProjects;
+exports.defaultTo = defaultTo;
 exports.initConfig = initConfig;
 exports.initDebug = initDebug;
 exports.initLocalEnv = initLocalEnv;
+exports.mergeDeepRight = mergeDeepRight;
+exports.mergeDeepWith = mergeDeepWith;
 //# sourceMappingURL=index.js.map
