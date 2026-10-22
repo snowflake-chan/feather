@@ -108,7 +108,7 @@ workspace 布局、`kind = baked|native|boxproject`、JSON sections、chunks、g
 
 ```bash
 pnpm --filter @feather/cli build
-node cli/bin/feather load /path/to/map.boxplay
+feather load /path/to/map.fmap
 ```
 
 一个 `.boxplay` group 会拆成多个独立地图：
