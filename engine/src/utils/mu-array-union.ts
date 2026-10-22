@@ -1,7 +1,7 @@
 import { isMuPrimitiveType } from '@box/mudb/schema/is-primitive';
 import { MuSchema } from '@box/mudb/schema/schema';
 import { MuReadStream, MuWriteStream } from '@box/mudb/stream';
-import { CodeGenContext } from './codegen';
+import { CodeGenContext } from '@feather/protocol/codegen';
 
 export type ArrayUnionInstance<SubTypes extends [...MuSchema<unknown>[]]> = {
   id: number[];

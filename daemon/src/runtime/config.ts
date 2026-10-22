@@ -77,5 +77,9 @@ export function buildMapConfig(
     groupStorageNamespace: spec.groupNamespace ?? volume,
     playerLimit: spec.limits?.players ?? base.playerLimit,
     SCRIPT_MEMORY_LIMIT: resolveScriptMemoryLimitMb(spec, base),
+    // 钉死 redis：`engine/config/server.ts` 里 process.env 的优先级高于本地配置
+    // 文件，环境里只要残留一个 REDIS_HOST，每张图就会静默开出两个 ioredis 连接。
+    // feather 的本地路径不需要 redis，这里显式关掉。
+    REDIS_HOST: '',
   };
 }

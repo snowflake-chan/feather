@@ -44,7 +44,6 @@ import { filterSink } from '@box/utils/filter-sink';
 import { NodeFetch } from '@box/utils/http-fetch/node';
 import { getRealIP } from '@box/utils/ip';
 import { Logger } from '@box/utils/logger';
-import { clearMemoryPool } from '@box/utils/pool';
 import { prettySink } from '@box/utils/pretty-log-sink';
 import { BackendSocket } from '../backendSocket';
 import { ServerRuntimeConfig } from '../config/server';

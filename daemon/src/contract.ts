@@ -24,10 +24,8 @@ export interface MapSpec {
   projectHash?: string;
   projectStatePath?: string;
   contentDir?: string;
-  localConfigPath?: string;
   port?: number;
   scriptWorkerEntry?: string;
-  env?: Record<string, string>;
   limits?: MapLimits;
   restartPolicy?: RestartPolicy;
   dataDir?: string;

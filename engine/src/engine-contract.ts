@@ -1,3 +1,13 @@
+/**
+ * engine 对外类型契约。
+ *
+ * 今天真正被消费的只有两个：
+ * - `EngineConfig`：daemon 用它拼每张图的配置（`daemon/src/runtime/config.ts`）
+ * - `EngineStatus`：`MapStatus.engine` 的形状（目前没有代码填充它）
+ *
+ * 下面 `EngineHandle` / `CreateEngine` 这些是「engine 与 http 边缘拆开」预留的缝，
+ * 尚未接线。别以为它们已经在用。
+ */
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { MuServer } from '@box/mudb/server';
 import type { MuSocketServer } from '@box/mudb/socket/socket';
@@ -30,7 +40,8 @@ export interface EngineStatus {
     limit: number;
   };
   tick: number;
-  uptimeMs: number;
+  /** 引擎已运行时长（ms）。全契约统一用 `uptime`，不带 `Ms` 后缀。 */
+  uptime: number;
   storage: 'ok' | 'disabled' | 'error';
 }
 

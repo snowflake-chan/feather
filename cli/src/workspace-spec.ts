@@ -89,7 +89,6 @@ function loadOne(mapDir: string, dataRoot: string): MapSpec {
     volume,
     groupNamespace: volume,
     dataStorageNamespace: id,
-    env: undefined,
     limits: {
       memoryMb: runtime.memoryMb ?? undefined,
       players: runtime.playerLimit ?? undefined,
