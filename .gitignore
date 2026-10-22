@@ -20,3 +20,5 @@ client/dist
 client/game/.next
 client/packages/*/rush-logs
 client/packages/*/.rush
+cli-go/feather
+cli-go/cli-go

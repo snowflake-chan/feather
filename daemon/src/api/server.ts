@@ -78,6 +78,20 @@ export async function startApiServer(
         const status = await daemon.createMap(body);
         return json(res, 201, status);
       }
+      if (url.pathname === '/v1/builds' && req.method === 'POST') {
+        const body = (await readJson(req)) as Record<string, unknown>;
+        const result = await daemon.buildProject({
+          root: String(body.workspace || body.root || ''),
+          output: body.output ? String(body.output) : undefined,
+          version: body.projectVersion ? String(body.projectVersion) : undefined,
+          check: body.check === true,
+          locked: body.locked === true,
+        });
+        return json(res, 200, result);
+      }
+      if (url.pathname === '/v1/unpacks' && req.method === 'POST') {
+        return error(res, 501, 'NOT_IMPLEMENTED', 'unpack is not implemented');
+      }
       if (url.pathname === '/v1/maps/import' && req.method === 'POST') {
         const tmp = path.join(os.tmpdir(), `feather-import-${process.pid}-${Date.now()}.fmap`);
         try {

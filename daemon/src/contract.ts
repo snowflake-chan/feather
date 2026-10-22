@@ -1,4 +1,5 @@
 import type { EngineStatus } from 'feather-engine/contract';
+import type { FmapManifest } from './fmap';
 
 export type MapState =
   | 'created'
@@ -200,6 +201,29 @@ export interface StopOptions {
   force?: boolean;
 }
 
+
+export interface BuildOptions {
+  root: string;
+  output?: string;
+  version?: string;
+  check?: boolean;
+  locked?: boolean;
+}
+
+export interface BuildResult {
+  output: string;
+  map: string;
+  contentHash: string;
+  manifest: FmapManifest;
+}
+
+export interface UnpackOptions {
+  archive: string;
+  dir?: string;
+  kind?: 'baked' | 'boxproject';
+  force?: boolean;
+}
+
 export interface DestroyOptions {
   force?: boolean;
 }
@@ -226,6 +250,7 @@ export interface DaemonHandle {
   listMaps(): Promise<MapStatus[]>;
   getMap(id: string): Promise<MapStatus | undefined>;
   createMap(spec: MapSpec): Promise<MapStatus>;
+  buildProject(options: BuildOptions): Promise<BuildResult>;
   importArchive(file: string, options?: { replace?: boolean; purgeData?: boolean }): Promise<{ maps: { id: string; state: string }[] }>;
   startMap(id: string): Promise<Operation>;
   stopMap(id: string, opts?: StopOptions): Promise<Operation>;

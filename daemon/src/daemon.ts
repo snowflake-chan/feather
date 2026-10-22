@@ -25,6 +25,8 @@ import { createContentArenaSpec } from './runtime/content-arena';
 import { NOMINAL_TICK_RATE } from './runtime/stats';
 import { ShardRuntime } from './runtime/shard-runtime';
 import { prepareImport, type ImportOptions, type ImportResult } from './import';
+import { buildCommand, type BuildOptions } from './build';
+import type { BuildResult } from './contract';
 
 const VERSION = '0.1.0';
 const API_VERSION = 'v1';
@@ -145,6 +147,10 @@ export class Daemon implements DaemonHandle {
     this._persist();
     this._event({ type: 'map.created', mapId: spec.id, time: now() });
     return { ...status };
+  }
+
+  public async buildProject(options: BuildOptions): Promise<BuildResult> {
+    return buildCommand(options);
   }
 
   public async importArchive(file: string, options: ImportOptions = {}): Promise<ImportResult> {

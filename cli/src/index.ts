@@ -1,9 +1,9 @@
-import { buildCommand } from './build';
+import { resolve } from 'node:path';
+import { requireDaemon } from './socket';
 import { parseArgs } from './args';
 import type { ParsedArgs } from './args';
 import { CliError } from './errors';
 import { writeError, writeJson } from './output';
-import { unpackCommand } from './unpack';
 import { daemonCommand } from './commands/daemon';
 import { evalCommand } from './commands/eval';
 import { loadCommand } from './load';
@@ -68,25 +68,35 @@ async function run(parsed: ParsedArgs) {
     case 'build': {
       const root = positionals[0];
       if (!root) throw new CliError('USAGE', 'build requires a workspace or .boxproject', 2);
-      if (flags.has('--check') || flags.has('--locked')) {
-        throw new CliError('NOT_IMPLEMENTED', '--check/--locked requires feather.lock.json support');
-      }
-      await buildCommand({
-        root,
+      const client = await requireDaemon(socket);
+      const workspace = resolve(root);
+      const result = await client.build({
+        workspace,
         output: values.get('--output'),
-        version: values.get('--project-version'),
+        projectVersion: values.get('--project-version'),
+        check: flags.has('--check'),
+        locked: flags.has('--locked'),
       });
+      if (flags.has('--json')) writeJson(command, result);
+      else {
+        process.stdout.write(`built:  ${result.output}\n`);
+        process.stdout.write(`map:    ${result.map}\n`);
+        process.stdout.write(`content: ${result.contentHash}\n`);
+      }
       return;
     }
     case 'unpack': {
       const archive = positionals[0];
       if (!archive) throw new CliError('USAGE', 'unpack requires a project archive', 2);
-      await unpackCommand({
-        archive,
-        dir: values.get('--dir'),
+      const client = await requireDaemon(socket);
+      const result = await client.unpack({
+        archive: resolve(archive),
+        dir: values.get('--dir') ? resolve(values.get('--dir')!) : undefined,
         kind: values.get('--kind'),
         force: flags.has('--force'),
       });
+      if (flags.has('--json')) writeJson(command, result);
+      else if (result.dir) process.stdout.write(`unpacked: ${result.dir}\n`);
       return;
     }
     case 'load': {
