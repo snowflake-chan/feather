@@ -4,7 +4,7 @@
   "private": true,
   "description": "feather workspace CLI",
   "bin": {
-    "feather": "bin/feather"
+    "feather-js": "bin/feather-js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

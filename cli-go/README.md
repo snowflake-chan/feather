@@ -12,5 +12,5 @@ go build -o feather .
 ```
 
 `feather daemon` starts the Node daemon (`FEATHERD_BIN`, default
-`feather-daemon`). The daemon/engine remain Node; this binary replaces only the
+`featherd`). The daemon/engine remain Node; this binary replaces only the
 CLI.

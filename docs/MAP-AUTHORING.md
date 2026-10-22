@@ -329,22 +329,9 @@ content/
 - git 历史 + chunk 文件 + JSON 就是完整历史。
 - 审计需求写到仓库外（`~/.feather/audit/` 或 CI 日志），不参与 build。
 
-### 8.4 lock
+### 8.4 无 lock
 
-工作区不生成 lock；所有内容都是具名文件，build 直接读取并校验：
-
-- `lockVersion`
-- `tool`：feather 版本、project format 版本、block palette hash
-- `inputs`：`feather.toml`、各 JSON、`scripts`、`assets`、`chunks` 的树 hash
-- `outputs`：`projectHash`、`contentHash`、`chunkCount`
-
-规则：
-
-- 排序输出、无时间戳、无绝对路径。
-- 冲突时重新生成，不手 merge。
-- CI 两次 build，比较 contentHash。
-
----
+工作区不生成 `feather.lock.json`。所有内容都是具名文件，build 直接读取并校验；CI 两次 build 比较 contentHash。工具版本写在 `feather.toml [requires]`，不写派生 lock。
 
 ## 9. 合并
 
@@ -399,14 +386,14 @@ git config merge.feather-voxel.driver "feather merge-chunk %O %A %B"
 1. **没有 `Math.random`。** 地形/噪声生成必须从 `feather.toml` 的 seed 或固定常量来。
 2. **没有时间戳进内容。** `ProjectRDA` 的 `timestamp` / `prevHash` / `committerId` / `storageMode` 固定成确定值；`generate.js` 的 `updatedAt` 从内容 hash 中排除。
 3. **规范化 JSON。** 键排序、稳定数字格式、稳定数组顺序。
-4. **palette / tool 版本进 lock。** 工具升级导致的变化是有意的，不是噪声。
+4. **palette / tool 版本进 `feather.toml [requires]` 或 archive manifest。** 工具升级导致的变化是有意的，不是噪声。
 
 验收：
 
 ```bash
-featherd build my-map
+feather build my-map
 sha256sum dist/my-map.fmap > /tmp/a
-featherd build my-map
+feather build my-map
 sha256sum dist/my-map.fmap > /tmp/b
 diff /tmp/a /tmp/b          # 必须为空
 ```
@@ -443,7 +430,7 @@ feather preview --out preview.png
 feather diff --out diff.png
 
 # 构建 / 校验 / 打包
-featherd build my-map
+feather build my-map
 feather pack
 
 # 运行
@@ -536,7 +523,7 @@ level = "info"
 
 - `unpack`：archive → `chunks/` + JSON sections + `scripts/` + `assets/` + toml + lock。
 - `build`：反向组装，校验 `content.hash`。
-- 验收：`unpack x.boxproject && cd x && featherd build x` 通过。
+- 验收：`unpack x.boxproject && cd x && feather build .` 通过。
 
 ### C. 合并
 
@@ -552,7 +539,7 @@ level = "info"
 
 ### E. CI / build-twice
 
-- `featherd build` 两次输出 contentHash 相同。
+- `feather build` 两次输出 contentHash 相同。
 - CI：clone → build → check，不依赖外部 store。
 
 ### F. 服务器配置

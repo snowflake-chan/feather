@@ -22,7 +22,7 @@ Usage: feather [--socket <path>] [--json] <command> [options]
 Commands:
   daemon [--data-root <path>] [--socket <path>] [--enable-eval]
   build <workspace|.boxproject> [--output <file>] [--project-version <v>]
-  unpack <project archive> [--dir <path>] [--kind baked|boxproject] [--force]
+  unpack <project archive> [--dir <path>] [--force]
   load <archive> [--replace] [--purge-data]
   up [map...]
   stop <map...>
@@ -83,7 +83,6 @@ async function run(parsed: ParsedArgs) {
       if (!archive) throw new CliError('USAGE', 'unpack requires a project archive', 2);
       const args = ['unpack', resolve(archive)];
       if (values.has('--dir')) args.push('--dir', resolve(values.get('--dir')!));
-      if (values.has('--kind')) args.push('--kind', values.get('--kind')!);
       if (flags.has('--force')) args.push('--force');
       if (flags.has('--json')) args.push('--json');
       const code = await runFeatherdTool(args);

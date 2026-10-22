@@ -58,6 +58,7 @@ async function readProjectGraph(contentDir) {
 async function unpackWorkspace(contentDir, target, meta) {
   const { bs, contentServer, permissions, project } = await readProjectGraph(contentDir);
   const raw = ProjectRDA.stateSchema.toJSON(project);
+  if (meta.name) raw.info.displayName = meta.name;
   const permissionRaw = PermissionRDA.stateSchema.toJSON(permissions);
   const projectDir = path.join(target, 'project');
   fs.mkdirSync(projectDir, { recursive: true });
@@ -70,6 +71,11 @@ async function unpackWorkspace(contentDir, target, meta) {
   }
   writeJson(path.join(projectDir, 'permissions.json'), permissionRaw);
   writeJson(path.join(projectDir, 'ui.json'), { defaultScreenId: raw.defaultScreenId });
+  writeJson(path.join(projectDir, 'asset-metadata.json'), raw.assets || {});
+  writeJson(path.join(projectDir, 'audio-assets.json'), raw.audioAssets || {});
+  writeJson(path.join(projectDir, 'picture-assets.json'), raw.pictureAssets || {});
+  writeJson(path.join(projectDir, 'script-index.json'), { scriptIndex: raw.scriptIndex || 'index.js' });
+  writeJson(path.join(projectDir, 'delete-assets.json'), raw.deleteAssets || []);
   for (const [id, node] of Object.entries(raw.entitiesTree || {})) {
     writeJson(safeAssetPath(path.join(projectDir, 'entities'), `${id}.json`), node);
   }
@@ -115,7 +121,11 @@ async function unpackWorkspace(contentDir, target, meta) {
     '[project]', `id = ${JSON.stringify(id)}`, `version = ${JSON.stringify(version)}`, '',
     '[build]', 'kind = "baked"', `output = "dist/${id}.fmap"`, '',
     ...(meta.volume ? ['[storage]', `volume = ${JSON.stringify(meta.volume)}`, ''] : []),
-    '[runtime]', 'port = 0', 'memoryMb = 512', 'playerLimit = 32', '',
+    '[runtime]',
+    `port = ${Number(meta.runtime?.port) || 0}`,
+    `memoryMb = ${typeof meta.runtime?.memoryMb === 'number' ? meta.runtime.memoryMb : 512}`,
+    `playerLimit = ${typeof meta.runtime?.playerLimit === 'number' ? meta.runtime.playerLimit : 32}`,
+    '',
   ].join('\n');
   fs.writeFileSync(path.join(target, 'feather.toml'), toml);
   return { map: id, projectDir };
@@ -206,6 +216,16 @@ async function buildBakedWorkspace(workspace, contentDir) {
   }
   raw.voxels = { shape: { x: nx * CHUNK_SIZE, y: ny * CHUNK_SIZE, z: nz * CHUNK_SIZE }, chunks };
 
+  const readOptional = (name, fallback) => {
+    const file = path.join(projectDir, name);
+    return fs.existsSync(file) ? readJson(file) : fallback;
+  };
+  const assetMetadata = readOptional('asset-metadata.json', {});
+  const audioMetadata = readOptional('audio-assets.json', {});
+  const pictureMetadata = readOptional('picture-assets.json', {});
+  const scriptIndexConfig = readOptional('script-index.json', {});
+  raw.deleteAssets = readOptional('delete-assets.json', []);
+
   raw.assets = {};
   const assetRoots = [
     [path.join(workspace, 'assets'), ''],
@@ -214,29 +234,60 @@ async function buildBakedWorkspace(workspace, contentDir) {
   for (const [root] of assetRoots) {
     for (const file of walkFiles(root)) {
       const logical = path.relative(root, file).split(path.sep).join('/');
+      if (logical in audioMetadata || logical in pictureMetadata) continue;
       const bytes = fs.readFileSync(file);
+      const meta = assetMetadata[logical] || {};
+      let storedHash = await contentServer.store(bytes);
+      if (typeof meta.hash === 'string' && meta.hash.includes('.')) {
+        storedHash += meta.hash.slice(meta.hash.indexOf('.'));
+      }
       raw.assets[logical] = {
-        ownerId: 0,
-        contentId: 0,
-        size: bytes.length,
-        type: assetType(file),
-        animated: false,
-        bounds: [0, 0, 0],
-        hash: await contentServer.store(bytes),
-        previewImage: '',
+        ...meta,
+        ownerId: meta.ownerId ?? 0,
+        contentId: meta.contentId ?? 0,
+        size: typeof meta.size === 'number' ? meta.size : bytes.length,
+        type: meta.type ?? assetType(file),
+        animated: meta.animated ?? false,
+        bounds: meta.bounds ?? [0, 0, 0],
+        hash: storedHash,
+        previewImage: meta.previewImage ?? '',
       };
     }
   }
-  raw.scriptIndex = fs.existsSync(path.join(workspace, 'scripts', 'index.js')) ? 'index.js' : '';
+  raw.scriptIndex = scriptIndexConfig.scriptIndex ||
+    (fs.existsSync(path.join(workspace, 'scripts', 'index.js')) ? 'index.js' : '');
   raw.audioAssets = {};
   raw.pictureAssets = {};
+  for (const [logical, meta] of Object.entries(audioMetadata)) {
+    const file = path.join(workspace, 'assets', logical);
+    if (!fs.existsSync(file)) continue;
+    const bytes = fs.readFileSync(file);
+    let storedHash = await contentServer.store(bytes);
+    if (typeof meta.hash === 'string' && meta.hash.includes('.')) storedHash += meta.hash.slice(meta.hash.indexOf('.'));
+    raw.audioAssets[logical] = {
+      ...meta,
+      hash: storedHash,
+      size: typeof meta.size === 'number' ? meta.size : bytes.length,
+    };
+  }
+  for (const [logical, meta] of Object.entries(pictureMetadata)) {
+    const file = path.join(workspace, 'assets', logical);
+    if (!fs.existsSync(file)) continue;
+    const bytes = fs.readFileSync(file);
+    let storedHash = await contentServer.store(bytes);
+    if (typeof meta.hash === 'string' && meta.hash.includes('.')) storedHash += meta.hash.slice(meta.hash.indexOf('.'));
+    raw.pictureAssets[logical] = {
+      ...meta,
+      hash: storedHash,
+      size: typeof meta.size === 'number' ? meta.size : bytes.length,
+    };
+  }
   raw.type = 'project';
   raw.version = '0.3.31';
   raw.prevHash = '';
   raw.timestamp = '1970-01-01T00:00:00.000Z';
   raw.storageMode = 'sqlite';
   raw.committerId = 0;
-  raw.deleteAssets = [];
 
   const permissionRaw = readJson(path.join(projectDir, 'permissions.json'));
   const permissions = PermissionRDA.stateSchema.fromJSON(permissionRaw);

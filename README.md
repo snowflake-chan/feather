@@ -4,7 +4,8 @@ engine + shell 的 monorepo。
 
 ```
 feather/
-├── cli/             # feather CLI（build/unpack/load/up/ps/stop/...）
+├── cli/             # legacy JS CLI（测试/参考）
+├── cli-go/          # canonical Go CLI
 ├── engine/          # 主线程：权威状态、物理、网络、内容
 ├── daemon/          # 本地 supervisor + UDS API（Docker-like）
 ├── shell/           # Worker：执行用户代码
@@ -40,19 +41,26 @@ pnpm test:protocol # golden vectors（schema 指纹 + diff/patch 字节）
 pnpm test:daemon   # shard + daemon API E2E（需要 BOX_BUNDLED_CONTENT_PATH）
 ```
 
-CLI：
+CLI（Go，`cli-go/`）：
 
 ```bash
 # daemon 前台运行（另开终端）
-node cli/bin/feather daemon
+feather daemon
 
-node cli/bin/feather load map.fmap
-node cli/bin/feather up
-node cli/bin/feather ps
-node cli/bin/feather stop my-map
+feather load map.fmap
+feather up
+feather ps
+feather stop my-map
 ```
 
 客户端命令只通过 `--socket` 找 daemon；`--data-root` 只属于 `feather daemon`。
+
+构建 Go CLI：
+
+```bash
+cd cli-go
+go build -o feather .
+```
 
 ## Smoke
 

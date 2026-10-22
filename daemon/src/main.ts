@@ -78,8 +78,8 @@ async function main() {
   });
   process.on('SIGINT', () => void shutdown());
   process.on('SIGTERM', () => void shutdown());
-  if (api.port) process.stdout.write(`feather-daemon tcp ${api.port}\n`);
-  else process.stdout.write(`feather-daemon uds ${socketPath}\n`);
+  if (api.port) process.stdout.write(`featherd tcp ${api.port}\n`);
+  else process.stdout.write(`featherd uds ${socketPath}\n`);
 }
 
 main().catch((error) => {

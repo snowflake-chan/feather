@@ -46,7 +46,8 @@
     "check:stats": "node dist/check-stats.js",
     "check:daemon": "node dist/check-daemon.js",
     "check:content-arena": "node dist/check-content-arena.js",
-    "check:restart": "node dist/check-restart.js"
+    "check:restart": "node dist/check-restart.js",
+    "check:workspace": "node dist/check-workspace.js"
   },
   "dependencies": {
     "feather-engine": "workspace:*",
@@ -59,6 +60,6 @@
     "@types/node": "20.16.15"
   },
   "bin": {
-    "feather-daemon": "bin/feather-daemon"
+    "featherd": "bin/featherd"
   }
 }

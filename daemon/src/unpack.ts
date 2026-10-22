@@ -10,14 +10,13 @@ const { unpackWorkspace } = require('@feather/builder/workspace') as {
   unpackWorkspace: (
     contentDir: string,
     target: string,
-    meta: { id: string; name?: string; version?: string; volume?: string },
+    meta: { id: string; name?: string; version?: string; volume?: string; runtime?: { port?: number; memoryMb?: number | null; playerLimit?: number | null } },
   ) => Promise<{ map: string; projectDir: string }>;
 };
 
 export interface UnpackOptions {
   archive: string;
   dir?: string;
-  kind?: string;
   force?: boolean;
 }
 
@@ -37,7 +36,16 @@ function extract(file: string, dest: string) {
   }
 }
 
-async function expand(contentDir: string, target: string, meta: { id: string; name?: string; version?: string; volume?: string }) {
+function assertSafeTarget(target: string) {
+  const resolved = path.resolve(target);
+  const home = path.resolve(os.homedir());
+  if (resolved === path.parse(resolved).root || resolved === path.resolve(process.cwd()) || resolved === home) {
+    throw Object.assign(new Error(`refusing to overwrite unsafe target: ${resolved}`), { code: 'UNSAFE_TARGET' });
+  }
+}
+
+async function expand(contentDir: string, target: string, meta: { id: string; name?: string; version?: string; volume?: string; runtime?: { port?: number; memoryMb?: number | null; playerLimit?: number | null } }) {
+  fs.mkdirSync(path.dirname(target), { recursive: true });
   const workspace = fs.mkdtempSync(path.join(path.dirname(target), '.feather-unpack-'));
   try {
     await unpackWorkspace(contentDir, workspace, meta);
@@ -55,10 +63,8 @@ export async function unpackCommand(options: UnpackOptions): Promise<UnpackResul
   if (!fs.existsSync(archive)) {
     throw Object.assign(new Error(`archive not found: ${archive}`), { code: 'ARCHIVE_INVALID' });
   }
-  if ((options.kind || 'baked') !== 'baked') {
-    throw Object.assign(new Error(`unpack kind not implemented: ${options.kind}`), { code: 'NOT_IMPLEMENTED' });
-  }
   const target = path.resolve(options.dir || path.basename(archive).replace(/\.(fmap|boxproject)$/i, ''));
+  assertSafeTarget(target);
   if (fs.existsSync(target) && !options.force) {
     throw Object.assign(new Error(`target exists: ${target} (use --force)`), { code: 'WORKSPACE_EXISTS' });
   }
@@ -74,6 +80,7 @@ export async function unpackCommand(options: UnpackOptions): Promise<UnpackResul
         name: manifest.map.name,
         version: manifest.map.version,
         volume: manifest.storage?.volume,
+        runtime: manifest.runtime,
       });
       return { ...result, source: 'fmap' };
     } finally {
@@ -94,6 +101,7 @@ export async function unpackCommand(options: UnpackOptions): Promise<UnpackResul
         name: manifest.map.name,
         version: manifest.map.version,
         volume: manifest.storage?.volume,
+        runtime: manifest.runtime,
       });
       return { ...result, source: 'boxproject' };
     } finally {

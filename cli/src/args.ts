@@ -19,7 +19,7 @@ const COMMON_FLAGS = new Set(['--json', '--help', '-h', '--version']);
 const COMMAND_VALUES: Record<string, Set<string>> = {
   daemon: new Set(['--data-root', '--host', '--port', '--token']),
   build: new Set(['--output', '--project-version']),
-  unpack: new Set(['--dir', '--kind']),
+  unpack: new Set(['--dir']),
   load: new Set(),
   up: new Set(),
   stop: new Set(),

@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -46,7 +47,7 @@ var commands = map[string]bool{
 var valueOptions = map[string]map[string]bool{
 	"daemon": {"--data-root": true, "--host": true, "--port": true, "--token": true},
 	"build":  {"--output": true, "--project-version": true},
-	"unpack": {"--dir": true, "--kind": true},
+	"unpack": {"--dir": true},
 	"logs":   {"--tail": true},
 }
 var flagOptions = map[string]map[string]bool{
@@ -187,19 +188,30 @@ func (c *client) json(method, path string, body any) ([]byte, error) {
 	return c.request(method, path, reader, "application/json")
 }
 
-func printJSON(value any) {
-	data, _ := json.Marshal(map[string]any{"ok": true, "data": value})
+func printJSON(command string, value any) {
+	data, _ := json.Marshal(map[string]any{"ok": true, "command": command, "data": value})
 	fmt.Println(string(data))
 }
+
+var toolExitCode = 0
 
 func runFeatherd(args []string) error {
 	bin := os.Getenv("FEATHERD_BIN")
 	if bin == "" {
-		bin = "feather-daemon"
+		bin = "featherd"
 	}
 	cmd := exec.Command(bin, args...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
-	return cmd.Run()
+	err := cmd.Run()
+	if err == nil {
+		return nil
+	}
+	var exit *exec.ExitError
+	if errors.As(err, &exit) {
+		toolExitCode = exit.ExitCode()
+		return nil
+	}
+	return err
 }
 
 func run(p *parsed) error {
@@ -209,7 +221,7 @@ func run(p *parsed) error {
 	case "daemon":
 		bin := os.Getenv("FEATHERD_BIN")
 		if bin == "" {
-			bin = "feather-daemon"
+			bin = "featherd"
 		}
 		args := []string{}
 		if p.values["--data-root"] != "" {
@@ -220,6 +232,11 @@ func run(p *parsed) error {
 		}
 		if p.flags["--enable-eval"] {
 			args = append(args, "--enable-eval")
+		}
+		for _, key := range []string{"--host", "--port", "--token"} {
+			if value := p.values[key]; value != "" {
+				args = append(args, key, value)
+			}
 		}
 		if p.flags["--tcp"] {
 			args = append(args, "--tcp")
@@ -237,7 +254,7 @@ func run(p *parsed) error {
 			return err
 		}
 		if p.json {
-			printJSON(maps)
+			printJSON("ps", maps)
 			return nil
 		}
 		if len(maps) == 0 {
@@ -255,6 +272,9 @@ func run(p *parsed) error {
 				shard = fmt.Sprint(v)
 			}
 			volume := fmt.Sprint(m["volume"])
+			if volume == "<nil>" || volume == "" {
+				volume = fmt.Sprint(m["id"])
+			}
 			fmt.Printf("%v\t%v\t%s\t%s\t%s\n", m["id"], m["state"], port, shard, volume)
 		}
 		return nil
@@ -272,7 +292,38 @@ func run(p *parsed) error {
 				p.positionals = append(p.positionals, fmt.Sprint(m["id"]))
 			}
 		}
-		return runMapAction(c, p)
+		for _, id := range p.positionals {
+			if _, err := c.json("POST", "/v1/maps/"+url.PathEscape(id)+"/start", nil); err != nil {
+				return err
+			}
+		}
+		data, err := c.json("GET", "/v1/maps", nil)
+		if err != nil {
+			return err
+		}
+		var maps []map[string]any
+		if err := json.Unmarshal(data, &maps); err != nil {
+			return err
+		}
+		if p.json {
+			printJSON("up", maps)
+			return nil
+		}
+		selected := map[string]bool{}
+		for _, id := range p.positionals {
+			selected[id] = true
+		}
+		for _, m := range maps {
+			if !selected[fmt.Sprint(m["id"])] {
+				continue
+			}
+			shard := "-"
+			if v, ok := m["shardId"]; ok && v != nil {
+				shard = fmt.Sprint(v)
+			}
+			fmt.Printf("%v\t%v\t%v\tshard=%s\n", m["id"], m["state"], m["url"], shard)
+		}
+		return nil
 	case "stop", "restart", "rm":
 		return runMapAction(c, p)
 	case "build":
@@ -306,9 +357,6 @@ func run(p *parsed) error {
 		if value := p.values["--dir"]; value != "" {
 			args = append(args, "--dir", value)
 		}
-		if value := p.values["--kind"]; value != "" {
-			args = append(args, "--kind", value)
-		}
 		if p.flags["--force"] {
 			args = append(args, "--force")
 		}
@@ -340,7 +388,7 @@ func run(p *parsed) error {
 			return err
 		}
 		if p.json {
-			printJSON(json.RawMessage(data))
+			printJSON(p.command, json.RawMessage(data))
 			return nil
 		}
 		fmt.Println(string(data))
@@ -349,27 +397,37 @@ func run(p *parsed) error {
 		if len(p.positionals) == 0 {
 			return usageError("logs requires a map id")
 		}
-		query := ""
+		query := url.Values{}
 		if p.flags["-f"] || p.flags["--follow"] {
-			query += "?follow=1"
+			query.Set("follow", "1")
 		}
 		if tail := p.values["--tail"]; tail != "" {
-			if query == "" {
-				query += "?"
-			} else {
-				query += "&"
-			}
-			query += "tail=" + tail
+			query.Set("tail", tail)
 		}
-		req, _ := http.NewRequest("GET", "http://unix/v1/maps/"+p.positionals[0]+"/logs"+query, nil)
+		path := "/v1/maps/" + url.PathEscape(p.positionals[0]) + "/logs"
+		if len(query) > 0 {
+			path += "?" + query.Encode()
+		}
+		req, _ := http.NewRequest("GET", "http://unix"+path, nil)
 		res, err := c.http.Do(req)
 		if err != nil {
 			return runtimeError("DAEMON_NOT_RUNNING", "daemon not running: "+socket)
 		}
 		defer res.Body.Close()
+		if res.StatusCode < 200 || res.StatusCode >= 300 {
+			body, _ := io.ReadAll(res.Body)
+			return runtimeError("HTTP_ERROR", string(body))
+		}
 		scanner := bufio.NewScanner(res.Body)
+		scanner.Buffer(make([]byte, 64*1024), 4*1024*1024)
 		for scanner.Scan() {
-			fmt.Println(scanner.Text())
+			line := scanner.Text()
+			var entry struct{ Time, Stream, Message string }
+			if json.Unmarshal([]byte(line), &entry) == nil && entry.Message != "" {
+				fmt.Printf("%s [%s] %s\n", entry.Time, entry.Stream, entry.Message)
+			} else {
+				fmt.Println(line)
+			}
 		}
 		return scanner.Err()
 	case "eval":
@@ -385,7 +443,7 @@ func run(p *parsed) error {
 			return err
 		}
 		if p.json {
-			printJSON(json.RawMessage(data))
+			printJSON(p.command, json.RawMessage(data))
 			return nil
 		}
 		var result map[string]any
@@ -419,7 +477,7 @@ func runMapAction(c *client, p *parsed) error {
 				return err
 			}
 			if p.json {
-				printJSON(json.RawMessage(data))
+				printJSON(p.command, json.RawMessage(data))
 			} else {
 				fmt.Printf("%s\tremoved\n", id)
 			}
@@ -430,7 +488,7 @@ func runMapAction(c *client, p *parsed) error {
 			return err
 		}
 		if p.json {
-			printJSON(json.RawMessage(data))
+			printJSON(p.command, json.RawMessage(data))
 		} else {
 			var op map[string]any
 			_ = json.Unmarshal(data, &op)
@@ -441,6 +499,14 @@ func runMapAction(c *client, p *parsed) error {
 }
 
 func main() {
+	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
+		fmt.Println("feather-go [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		return
+	}
+	if len(os.Args) == 2 && os.Args[1] == "--version" {
+		fmt.Println("feather-go 0.0.0")
+		return
+	}
 	p, err := parse(os.Args[1:])
 	if err != nil {
 		var ce *cliError
@@ -452,7 +518,7 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather-go [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
 		return
 	}
 	if p.flags["--version"] {
@@ -467,5 +533,8 @@ func main() {
 		}
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
+	}
+	if toolExitCode != 0 {
+		os.Exit(toolExitCode)
 	}
 }

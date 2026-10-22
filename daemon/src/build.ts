@@ -116,6 +116,13 @@ export async function buildCommand(options: BuildOptions = {}) {
     };
   }
   const cfg = readManifest(root);
+  let displayName = cfg.project?.name || 'Blank Map';
+  try {
+    const info = JSON.parse(fs.readFileSync(path.join(root, 'project', 'info.json'), 'utf8')) as { displayName?: unknown };
+    if (typeof info.displayName === 'string' && info.displayName.trim()) displayName = info.displayName;
+  } catch {
+    // native workspaces may not have project/info.json
+  }
   const id = String(cfg.project?.id || '').trim();
   if (!id) throw new Error('feather.toml is missing [project].id');
   const kind = cfg.build?.kind || (fs.existsSync(path.join(root, 'project')) ? 'baked' : 'native');
@@ -150,14 +157,24 @@ export async function buildCommand(options: BuildOptions = {}) {
     } else {
       await generateProject(root, staging);
     }
-    const assets = scanAssets([root], path.join(content, 'blobs'));
+    const bundled = process.env.BOX_BUNDLED_CONTENT_PATH;
+    if (bundled && fs.existsSync(bundled)) {
+      const target = path.join(content, 'blobs');
+      fs.mkdirSync(target, { recursive: true });
+      for (const name of fs.readdirSync(bundled)) {
+        const source = path.join(bundled, name);
+        const destination = path.join(target, name);
+        if (!fs.existsSync(destination)) fs.copyFileSync(source, destination);
+      }
+    }
+    const assets = scanAssets([kind === 'baked' ? path.join(root, 'assets') : root], path.join(content, 'blobs'));
 
     const manifest: FmapManifest = {
       format: 'feather.map',
       formatVersion: 1,
       map: {
         id,
-        name: cfg.project?.name,
+        name: displayName,
         version: cfg.project?.version,
       },
       content: {
