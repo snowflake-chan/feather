@@ -121,6 +121,8 @@ function createContentRouter(contentServer, options = {}) {
             }
             const buffer = await contentServer.retrieve(arg);
             if (buffer == undefined) {
+                res.removeHeader('Cache-Control');
+                res.removeHeader('ETag');
                 return error(res, 404, `nothing with that hash found`);
             }
             log(`retrieve success`);

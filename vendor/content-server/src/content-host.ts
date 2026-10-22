@@ -162,6 +162,11 @@ export function createContentRouter(
       }
       const buffer = await contentServer.retrieve(arg);
       if (buffer == undefined) {
+        // 404 绝不能带 immutable：头是在 retrieve 之前设的，writeHead 会把它们
+        // 原样带到错误响应上，于是一次「暂时取不到」会被浏览器按一年缓存，
+        // 这个 blob 对这台客户端就永久消失了。
+        res.removeHeader('Cache-Control');
+        res.removeHeader('ETag');
         return error(res, 404, `nothing with that hash found`);
       }
       log(`retrieve success`);

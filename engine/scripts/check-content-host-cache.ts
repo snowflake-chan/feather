@@ -109,13 +109,17 @@ async function main() {
     assert.equal(stale.status, 200);
     assert.deepEqual(stale.body, BLOB);
 
-    // 6) 不存在的 hash → 404
+    // 6) 不存在的 hash → 404，且**不能带 immutable 缓存头**
+    //    否则一次暂时缺失会被浏览器按一年缓存，这个 blob 就永久消失了。
     const missing = await request(port, '/block/QmNotARealHashAtAll000000000000000000000000');
     assert.equal(missing.status, 404);
+    assert.equal(missing.headers['cache-control'], undefined, '404 must not be cacheable');
+    assert.equal(missing.headers.etag, undefined, '404 must not carry an ETag');
 
     // 7) 私密 blob 不暴露存在性 → 404
     const denied = await request(port, `/block/${DENIED}`);
     assert.equal(denied.status, 404);
+    assert.equal(denied.headers['cache-control'], undefined);
 
     // 8) readOnly 下 POST 被拒
     const post = await request(port, `/block/${HASH}`, { method: 'POST' });

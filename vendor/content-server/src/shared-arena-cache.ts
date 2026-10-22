@@ -113,7 +113,8 @@ export function readSharedArenaUsage(spec: SharedArenaSpec): SharedArenaUsage {
 }
 
 /** 返回 hash 的字节长度；含非 ASCII 字符时返回 -1（这类 hash 不进共享区，避免截断后误命中） */
-function asciiLength(hash: string): number {  for (let i = 0; i < hash.length; i += 1) {
+function asciiLength(hash: string): number {
+  for (let i = 0; i < hash.length; i += 1) {
     if (hash.charCodeAt(i) > 0x7f) return -1;
   }
   return hash.length;
