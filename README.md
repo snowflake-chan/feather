@@ -97,7 +97,7 @@ curl http://127.0.0.1:9977/api/health-check
 | [docs/STORAGE.md](docs/STORAGE.md) | 数据存储：SQLite / PostgreSQL / 本地 JSON |
 | [docs/WORKSPACE.md](docs/WORKSPACE.md) | data root、volume、`.fmap` 格式 |
 | [docs/CLI-CONTRACT.md](docs/CLI-CONTRACT.md) | CLI 命令面、daemon 边界、错误码 |
-| [docs/MAP-AUTHORING.md](docs/MAP-AUTHORING.md) | workspace、chunks、git/merge、lock |
+| [docs/MAP-AUTHORING.md](docs/MAP-AUTHORING.md) | workspace、chunks、git/merge |
 | [docs/SHUTDOWN.md](docs/SHUTDOWN.md) | `GameServer.close()`、单进程多图的生命周期与回收 |
 | [protocol/README.md](protocol/README.md) | 共享协议、构建顺序、golden vectors |
 | [engine/README.md](engine/README.md) | engine 抽取、worker 传输、构建 |

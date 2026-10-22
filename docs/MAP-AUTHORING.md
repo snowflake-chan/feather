@@ -10,7 +10,7 @@
 ## 0. 原则
 
 1. **编辑器可选。** CLI 和 AI 必须能完成从建图到发布的全部流程；GUI 只是同一模型的另一个客户端。
-2. **三种数据，三种生命周期。** 意图（`feather.toml`）、内容（JSON + chunks）、派生物（lock / archive）。
+2. **三种数据，三种生命周期。** 意图（`feather.toml`）、内容（JSON + chunks）、派生物（archive）。
 3. **工作区布局是我们的，archive 布局是官方的。** 工作区为可读、可 diff、可合并优化；archive 为兼容和去重优化。
 4. **二进制按坐标存，归档按 hash 存。** 坐标寻址让 git 能 3-way 合并；hash 寻址让 archive 能去重。
 5. **clone 必须能 build。** 仓库自包含，不依赖外部 store 才能构建。
@@ -323,7 +323,7 @@ content/
 
 - chunk 粒度 + 内容去重让仓库增长可控；先量再决定。
 - 迁移阈值：仓库 > 1 GB、或 `git clone` > 30 s、或单图唯一 chunk 字节数过大。
-- 迁移到 LFS / store 时，lock 和 manifest 不变，对使用者透明。
+- 迁移到 LFS / store 时，manifest 不变，对使用者透明。
 - 共享默认资产（block info、音效、LUT）由引擎内置，不进每张图。
 
 ### 8.3 没有第二条历史
@@ -334,7 +334,7 @@ content/
 
 ### 8.4 无 lock
 
-工作区不生成 `feather.lock.json`。所有内容都是具名文件，build 直接读取并校验；CI 两次 build 比较 contentHash。工具版本写在 `feather.toml [requires]`，不写派生 lock；`requires` 同时记录默认资产/引擎版本。
+工作区不生成锁文件。所有内容都是具名文件，build 直接读取并校验；CI 两次 build 比较 contentHash。工具版本写在 `feather.toml [requires]`；`requires` 同时记录默认资产/引擎版本。
 
 ## 9. 合并
 
@@ -446,7 +446,7 @@ feather up my-map
 - 所有编辑命令只改工作区文件，不维护隐藏状态。
 - `feather preview` 是 AI 闭环的必需项；没有预览等于盲写。
 - `feather diff` 是内容级：变化的 chunk 坐标、实体增删、UI 节点、天气字段，外加渲染图。
-- `feather build` 只做校验 + 组装 + lock；`feather pack` 只做打包。
+- `feather build` 只做校验 + 组装；`feather pack` 只做打包。
 
 ---
 
@@ -524,7 +524,7 @@ level = "info"
 
 ### B. 工作区展开 / 组装
 
-- `unpack`：archive → `chunks/` + JSON sections + `scripts/` + `assets/` + toml + lock。
+- `unpack`：archive → `project/` + `chunks/` + `scripts/` + `assets/` + `feather.toml`。
 - `build`：反向组装，校验 `content.hash`。
 - 验收：`unpack x.boxproject && cd x && feather build .` 通过。
 
@@ -559,4 +559,3 @@ level = "info"
 3. `server.toml` 放部署仓库还是引擎仓库。
 4. LFS 迁移阈值（1 GB / 30 s 是否合适）。
 5. 实体是否永远按 id 拆文件，还是小图允许单个 `entities.json`。
-6. lock 的 `inputs` 用树 hash 还是逐文件 hash（当前建议树 hash）。

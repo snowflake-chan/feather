@@ -18,6 +18,8 @@ import (
 	"time"
 )
 
+var version = "0.0.0"
+
 type cliError struct {
 	code string
 	msg  string
@@ -504,7 +506,7 @@ func main() {
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
-		fmt.Println("feather 0.0.0")
+		fmt.Println("feather " + version)
 		return
 	}
 	p, err := parse(os.Args[1:])
@@ -522,7 +524,7 @@ func main() {
 		return
 	}
 	if p.flags["--version"] {
-		fmt.Println("feather 0.0.0")
+		fmt.Println("feather " + version)
 		return
 	}
 	if err := run(p); err != nil {

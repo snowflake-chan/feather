@@ -55,7 +55,7 @@ async function runUnpack(argv: string[]) {
     force: args.flags.has('--force'),
   });
   if (args.flags.has('--json')) {
-    process.stdout.write(`${JSON.stringify(result)}\n`);
+    process.stdout.write(`${JSON.stringify({ ok: true, command: 'build', data: result })}\n`);
     return;
   }
   process.stdout.write(`unpacked: ${result.dir}\nmap: ${result.map}\n`);
@@ -73,7 +73,7 @@ async function runBuild(argv: string[]) {
     version: args.values.get('--project-version'),
   });
   if (args.flags.has('--json')) {
-    process.stdout.write(`${JSON.stringify(result)}\n`);
+    process.stdout.write(`${JSON.stringify({ ok: true, command: 'unpack', data: result })}\n`);
     return;
   }
   process.stdout.write(`built:  ${result.output}\n`);

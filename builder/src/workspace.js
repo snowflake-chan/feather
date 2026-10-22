@@ -12,14 +12,23 @@ const { LUT_RES } = require('../../engine/dist/src/assets/lut');
 const { WEATHER_RES } = require('../../engine/dist/src/assets/weather');
 const { DEFAULT_SOUNDS_RES } = require('../../engine/dist/src/assets/default_sounds');
 
-const ENGINE_ASSET_HASHES = new Set([
-  ...Object.values(LUT_RES.lut || {}),
-  ...Object.values(LUT_RES.preview || {}),
-  ...Object.values(WEATHER_RES || {}),
-  ...Object.values(DEFAULT_SOUNDS_RES || {}),
-]);
-function assetSource(entry) {
-  return entry && ENGINE_ASSET_HASHES.has(entry.hash) ? 'engine' : 'project';
+const baseHash = (hash) => String(hash || '').split('.')[0];
+
+const ENGINE_ASSET_HASHES = new Set(
+  [
+    ...Object.values(LUT_RES.lut || {}),
+    ...Object.values(LUT_RES.preview || {}),
+    ...Object.values(WEATHER_RES || {}),
+    ...Object.values(DEFAULT_SOUNDS_RES || {}),
+  ].map(baseHash),
+);
+
+function assetSource(entry, logical = '') {
+  if (!entry) return 'project';
+  if (ENGINE_ASSET_HASHES.has(baseHash(entry.hash))) return 'engine';
+  // Engine defaults are also recognizable by their stable workspace paths.
+  if (/^lut\//.test(logical) || /^snow\//.test(logical)) return 'engine';
+  return 'project';
 }
 
 const CHUNK_SIZE = 32;
@@ -86,9 +95,9 @@ async function unpackWorkspace(contentDir, target, meta) {
   writeJson(path.join(projectDir, 'ui.json'), { defaultScreenId: raw.defaultScreenId });
   const assetsJson = {
     version: 1,
-    assets: Object.fromEntries(Object.entries(raw.assets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry) }])),
-    audioAssets: Object.fromEntries(Object.entries(raw.audioAssets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry) }])),
-    pictureAssets: Object.fromEntries(Object.entries(raw.pictureAssets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry) }])),
+    assets: Object.fromEntries(Object.entries(raw.assets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry, key) }])),
+    audioAssets: Object.fromEntries(Object.entries(raw.audioAssets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry, key) }])),
+    pictureAssets: Object.fromEntries(Object.entries(raw.pictureAssets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry, key) }])),
     deleteAssets: raw.deleteAssets || [],
     scriptIndex: raw.scriptIndex || 'index.js',
   };
@@ -123,7 +132,7 @@ async function unpackWorkspace(contentDir, target, meta) {
   const allAssets = { ...(raw.assets || {}), ...(raw.audioAssets || {}), ...(raw.pictureAssets || {}) };
   for (const [logical, entry] of Object.entries(allAssets)) {
     if (!entry?.hash) continue;
-    if (assetSource(entry) === 'engine') continue;
+    if (assetSource(entry, logical) === 'engine') continue;
     const isScript = entry.type === 1 || entry.type === 7;
     const file = safeAssetPath(isScript ? scriptsDir : assetsDir, logical);
     const bytes = await readContent(contentServer, entry.hash);
