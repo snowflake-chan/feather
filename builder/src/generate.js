@@ -111,7 +111,7 @@ async function generateProject(workspace, dataRoot) {
       hash,
       modelPreviewHash: '',
       animated: false,
-      updatedAt: new Date().toISOString(),
+      updatedAt: '1970-01-01T00:00:00.000Z',
     };
   }
   for (const file of walk(source, 'audio')) {
@@ -158,7 +158,7 @@ async function generateProject(workspace, dataRoot) {
       formatVersion: 1,
       permissionHash,
       extraProjectHash,
-      updatedAt: new Date().toISOString(),
+      updatedAt: '1970-01-01T00:00:00.000Z',
     }, null, 2) + '\n',
   );
   return { projectHash: stored.projectHash, permissionHash, extraProjectHash };

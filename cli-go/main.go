@@ -438,7 +438,7 @@ func run(p *parsed) error {
 		if code == "" {
 			code = strings.Join(p.positionals[1:], " ")
 		}
-		data, err := c.json("POST", "/v1/maps/"+p.positionals[0]+"/eval", map[string]string{"code": code})
+		data, err := c.json("POST", "/v1/maps/"+url.PathEscape(p.positionals[0])+"/eval", map[string]string{"code": code})
 		if err != nil {
 			return err
 		}
@@ -462,17 +462,17 @@ func runMapAction(c *client, p *parsed) error {
 		var path string
 		switch p.command {
 		case "up":
-			path = "/v1/maps/" + id + "/start"
+			path = "/v1/maps/" + url.PathEscape(id) + "/start"
 		case "stop":
-			path = "/v1/maps/" + id + "/stop"
+			path = "/v1/maps/" + url.PathEscape(id) + "/stop"
 		case "restart":
-			path = "/v1/maps/" + id + "/restart"
+			path = "/v1/maps/" + url.PathEscape(id) + "/restart"
 		case "rm":
 			query := ""
 			if p.flags["--force"] {
 				query = "?force=1"
 			}
-			data, err := c.json("DELETE", "/v1/maps/"+id+query, nil)
+			data, err := c.json("DELETE", "/v1/maps/"+url.PathEscape(id)+query, nil)
 			if err != nil {
 				return err
 			}
@@ -500,11 +500,11 @@ func runMapAction(c *client, p *parsed) error {
 
 func main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
-		fmt.Println("feather-go [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
-		fmt.Println("feather-go 0.0.0")
+		fmt.Println("feather 0.0.0")
 		return
 	}
 	p, err := parse(os.Args[1:])
@@ -518,7 +518,7 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather-go [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
 		return
 	}
 	if p.flags["--version"] {

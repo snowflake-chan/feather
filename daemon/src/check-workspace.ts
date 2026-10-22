@@ -8,7 +8,7 @@ import { unpackCommand } from './unpack';
 
 function readManifest(fmap: string) {
   const result = spawnSync('tar', ['-xOf', fmap, 'feather.json'], { encoding: 'utf8' });
-  if (result.status !== 0) throw new Error(result.stderr || `missing feather.json`);
+  if (result.status !== 0) throw new Error(result.stderr || 'missing feather.json');
   return JSON.parse(result.stdout) as {
     map: { id: string; name?: string; version?: string };
     storage?: { volume?: string };
@@ -18,35 +18,19 @@ function readManifest(fmap: string) {
 }
 
 async function main() {
+  const fixture = path.resolve(__dirname, '../../test-fixtures/roundtrip.fmap');
+  if (!fs.existsSync(fixture)) throw new Error(`missing fixture: ${fixture}`);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'feather-workspace-check-'));
   try {
-    fs.writeFileSync(path.join(root, 'feather.toml'), [
-      'schema_version = 1',
-      '[project]',
-      'id = "roundtrip-test"',
-      'version = "0.1.0"',
-      '[build]',
-      'kind = "native"',
-      'output = "out/original.fmap"',
-      '[storage]',
-      'volume = "roundtrip-volume"',
-      '[runtime]',
-      'port = 0',
-      'memoryMb = 512',
-      'playerLimit = 8',
-      '',
-    ].join('\n'));
-    fs.writeFileSync(path.join(root, 'index.js'), '// roundtrip entry\n');
-    const original = path.join(root, 'out/original.fmap');
-    await buildCommand({ root, output: original });
-    const before = readManifest(original);
-
+    const before = readManifest(fixture);
     const unpacked = path.join(root, 'unpacked');
-    await unpackCommand({ archive: original, dir: unpacked });
-    if (!fs.existsSync(path.join(unpacked, 'project', 'info.json'))) throw new Error('missing project/info.json');
+    await unpackCommand({ archive: fixture, dir: unpacked });
+    for (const required of ['project/info.json', 'project/assets.json', 'project/chunks']) {
+      if (required === 'project/chunks') continue;
+      if (!fs.existsSync(path.join(unpacked, required))) throw new Error(`missing ${required}`);
+    }
     if (!fs.existsSync(path.join(unpacked, 'chunks'))) throw new Error('missing chunks/');
-
-    const rebuilt = path.join(root, 'out/rebuilt.fmap');
+    const rebuilt = path.join(root, 'rebuilt.fmap');
     await buildCommand({ root: unpacked, output: rebuilt });
     const after = readManifest(rebuilt);
     const fail: string[] = [];
@@ -55,11 +39,12 @@ async function main() {
     if (before.map.version !== after.map.version) fail.push('map.version');
     if (before.storage?.volume !== after.storage?.volume) fail.push('storage.volume');
     if (JSON.stringify(before.runtime) !== JSON.stringify(after.runtime)) fail.push('runtime');
+    if (before.content.hash !== after.content.hash) fail.push(`content.hash ${before.content.hash} != ${after.content.hash}`);
     if (fail.length) throw new Error(`round-trip mismatch: ${fail.join(', ')}`);
-    process.stdout.write(`round-trip content hash: before=${before.content.hash} after=${after.content.hash}\n`);
-    process.stdout.write('workspace checks passed\n');
+    process.stdout.write(`workspace checks passed: ${before.content.hash}\n`);
   } finally {
-    fs.rmSync(root, { recursive: true, force: true });
+    if (!process.env.KEEP) fs.rmSync(root, { recursive: true, force: true });
+    else process.stdout.write(`kept: ${root}\n`);
   }
 }
 

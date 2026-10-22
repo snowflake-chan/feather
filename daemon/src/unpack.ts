@@ -39,8 +39,14 @@ function extract(file: string, dest: string) {
 function assertSafeTarget(target: string) {
   const resolved = path.resolve(target);
   const home = path.resolve(os.homedir());
-  if (resolved === path.parse(resolved).root || resolved === path.resolve(process.cwd()) || resolved === home) {
+  const cwd = path.resolve(process.cwd());
+  const relativeCwd = path.relative(resolved, cwd);
+  const containsCwd = relativeCwd === '' || (!relativeCwd.startsWith('..') && !path.isAbsolute(relativeCwd));
+  if (resolved === path.parse(resolved).root || containsCwd || resolved === home) {
     throw Object.assign(new Error(`refusing to overwrite unsafe target: ${resolved}`), { code: 'UNSAFE_TARGET' });
+  }
+  if (fs.existsSync(resolved) && !fs.existsSync(path.join(resolved, 'feather.toml'))) {
+    throw Object.assign(new Error(`refusing to replace non-workspace: ${resolved}`), { code: 'UNSAFE_TARGET' });
   }
 }
 

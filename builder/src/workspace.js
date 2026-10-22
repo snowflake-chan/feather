@@ -8,6 +8,19 @@ const { retrievePermissions } = require('@box/build-system/permissions/permissio
 const { retrieveProject } = require('@box/build-system/project/project-serialize');
 const { ProjectRDA } = require('@box/schema/project/project-rda');
 const { PermissionRDA } = require('@box/schema/permissions/permission-rda');
+const { LUT_RES } = require('../../engine/dist/src/assets/lut');
+const { WEATHER_RES } = require('../../engine/dist/src/assets/weather');
+const { DEFAULT_SOUNDS_RES } = require('../../engine/dist/src/assets/default_sounds');
+
+const ENGINE_ASSET_HASHES = new Set([
+  ...Object.values(LUT_RES.lut || {}),
+  ...Object.values(LUT_RES.preview || {}),
+  ...Object.values(WEATHER_RES || {}),
+  ...Object.values(DEFAULT_SOUNDS_RES || {}),
+]);
+function assetSource(entry) {
+  return entry && ENGINE_ASSET_HASHES.has(entry.hash) ? 'engine' : 'project';
+}
 
 const CHUNK_SIZE = 32;
 
@@ -71,11 +84,15 @@ async function unpackWorkspace(contentDir, target, meta) {
   }
   writeJson(path.join(projectDir, 'permissions.json'), permissionRaw);
   writeJson(path.join(projectDir, 'ui.json'), { defaultScreenId: raw.defaultScreenId });
-  writeJson(path.join(projectDir, 'asset-metadata.json'), raw.assets || {});
-  writeJson(path.join(projectDir, 'audio-assets.json'), raw.audioAssets || {});
-  writeJson(path.join(projectDir, 'picture-assets.json'), raw.pictureAssets || {});
-  writeJson(path.join(projectDir, 'script-index.json'), { scriptIndex: raw.scriptIndex || 'index.js' });
-  writeJson(path.join(projectDir, 'delete-assets.json'), raw.deleteAssets || []);
+  const assetsJson = {
+    version: 1,
+    assets: Object.fromEntries(Object.entries(raw.assets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry) }])),
+    audioAssets: Object.fromEntries(Object.entries(raw.audioAssets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry) }])),
+    pictureAssets: Object.fromEntries(Object.entries(raw.pictureAssets || {}).map(([key, entry]) => [key, { ...entry, source: assetSource(entry) }])),
+    deleteAssets: raw.deleteAssets || [],
+    scriptIndex: raw.scriptIndex || 'index.js',
+  };
+  writeJson(path.join(projectDir, 'assets.json'), assetsJson);
   for (const [id, node] of Object.entries(raw.entitiesTree || {})) {
     writeJson(safeAssetPath(path.join(projectDir, 'entities'), `${id}.json`), node);
   }
@@ -106,10 +123,11 @@ async function unpackWorkspace(contentDir, target, meta) {
   const allAssets = { ...(raw.assets || {}), ...(raw.audioAssets || {}), ...(raw.pictureAssets || {}) };
   for (const [logical, entry] of Object.entries(allAssets)) {
     if (!entry?.hash) continue;
+    if (assetSource(entry) === 'engine') continue;
     const isScript = entry.type === 1 || entry.type === 7;
     const file = safeAssetPath(isScript ? scriptsDir : assetsDir, logical);
     const bytes = await readContent(contentServer, entry.hash);
-    if (!bytes) throw new Error(`missing asset: ${logical}`);
+    if (!bytes) throw new Error(`missing project asset: ${logical}`);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, bytes);
   }
@@ -220,68 +238,68 @@ async function buildBakedWorkspace(workspace, contentDir) {
     const file = path.join(projectDir, name);
     return fs.existsSync(file) ? readJson(file) : fallback;
   };
-  const assetMetadata = readOptional('asset-metadata.json', {});
-  const audioMetadata = readOptional('audio-assets.json', {});
-  const pictureMetadata = readOptional('picture-assets.json', {});
-  const scriptIndexConfig = readOptional('script-index.json', {});
-  raw.deleteAssets = readOptional('delete-assets.json', []);
-
+  const assetsConfig = readOptional('assets.json', undefined);
+  raw.deleteAssets = assetsConfig ? assetsConfig.deleteAssets || [] : [];
+  raw.scriptIndex = assetsConfig ? assetsConfig.scriptIndex || 'index.js' : '';
   raw.assets = {};
-  const assetRoots = [
-    [path.join(workspace, 'assets'), ''],
-    [path.join(workspace, 'scripts'), ''],
-  ];
-  for (const [root] of assetRoots) {
-    for (const file of walkFiles(root)) {
-      const logical = path.relative(root, file).split(path.sep).join('/');
-      if (logical in audioMetadata || logical in pictureMetadata) continue;
-      const bytes = fs.readFileSync(file);
-      const meta = assetMetadata[logical] || {};
-      let storedHash = await contentServer.store(bytes);
-      if (typeof meta.hash === 'string' && meta.hash.includes('.')) {
-        storedHash += meta.hash.slice(meta.hash.indexOf('.'));
-      }
-      raw.assets[logical] = {
-        ...meta,
-        ownerId: meta.ownerId ?? 0,
-        contentId: meta.contentId ?? 0,
-        size: typeof meta.size === 'number' ? meta.size : bytes.length,
-        type: meta.type ?? assetType(file),
-        animated: meta.animated ?? false,
-        bounds: meta.bounds ?? [0, 0, 0],
-        hash: storedHash,
-        previewImage: meta.previewImage ?? '',
-      };
-    }
-  }
-  raw.scriptIndex = scriptIndexConfig.scriptIndex ||
-    (fs.existsSync(path.join(workspace, 'scripts', 'index.js')) ? 'index.js' : '');
   raw.audioAssets = {};
   raw.pictureAssets = {};
-  for (const [logical, meta] of Object.entries(audioMetadata)) {
-    const file = path.join(workspace, 'assets', logical);
-    if (!fs.existsSync(file)) continue;
-    const bytes = fs.readFileSync(file);
-    let storedHash = await contentServer.store(bytes);
-    if (typeof meta.hash === 'string' && meta.hash.includes('.')) storedHash += meta.hash.slice(meta.hash.indexOf('.'));
-    raw.audioAssets[logical] = {
-      ...meta,
-      hash: storedHash,
-      size: typeof meta.size === 'number' ? meta.size : bytes.length,
+
+  if (assetsConfig) {
+    const loadEntry = async (logical, entry, root) => {
+      if (entry.source === 'engine') {
+        const clean = { ...entry };
+        delete clean.source;
+        return clean;
+      }
+      const file = path.join(root, logical);
+      if (!fs.existsSync(file)) throw new Error(`missing project asset: ${logical}`);
+      const bytes = fs.readFileSync(file);
+      const base = String(entry.hash || '').split('.')[0];
+      let storedHash = await contentServer.store(bytes);
+      const actual = storedHash;
+      if (base && actual !== base) {
+        throw new Error(`asset hash mismatch: ${logical}`);
+      }
+      if (entry.hash && entry.hash.includes('.')) storedHash += entry.hash.slice(entry.hash.indexOf('.'));
+      const clean = { ...entry, hash: storedHash, size: typeof entry.size === 'number' ? entry.size : bytes.length };
+      delete clean.source;
+      return clean;
     };
+    for (const [logical, entry] of Object.entries(assetsConfig.assets || {})) {
+      const isScript = entry.type === 1 || entry.type === 7;
+      raw.assets[logical] = await loadEntry(logical, entry, isScript ? path.join(workspace, 'scripts') : path.join(workspace, 'assets'));
+    }
+    for (const [logical, entry] of Object.entries(assetsConfig.audioAssets || {})) {
+      raw.audioAssets[logical] = await loadEntry(logical, entry, path.join(workspace, 'assets'));
+    }
+    for (const [logical, entry] of Object.entries(assetsConfig.pictureAssets || {})) {
+      raw.pictureAssets[logical] = await loadEntry(logical, entry, path.join(workspace, 'assets'));
+    }
+  } else {
+    const assetRoots = [
+      [path.join(workspace, 'assets'), ''],
+      [path.join(workspace, 'scripts'), ''],
+    ];
+    for (const [root] of assetRoots) {
+      for (const file of walkFiles(root)) {
+        const logical = path.relative(root, file).split(path.sep).join('/');
+        const bytes = fs.readFileSync(file);
+        raw.assets[logical] = {
+          ownerId: 0,
+          contentId: 0,
+          size: bytes.length,
+          type: assetType(file),
+          animated: false,
+          bounds: [0, 0, 0],
+          hash: await contentServer.store(bytes),
+          previewImage: '',
+        };
+      }
+    }
+    raw.scriptIndex = fs.existsSync(path.join(workspace, 'scripts', 'index.js')) ? 'index.js' : '';
   }
-  for (const [logical, meta] of Object.entries(pictureMetadata)) {
-    const file = path.join(workspace, 'assets', logical);
-    if (!fs.existsSync(file)) continue;
-    const bytes = fs.readFileSync(file);
-    let storedHash = await contentServer.store(bytes);
-    if (typeof meta.hash === 'string' && meta.hash.includes('.')) storedHash += meta.hash.slice(meta.hash.indexOf('.'));
-    raw.pictureAssets[logical] = {
-      ...meta,
-      hash: storedHash,
-      size: typeof meta.size === 'number' ? meta.size : bytes.length,
-    };
-  }
+
   raw.type = 'project';
   raw.version = '0.3.31';
   raw.prevHash = '';

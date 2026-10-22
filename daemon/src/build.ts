@@ -157,16 +157,6 @@ export async function buildCommand(options: BuildOptions = {}) {
     } else {
       await generateProject(root, staging);
     }
-    const bundled = process.env.BOX_BUNDLED_CONTENT_PATH;
-    if (bundled && fs.existsSync(bundled)) {
-      const target = path.join(content, 'blobs');
-      fs.mkdirSync(target, { recursive: true });
-      for (const name of fs.readdirSync(bundled)) {
-        const source = path.join(bundled, name);
-        const destination = path.join(target, name);
-        if (!fs.existsSync(destination)) fs.copyFileSync(source, destination);
-      }
-    }
     const assets = scanAssets([kind === 'baked' ? path.join(root, 'assets') : root], path.join(content, 'blobs'));
 
     const manifest: FmapManifest = {

@@ -62,6 +62,7 @@ my-map/
     ui/
       <screenId>.json
     ui.json
+    assets.json
   chunks/
     0,0,0.bin
     ...
@@ -79,7 +80,8 @@ my-map/
 - `chunks/` 必须包含**所有** chunk 文件，包括空 chunk（空 chunk 也只有 2 字节），这样文件集合稳定、merge base 存在。
 - 工作区里**没有** `project-state.json`、**没有** `blobs/Qm...`、**没有** `.fmap`。
 - `assets/` 是逻辑路径；build 时 hash 成 blob。
-- `scripts/` 是文本；`scriptIndex` 由 `scripts/index.js` 推导。
+- `project/assets.json` 是 asset 元数据的唯一真相源；`source: "engine"` 的默认资产只保留 hash，不写字节；`source: "project"` 才写 `assets/`、`scripts/` 并在 build 时校验 hash。
+- `scripts/` 是文本；`scriptIndex` 由 `project/assets.json` 显式恢复，不再猜 `index.js`。
 
 `.gitignore`：
 
@@ -205,6 +207,7 @@ version = "1.2.0"
 | `project/entities/<id>.json` | `entitiesTree` | 按 id 拆文件，零冲突 |
 | `project/ui/<screenId>.json` | `uiTree` | 按 screen 拆文件，零冲突 |
 | `project/ui.json` | `defaultScreenId` + 全局 UI | 单对象 |
+| `project/assets.json` | `assets` / `audioAssets` / `pictureAssets` / `deleteAssets` / `scriptIndex` | 元数据；entry 带 `source: project|engine` |
 | `chunks/*.bin` | `voxels.chunks` | 按坐标拆，见 §6 |
 | `scripts/` | `assets` / `scriptAssets` | 文本 |
 | `assets/` | `assets` | 二进制 |
@@ -331,7 +334,7 @@ content/
 
 ### 8.4 无 lock
 
-工作区不生成 `feather.lock.json`。所有内容都是具名文件，build 直接读取并校验；CI 两次 build 比较 contentHash。工具版本写在 `feather.toml [requires]`，不写派生 lock。
+工作区不生成 `feather.lock.json`。所有内容都是具名文件，build 直接读取并校验；CI 两次 build 比较 contentHash。工具版本写在 `feather.toml [requires]`，不写派生 lock；`requires` 同时记录默认资产/引擎版本。
 
 ## 9. 合并
 
