@@ -193,6 +193,16 @@ func printJSON(value any) {
 	fmt.Println(string(data))
 }
 
+func runFeatherd(args []string) error {
+	bin := os.Getenv("FEATHERD_BIN")
+	if bin == "" {
+		bin = "feather-daemon"
+	}
+	cmd := exec.Command(bin, args...)
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	return cmd.Run()
+}
+
 func run(p *parsed) error {
 	socket := socketPath(p.socket)
 	c := newClient(socket)
@@ -274,31 +284,23 @@ func run(p *parsed) error {
 		if err != nil {
 			return err
 		}
-		body := map[string]any{"workspace": root}
+		args := []string{"build", root}
 		if value := p.values["--output"]; value != "" {
-			body["output"] = value
+			args = append(args, "--output", value)
 		}
 		if value := p.values["--project-version"]; value != "" {
-			body["projectVersion"] = value
+			args = append(args, "--project-version", value)
 		}
 		if p.flags["--check"] {
-			body["check"] = true
+			args = append(args, "--check")
 		}
 		if p.flags["--locked"] {
-			body["locked"] = true
-		}
-		data, err := c.json("POST", "/v1/builds", body)
-		if err != nil {
-			return err
+			args = append(args, "--locked")
 		}
 		if p.json {
-			printJSON(json.RawMessage(data))
-			return nil
+			args = append(args, "--json")
 		}
-		var result map[string]any
-		_ = json.Unmarshal(data, &result)
-		fmt.Printf("built:  %v\nmap:    %v\ncontent: %v\n", result["output"], result["map"], result["contentHash"])
-		return nil
+		return runFeatherd(args)
 	case "unpack":
 		if len(p.positionals) == 0 {
 			return usageError("unpack requires a project archive")
@@ -307,26 +309,20 @@ func run(p *parsed) error {
 		if err != nil {
 			return err
 		}
-		body := map[string]any{"archive": archive}
+		args := []string{"unpack", archive}
 		if value := p.values["--dir"]; value != "" {
-			body["dir"] = value
+			args = append(args, "--dir", value)
 		}
 		if value := p.values["--kind"]; value != "" {
-			body["kind"] = value
+			args = append(args, "--kind", value)
 		}
 		if p.flags["--force"] {
-			body["force"] = true
-		}
-		data, err := c.json("POST", "/v1/unpacks", body)
-		if err != nil {
-			return err
+			args = append(args, "--force")
 		}
 		if p.json {
-			printJSON(json.RawMessage(data))
-			return nil
+			args = append(args, "--json")
 		}
-		fmt.Println(string(data))
-		return nil
+		return runFeatherd(args)
 	case "load":
 		if len(p.positionals) == 0 {
 			return usageError("load requires an archive")

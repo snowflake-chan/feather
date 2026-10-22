@@ -114,18 +114,6 @@ export class DaemonClient {
       { code },
     );
   }
-  build(options: { workspace: string; output?: string; projectVersion?: string; check?: boolean; locked?: boolean }) {
-    return this._request<{ output: string; map: string; contentHash: string }>(
-      'POST',
-      '/v1/builds',
-      options,
-    );
-  }
-
-  unpack(options: { archive: string; dir?: string; kind?: string; force?: boolean }) {
-    return this._request<{ dir?: string }>('POST', '/v1/unpacks', options);
-  }
-
   importArchive(file: string, options: { replace?: boolean; purgeData?: boolean } = {}) {
     const query = new URLSearchParams();
     if (options.replace) query.set('replace', '1');

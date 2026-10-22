@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { startApiServer } from './api/server';
+import { runFeatherdTool } from './cli';
 import { createDaemon } from './daemon';
 
 function arg(name: string) {
@@ -27,6 +28,11 @@ function installProcessErrorHandlers() {
 
 async function main() {
   installProcessErrorHandlers();
+  const tool = process.argv[2];
+  if (tool === 'build' || tool === 'unpack') {
+    await runFeatherdTool(process.argv.slice(2));
+    return;
+  }
   const dataRoot = path.resolve(
     arg('--data-root') ||
       process.env.FEATHER_DATA_ROOT ||
@@ -78,6 +84,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error);
+  const code = (error as { code?: string })?.code;
+  console.error(code ? `${code}: ${error instanceof Error ? error.message : String(error)}` : error);
   process.exitCode = 1;
 });
