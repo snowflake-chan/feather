@@ -34,7 +34,8 @@
     "check:script-timeout": "node -r @swc-node/register scripts/check-script-timeout.ts",
     "check:script-memory": "node -r @swc-node/register scripts/check-script-memory.ts",
     "check:shared-content-arena": "node -r @swc-node/register scripts/check-shared-content-arena.ts",
-    "check:content-host-cache": "node -r @swc-node/register scripts/check-content-host-cache.ts"
+    "check:content-host-cache": "node -r @swc-node/register scripts/check-content-host-cache.ts",
+    "check:script-timeout-policy": "node -r @swc-node/register scripts/check-script-timeout-policy.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1.0.28",

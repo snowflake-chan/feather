@@ -287,3 +287,5 @@ feather load project.boxproject
 - 不做热迁移
 - 不做反代
 - 没有正式 auth/player identity
+- **本地图默认跳过 mudb 协议一致性校验**：独立静态客户端的 protocol 指纹和服务端结构上就对不上，开着校验会在握手时把它拒掉。代价是 schema 漂移会表现成「进图后行为怪异」而不是干净拒绝；排查时用 `BOX_PROTOCOL_VALIDATION=1` 强制打开。跳过时每张图会打一条 warn。
+- `MapSpec` 里不再有 `env` / `localConfigPath`：引擎大量直接读 `process.env`，per-map 环境变量在 worker 内无法隔离，留着只会变成静默无效的字段。

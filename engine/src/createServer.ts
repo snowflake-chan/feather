@@ -138,12 +138,23 @@ export async function createGameServer(spec: {
   const login = getLoginStr(serverConfig.login);
   // create mu server
   spec.logger.info('Creating MuServer...');
-  // Local maps are trusted and served by feather itself. Protocol validation
-  // here only produces false mismatches with the standalone static client,
-  // which deliberately runs without the Next dev shell.
+  // 本地图默认跳过协议一致性校验：独立静态客户端刻意不带 Next dev shell，
+  // 它的 protocol 指纹（mudb 直接比对 clientFactory/serverFactory 的 jsonStr）
+  // 和服务端结构上就对不上，开着校验只会把正常客户端在握手时拒掉。
+  //
+  // 代价是 schema 漂移会变成「进图后行为怪异」而不是握手被拒。所以：
+  // ① 跳过时必须留一条日志，别让它静默；② `BOX_PROTOCOL_VALIDATION=1` 可以
+  // 强制打开，用来排查服务端与客户端 schema 到底差在哪。
   const skipProtocolValidation =
-    (serverConfig.method as string) === 'local' ||
-    (process.env.NODE_ENV !== 'development' && serverConfig.method !== 'local');
+    process.env.BOX_PROTOCOL_VALIDATION !== '1' &&
+    ((serverConfig.method as string) === 'local' ||
+      process.env.NODE_ENV !== 'development');
+  if (skipProtocolValidation) {
+    spec.logger.warn(
+      `Protocol consistency validation is disabled (method=${serverConfig.method}); ` +
+        'set BOX_PROTOCOL_VALIDATION=1 to enforce it.',
+    );
+  }
   const socketServer = new MuWebSocketServer({
     server: spec.httpServer,
     requireSessionProof: true,

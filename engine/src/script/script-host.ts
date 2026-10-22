@@ -110,6 +110,7 @@ import { EntityNameComponentSetSchema } from '@box/schema/entity-name/entity-nam
 import { SCRIPT_OSS_CDN_PATH } from '@box/content-server/index';
 import { Vec3Schema } from '@box/schema/utils/math-schema';
 import { resolveRuntimeScriptEntry } from '@feather/protocol/script-entry';
+import { evaluateScriptTimeout } from './script-timeout-policy';
 
 function appendSchema<T, Schema extends MuSchema<T>>(
   schema: Schema,
@@ -160,6 +161,13 @@ export class ScriptHost {
   private _lastScriptTickAt = Date.now();
   private _scriptTimedOut = false;
   private _closing = false;
+  /** 是否已经收到过至少一帧 postTick；没有就说明脚本还在初始化 */
+  private _scriptTicking = false;
+  /** 是否已经成功 launch 过 worker（launch 失败时不该按超时去杀） */
+  private _scriptLaunched = false;
+  /** 本次运行是否已经报过 crash（超时杀和断线可能同时发生） */
+  private _crashNotified = false;
+  private _scriptStartAt = Date.now();
 
   private _state: GameServerState;
 
@@ -545,6 +553,7 @@ export class ScriptHost {
         postTick: (client, data) => {
           if (this._scriptReady(client.sessionId)) {
             this._lastScriptTickAt = Date.now();
+            this._scriptTicking = true;
             ScriptPerfCounterSchema.assign(this._state.perf.script, data.perf);
             this._state.script.scriptSync.push(
               ScriptPostTickSchema.clone(data),
@@ -781,7 +790,7 @@ export class ScriptHost {
           client.sessionId === this._state.script.activeScriptId
         ) {
           this.logger.error(new Error('User script terminated unexpectedly'));
-          this.onScriptCrash.notify();
+          this._notifyCrash();
         }
       },
     });
@@ -852,15 +861,45 @@ export class ScriptHost {
   private _enforceScriptTimeout() {
     if (this._scriptTimedOut) return;
     if (scriptRunState(this._state.script) !== GameScriptRunState.RUNNING) return;
+
+    const timeoutMs = Number(this._state.settings.scriptTimeout);
+
+    if (!this._scriptTicking) {
+      // 初始化阶段不能要求 activeScriptId：模块顶层的死循环（`while (true) {}`）
+      // 会让脚本永远连不上来，activeScriptId 一直是空——而这恰恰是最该被杀的情况。
+      // 只要我们自己 launch 过 worker，就可以按宽限计时。
+      if (!this._scriptLaunched) return;
+      const verdict = evaluateScriptTimeout({
+        timeoutMs,
+        ticking: false,
+        startedAt: this._scriptStartAt,
+        lastTickAt: this._lastScriptTickAt,
+        now: Date.now(),
+      });
+      if (!verdict.kill) return;
+      this._killTimedOutScript(
+        `User script init timeout: ${verdict.elapsedMs}ms without a single tick; terminating worker.`,
+      );
+      return;
+    }
+
     if (!this._state.script.activeScriptId) return;
-    const timeout = Number(this._state.settings.scriptTimeout);
-    if (!Number.isFinite(timeout) || timeout <= 0) return;
-    const elapsed = Date.now() - this._lastScriptTickAt;
-    if (elapsed <= timeout) return;
-    this._scriptTimedOut = true;
-    this.logger.error(
-      `User script tick timeout: ${elapsed}ms > ${timeout}ms; terminating worker.`,
+    const verdict = evaluateScriptTimeout({
+      timeoutMs,
+      ticking: true,
+      startedAt: this._scriptStartAt,
+      lastTickAt: this._lastScriptTickAt,
+      now: Date.now(),
+    });
+    if (!verdict.kill) return;
+    this._killTimedOutScript(
+      `User script tick timeout: ${verdict.elapsedMs}ms; terminating worker.`,
     );
+  }
+
+  private _killTimedOutScript(reason: string) {
+    this._scriptTimedOut = true;
+    this.logger.error(reason);
     const scriptServer = this.scriptServer as ScriptServer & {
       terminateWorkers?: () => void;
     };
@@ -873,6 +912,16 @@ export class ScriptHost {
         this.logger.error(error, 'Failed to terminate timed-out script server.');
       }
     }
+    // 不能只指望断线回调：脚本卡在模块顶层时从没连上来，socket 根本不存在，
+    // 断线事件不会发生。那样杀了也等于没杀——图还在，脚本没了，也没人重启。
+    this._notifyCrash();
+  }
+
+  /** 一次运行只报一次崩溃，避免「超时杀 + 断线」重复触发重启 */
+  private _notifyCrash() {
+    if (this._crashNotified) return;
+    this._crashNotified = true;
+    this.onScriptCrash.notify();
   }
 
   public preTickApplyScriptUpdates() {
@@ -1050,6 +1099,10 @@ export class ScriptHost {
     this._scriptTimedOut = false;
     this._closing = false;
     this._lastScriptTickAt = Date.now();
+    this._scriptTicking = false;
+    this._scriptLaunched = false;
+    this._crashNotified = false;
+    this._scriptStartAt = Date.now();
     this.anticheat?.reset();
 
     // wait for baton
@@ -1081,6 +1134,7 @@ export class ScriptHost {
     try {
       this.logger.debug('Launching script isolate');
       await this.scriptServer.launch('', '');
+      this._scriptLaunched = true;
       this.logger.debug('Script server launched new client.');
     } catch (e) {
       this.logger.error(`Could not start user script`);
