@@ -32,7 +32,7 @@ const COMMAND_VALUES: Record<string, Set<string>> = {
 
 const COMMAND_FLAGS: Record<string, Set<string>> = {
   daemon: new Set(['--enable-eval', '--tcp']),
-  build: new Set(['--check', '--locked']),
+  build: new Set(),
   unpack: new Set(['--force']),
   load: new Set(['--replace', '--purge-data']),
   up: new Set(),

@@ -45,25 +45,25 @@ workspace ──build──▶ archive ──load(daemon)──▶ map (created 
 
 ```text
 my-map/
-  feather.toml               # 身份 + 构建/部署参数（人写，小）
-  info.json                  # 显示名、描述、封面、公告
-  environment.json           # 天气、时间、雾、天空
-  player.json                # spawn、移动、玩家音效
-  physics.json               # 物理参数
-  collision-filter.json      # 碰撞过滤
-  zones.json                 # 区域
-  gamepad.json               # 手柄映射
-  ambient-sound.json         # 环境音
-  features.json              # 特性开关
-  permissions.json           # 访问控制
-  entities/
-    <entityId>.json          # 按 id 拆，一个实体一个文件
-  ui/
-    <screenId>.json          # 按 screen 拆
-  ui.json                    # defaultScreenId + 全局 UI 配置
+  feather.toml               # 身份 + 构建/部署参数
+  project/                   # 所有 ProjectRDA 配置
+    info.json
+    environment.json
+    player.json
+    physics.json
+    collision-filter.json
+    zones.json
+    gamepad.json
+    ambient-sound.json
+    features.json
+    permissions.json
+    entities/
+      <entityId>.json
+    ui/
+      <screenId>.json
+    ui.json
   chunks/
-    0,0,0.bin                # 32³ chunk，内容 = 官方 boxCompress 字节
-    1,0,0.bin
+    0,0,0.bin
     ...
   scripts/
     index.js
@@ -72,7 +72,6 @@ my-map/
     mesh/...
     audio/...
     image/...
-  feather.lock.json          # 派生：工具版本 + 输入/输出 hash
 ```
 
 规则：
@@ -81,7 +80,6 @@ my-map/
 - 工作区里**没有** `project-state.json`、**没有** `blobs/Qm...`、**没有** `.fmap`。
 - `assets/` 是逻辑路径；build 时 hash 成 blob。
 - `scripts/` 是文本；`scriptIndex` 由 `scripts/index.js` 推导。
-- `feather.lock.json` 是生成物，冲突时重新生成，不手改。
 
 `.gitignore`：
 
@@ -99,7 +97,6 @@ server.local.toml
 ```text
 chunks/*.bin       -diff merge=feather-voxel
 assets/**          -diff
-# feather.lock.json 冲突时不要手 merge：跑 feather build 重新生成
 ```
 
 ---
@@ -111,7 +108,7 @@ assets/**          -diff
 | 地图身份 / 构建 / 部署 | id、version、volume、runtime limits、build kind | `feather.toml` | ✅ | 人 |
 | 地图内容 | 天气、实体、UI、玩家、物理、区域、权限 | JSON sections | ✅ | 人 / CLI / AI / GUI |
 | 地图二进制 | 体素、mesh、音频、图片 | `chunks/`、`assets/` | ✅ | CLI / GUI |
-| 地图派生物 | 工具版本、输入输出 hash | `feather.lock.json` | ✅ | build |
+| 地图派生物 | 无（全部具名，内容 hash 在 archive 中） | — | — | — |
 | 服务器运行时 | 端口、人数、视距、tick、安全、日志 | `server.toml` | ❌（部署侧） | 运维 |
 | 环境差异 / 密钥 | token、DB URL、路径 | 环境变量 | ❌ | 运维 |
 
@@ -251,7 +248,7 @@ git 的对象存储按内容去重：不同路径、不同地图里相同的 chu
 ### 6.4 block palette
 
 - block id 由引擎内置的 `BlockInfo` 决定。
-- palette 版本 hash 写进 `feather.lock.json`。
+- palette 版本变化必须让 build 明确报错，不能按 id 硬合。
 - 两边 palette 不一致时，merge 必须失败，不能按 id 硬合。
 
 ---
@@ -289,7 +286,7 @@ content/
 - `blobs/Qm...` → 按 manifest 的坐标写成 `chunks/<x>,<y>,<z>.bin`；
 - project 根 JSON 的各 section → `info.json` / `environment.json` / `entities/` / `ui/` …；
 - 脚本和资源 → `scripts/`、`assets/`；
-- 写 `feather.toml`（`kind = "baked"`）和 `feather.lock.json`。
+- 写 `feather.toml`（`kind = "baked"`）。
 
 展开是**无损**的：chunk 字节不变，section JSON 语义不变。`build` 重新组装后：
 
@@ -311,7 +308,6 @@ content/
 - `chunks/`
 - `assets/`
 - `scripts/`
-- `feather.lock.json`
 
 不提交：
 
@@ -335,7 +331,7 @@ content/
 
 ### 8.4 lock
 
-`feather.lock.json` 是派生物，记录：
+工作区不生成 lock；所有内容都是具名文件，build 直接读取并校验：
 
 - `lockVersion`
 - `tool`：feather 版本、project format 版本、block palette hash
@@ -346,7 +342,7 @@ content/
 
 - 排序输出、无时间戳、无绝对路径。
 - 冲突时重新生成，不手 merge。
-- CI 用 `feather build --locked` 校验 lock 与源一致。
+- CI 两次 build，比较 contentHash。
 
 ---
 
@@ -393,7 +389,6 @@ git config merge.feather-voxel.driver "feather merge-chunk %O %A %B"
 - 实体/屏幕按 id 拆文件 → 不同实体不冲突。
 - 单对象 JSON 用默认文本合并；数组只在顺序有语义时使用，冲突是真实的。
 - **不要**用 `merge=union`（会产出非法 JSON）。
-- `feather.lock.json` 是生成物：冲突时不要手 merge，跑 `feather build` 重新生成。
 
 ---
 
@@ -409,8 +404,10 @@ git config merge.feather-voxel.driver "feather merge-chunk %O %A %B"
 验收：
 
 ```bash
-feather build && sha256sum feather.lock.json > /tmp/a
-feather build && sha256sum feather.lock.json > /tmp/b
+featherd build my-map
+sha256sum dist/my-map.fmap > /tmp/a
+featherd build my-map
+sha256sum dist/my-map.fmap > /tmp/b
 diff /tmp/a /tmp/b          # 必须为空
 ```
 
@@ -533,7 +530,7 @@ level = "info"
 
 - 修 §10 的四个随机/时间戳洞。
 - 加 build-twice 测试。
-- 验收：两次 build 的 `feather.lock.json` 字节相同。
+- 验收：两次 build 的 contentHash / 归档内容一致。
 
 ### B. 工作区展开 / 组装
 
@@ -553,10 +550,9 @@ level = "info"
 - `feather diff <rev>`（内容级 + 渲染）。
 - 验收：AI 能只靠 CLI 完成「改 → 看 → 再改」。
 
-### E. lock / CI
+### E. CI / build-twice
 
-- `feather.lock.json` schema。
-- `feather build --locked`、`feather check`。
+- `featherd build` 两次输出 contentHash 相同。
 - CI：clone → build → check，不依赖外部 store。
 
 ### F. 服务器配置

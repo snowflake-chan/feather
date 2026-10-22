@@ -219,7 +219,7 @@ contentHash = "sha256:..."
 feather unpack <project archive> [--dir <workspace>] [--kind baked|boxproject] [--force]
 ```
 
-- 默认 `--kind baked`：先把 archive 的 hash DAG 展开成工作区——`chunks/<x>,<y>,<z>.bin`、各 JSON section、`scripts/`、`assets/`——再写 `feather.toml` 和 `feather.lock.json`。布局见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2、§7.4。
+- 默认 `--kind baked`：先把 archive 的 hash DAG 展开成工作区——`chunks/<x>,<y>,<z>.bin`、各 JSON section、`scripts/`、`assets/`——再写 `feather.toml` 和 `output content hash`。布局见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2、§7.4。
 - `--kind boxproject`：只把归档放进 workspace，`[build].kind = "boxproject"`；构建时重跑官方 publish。
 - 产出必须**不需要任何修改就能 `feather build`**，且 `content.hash` 与源归档一致。
 - `unpack` 由一次性 `featherd unpack` 执行；CLI 不解析 archive、不碰 data root。
@@ -242,11 +242,11 @@ feather build <workspace|project archive> [--output <file>] [--project-version <
 ```
 
 - 输入是目录 → 读 `feather.toml`；输入是 `.boxproject` 文件 → 等价于 `kind = "boxproject"` 的临时 workspace。
-- `kind = "baked"`：校验 JSON sections + 对每个 chunk 文件做 hash，按官方顺序组装 `voxels.chunks`，写 `feather.lock.json`，再打包。
+- `kind = "baked"`：校验 JSON sections + 对每个 chunk 文件做 hash，按官方顺序组装 `voxels.chunks`，写 `output content hash`，再打包。
 - 只接受位置参数。不再有 `--workspace` / `-C`；`--version` 保留给 CLI 自身。
 - 版本覆盖用 `--project-version`。
-- `--check`：校验 `feather.lock.json` 与当前工作区一致（inputs 树 hash + outputs `contentHash`）；不一致 exit 1。
-- `--locked`：拒绝更新 lock；CI 用。
+- `--check`：校验 `output content hash` 与当前工作区一致（inputs 树 hash + outputs `contentHash`）；不一致 exit 1。
+- ``：拒绝更新 lock；CI 用。
 - 构建由一次性 `featherd build` 执行；CLI 只 spawn 并转发 stdout/stderr。daemon 不需要运行。
 
 ---
@@ -503,8 +503,8 @@ feather ps                                              # 能看到 created
 ### P3 — workspace / unpack
 
 - daemon：把 `builder` 的 release 内容暴露给 `unpack`（或支持直接输出到 workspace）。
-- `featherd` 增加 `build` / `unpack` 子命令；CLI 只 spawn；按 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2/§7.4 展开成 `chunks/` + JSON sections + `scripts/` + `assets/` + `feather.toml` + `feather.lock.json`。
-- `build` 支持 `kind = baked|native|boxproject`；加 `--check` / `--locked` / `--project-version`。
+- `featherd` 增加 `build` / `unpack` 子命令；CLI 只 spawn；按 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2/§7.4 展开成 `chunks/` + JSON sections + `scripts/` + `assets/` + `feather.toml` + `output content hash`。
+- `build` 支持 `kind = baked|native|boxproject`；加 `--check / `--project-version`。
 - `feather merge-chunk` driver + `feather doctor --install-merge-driver`（[MAP-AUTHORING.md](MAP-AUTHORING.md) §9）。
 - 删除 `.boxproject` 的 `load` 分支和 `<dataRoot>/projects/`。
 

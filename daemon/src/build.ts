@@ -8,11 +8,11 @@ import { buildProjectArchive } from '@feather/builder/feather';
 import { generateProject } from '@feather/builder/generate';
 
 import { FmapManifest, hashContent, writeFmapManifest } from './fmap';
-import { makeLock, readLock, sameLock, writeLock, lockPath } from './lock';
 
 interface BuildToml {
+  schema_version?: number;
   project?: { id?: string; name?: string; version?: string };
-  build?: { source?: string; output?: string };
+  build?: { kind?: string; source?: string; output?: string };
   storage?: { volume?: string };
   runtime?: {
     port?: number;
@@ -25,8 +25,6 @@ export interface BuildOptions {
   root?: string;
   output?: string;
   version?: string;
-  check?: boolean;
-  locked?: boolean;
 }
 
 function readManifest(root: string): BuildToml {
@@ -102,9 +100,6 @@ export async function buildCommand(options: BuildOptions = {}) {
   if (fs.existsSync(root) && fs.statSync(root).isFile()) {
     if (path.extname(root).toLowerCase() !== '.boxproject') {
       throw new Error(`unsupported build input: ${root} (expected .boxproject or a workspace)`);
-    }
-    if (options.check || options.locked) {
-      throw Object.assign(new Error('lock is only supported for workspace builds'), { code: 'LOCK_UNSUPPORTED' });
     }
     const result = buildProjectArchive(root, options.output, {
       version: options.version,
@@ -182,22 +177,11 @@ export async function buildCommand(options: BuildOptions = {}) {
     if (tar.status !== 0) {
       throw new Error(`failed to pack ${output}: ${tar.stderr || tar.error}`);
     }
-    const lock = makeLock(root, manifest.content.hash || '');
-    if (options.check || options.locked) {
-      if (!sameLock(readLock(root), lock)) {
-        throw Object.assign(new Error(`feather.lock.json is out of date: ${lockPath(root)}`), {
-          code: 'LOCK_MISMATCH',
-        });
-      }
-    } else {
-      writeLock(root, lock);
-    }
     return {
       output,
       map: id,
       contentHash: manifest.content.hash || '',
       manifest,
-      lock: options.check || options.locked ? undefined : lockPath(root),
     };
   } finally {
     fs.rmSync(staging, { recursive: true, force: true });

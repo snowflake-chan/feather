@@ -53,8 +53,6 @@ async function runBuild(argv: string[]) {
     root: path.resolve(workspace),
     output: arg(argv, '--output'),
     version: arg(argv, '--project-version'),
-    check: has(argv, '--check'),
-    locked: has(argv, '--locked'),
   });
   if (has(argv, '--json')) {
     process.stdout.write(`${JSON.stringify(result)}\n`);

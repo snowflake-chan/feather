@@ -73,8 +73,6 @@ async function run(parsed: ParsedArgs) {
       const args = ['build', workspace];
       if (values.has('--output')) args.push('--output', values.get('--output')!);
       if (values.has('--project-version')) args.push('--project-version', values.get('--project-version')!);
-      if (flags.has('--check')) args.push('--check');
-      if (flags.has('--locked')) args.push('--locked');
       if (flags.has('--json')) args.push('--json');
       const code = await runFeatherdTool(args);
       if (code !== 0) process.exitCode = code;
