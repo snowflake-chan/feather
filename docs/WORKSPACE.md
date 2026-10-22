@@ -164,7 +164,7 @@ feather stop <id> <id2>
 feather unpack project.boxproject --dir my-project
 ```
 
-产物是 workspace（`chunks/` + JSON sections + `feather.toml` + `feather.lock.json`），见 [MAP-AUTHORING.md](MAP-AUTHORING.md)。`load` 不再接受 `.boxproject`；构建用 `feather build`。
+产物是 workspace（`project/` + `chunks/` + `scripts/` + `assets/` + `feather.toml`），见 [MAP-AUTHORING.md](MAP-AUTHORING.md)。`load` 不再接受 `.boxproject`；构建用 `featherd build`。
 
 ## shard 行为
 

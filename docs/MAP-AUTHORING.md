@@ -124,7 +124,7 @@ assets/**          -diff
 | 显示名 / 描述 / 封面 | `project/info.json` | `feather info set` |
 | 天气 / 时间 / 雾 | `project/environment.json` | `feather weather set` |
 | 实体 / NPC / 刷怪点 | `project/entities/<id>.json` | `feather entity add\|rm\|set` |
-| UI 屏幕 | `ui/<screen>.json`、`ui.json` | `feather ui ...` |
+| UI 屏幕 | `project/ui/<screen>.json`、`project/ui.json` | `feather ui ...` |
 | spawn / 移动 | `project/player.json` | `feather player set` |
 | 物理 | `project/physics.json` | `feather physics set` |
 | 区域 | `project/zones.json` | `feather zone ...` |
