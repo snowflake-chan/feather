@@ -10,10 +10,6 @@ export function resolveSocketPath(explicit?: string): string {
   );
 }
 
-export function daemonClient(socketPath?: string): DaemonClient {
-  return new DaemonClient({ socketPath: resolveSocketPath(socketPath) });
-}
-
 export async function requireDaemon(socketPath?: string): Promise<DaemonClient> {
   const socket = resolveSocketPath(socketPath);
   const client = new DaemonClient({ socketPath: socket });

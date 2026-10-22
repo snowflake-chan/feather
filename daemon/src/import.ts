@@ -158,7 +158,6 @@ export interface PreparedImport {
 }
 
 function installMap(
-  temp: string,
   contentSource: string,
   mapDir: string,
   dataRoot: string,
@@ -259,7 +258,6 @@ export function prepareImport(
       const entry = maps.find((item) => item.id === spec.id);
       if (!entry) throw new Error(`missing import plan: ${spec.id}`);
       installMap(
-        temp,
         entry.contentSource,
         entry.mapDir,
         dataRoot,

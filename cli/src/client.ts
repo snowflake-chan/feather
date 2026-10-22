@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import http from 'node:http';
-import type { DaemonInfo, MapSpec, MapStatus, MapStats, Operation } from '@feather/daemon/contract';
+import type { DaemonInfo, MapStatus, Operation } from '@feather/daemon/contract';
 
 export interface ClientOptions {
   socketPath?: string;
@@ -92,12 +92,6 @@ export class DaemonClient {
   getMap(id: string) {
     return this._request<MapStatus>('GET', `/v1/maps/${encodeURIComponent(id)}`);
   }
-  createMap(spec: MapSpec) {
-    return this._request<MapStatus>('POST', '/v1/maps', spec);
-  }
-  updateMap(spec: MapSpec) {
-    return this._request<MapStatus>('PUT', `/v1/maps/${encodeURIComponent(spec.id)}`, spec);
-  }
   startMap(id: string) {
     return this._request<Operation>('POST', `/v1/maps/${encodeURIComponent(id)}/start`);
   }
@@ -106,19 +100,6 @@ export class DaemonClient {
   }
   restartMap(id: string) {
     return this._request<Operation>('POST', `/v1/maps/${encodeURIComponent(id)}/restart`);
-  }
-  stats(id: string) {
-    return this._request<MapStats>('GET', `/v1/maps/${encodeURIComponent(id)}/stats`);
-  }
-  exec(id: string, command: string) {
-    return this._request<{ result: string }>(
-      'POST',
-      `/v1/maps/${encodeURIComponent(id)}/exec`,
-      { command },
-    );
-  }
-  shutdown() {
-    return this._request<{ ok: boolean }>('POST', '/v1/shutdown');
   }
   deleteMap(id: string, force = false) {
     return this._request<void>(
