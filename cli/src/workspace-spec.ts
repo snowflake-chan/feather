@@ -73,7 +73,6 @@ function loadOne(mapDir: string, dataRoot: string): MapSpec {
   return {
     id,
     name: manifest.map.name,
-    workspaceId: id,
     projectStatePath,
     contentDir,
     projectHash,
@@ -87,7 +86,6 @@ function loadOne(mapDir: string, dataRoot: string): MapSpec {
     method: 'local',
     databaseUrl: sqliteUrl(path.join(databaseRoot, `${volume}.db`)),
     volume,
-    groupNamespace: volume,
     dataStorageNamespace: id,
     limits: {
       memoryMb: runtime.memoryMb ?? undefined,

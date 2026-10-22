@@ -17,6 +17,10 @@
     "./main": {
       "types": "./dist/main.d.ts",
       "require": "./dist/main.js"
+    },
+    "./build": {
+      "types": "./dist/build.d.ts",
+      "require": "./dist/build.js"
     }
   },
   "typesVersions": {

@@ -3,12 +3,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { buildCommand } from './build';
+import { buildCommand } from '@feather/daemon/build';
 import { readFmapManifest } from './fmap';
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'feather-build-check-'));
-const source = path.join(root, 'source');
-fs.mkdirSync(path.join(source, 'blobs'), { recursive: true });
 fs.writeFileSync(
   path.join(root, 'feather.toml'),
   [
@@ -18,7 +16,7 @@ fs.writeFileSync(
     'name = "Native Test"',
     'version = "0.1.0"',
     '[build]',
-    'source = "source"',
+    'kind = "native"',
     'output = "out/native-test.fmap"',
     '[storage]',
     'volume = "native-group"',
@@ -27,11 +25,7 @@ fs.writeFileSync(
     '',
   ].join('\n'),
 );
-fs.writeFileSync(
-  path.join(source, 'project-state.json'),
-  JSON.stringify({ formatVersion: 1 }),
-);
-fs.writeFileSync(path.join(source, 'blobs', 'blob-a'), 'hello');
+fs.writeFileSync(path.join(root, 'index.js'), '// native test entry\n');
 fs.mkdirSync(path.join(root, 'mesh'), { recursive: true });
 fs.writeFileSync(path.join(root, 'mesh', 'cube.vb'), 'mesh-data');
 fs.mkdirSync(path.join(root, 'audio'), { recursive: true });

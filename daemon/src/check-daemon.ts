@@ -52,11 +52,10 @@ async function main() {
     dataDir: path.join(workspace, '.feather', 'data', id),
     databaseUrl: `sqlite:///${path.join(workspace, '.feather', 'sqlite', `${id}.sqlite`)}`,
     dataStorageNamespace: id,
-    groupNamespace: 'daemon-group',
     contentId: id === 'a' ? 201 : 202,
   });
   const socketPath = path.join(workspace, '.feather', 'daemon.sock');
-  const daemon = await createDaemon({ workspaceRoot: workspace, dataDir: path.join(workspace, '.feather'), socketPath });
+  const daemon = await createDaemon({ dataDir: path.join(workspace, '.feather'), socketPath });
   const api = await startApiServer(daemon, { socketPath });
   try {
     await request(socketPath, 'POST', '/v1/maps', makeMap('a'));

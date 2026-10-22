@@ -21,7 +21,6 @@ export interface MapLimits {
 export interface MapSpec {
   id: string;
   name?: string;
-  workspaceId?: string;
   projectHash?: string;
   projectStatePath?: string;
   contentDir?: string;
@@ -35,7 +34,6 @@ export interface MapSpec {
   databaseUrl?: string;
   /** SQLite 逻辑卷名。默认等于 map id；显式同名会共享同一个 .db。 */
   volume?: string;
-  groupNamespace?: string;
   dataStorageNamespace?: string;
   contentId?: number;
   labels?: Record<string, string>;
@@ -44,7 +42,6 @@ export interface MapSpec {
 export interface MapStatus {
   id: string;
   name?: string;
-  workspaceId?: string;
   state: MapState;
   runtime: 'worker';
   shardId?: string;
@@ -244,8 +241,6 @@ export interface DaemonHandle {
 }
 
 export interface CreateDaemonOptions {
-  /** workspace 根目录；daemon 默认 socket/data 都在 <workspace>/.feather */
-  workspaceRoot?: string;
   /** 默认 <workspace>/.feather/daemon.sock */
   socketPath?: string;
   /** 显式开启 TCP 时才用 */

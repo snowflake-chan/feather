@@ -73,8 +73,8 @@ function template(port: number): LocalConfig {
   };
 }
 
-export function ensureLocalConfig(workspaceRoot: string, port = 9966): string {
-  const dir = path.join(workspaceRoot, '.feather', 'config');
+export function ensureLocalConfig(dataRoot: string, port = 9966): string {
+  const dir = path.join(dataRoot, 'config');
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, 'local.json');
   if (!fs.existsSync(file)) {

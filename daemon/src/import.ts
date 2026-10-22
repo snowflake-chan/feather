@@ -137,7 +137,6 @@ function specFor(
     method: 'local',
     databaseUrl: `sqlite:///${path.join(dataRoot, 'volumes', `${volume}.db`)}`,
     volume,
-    groupNamespace: volume,
     dataStorageNamespace: id,
     limits: {
       memoryMb: typeof manifest.runtime?.memoryMb === 'number' ? manifest.runtime.memoryMb : undefined,

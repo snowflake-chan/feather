@@ -219,11 +219,10 @@ contentHash = "sha256:..."
 feather unpack <project archive> [--dir <workspace>] [--kind baked|boxproject] [--force]
 ```
 
-- 默认 `--kind baked`：先把 archive 的 hash DAG 展开成工作区——`chunks/<x>,<y>,<z>.bin`、各 JSON section、`scripts/`、`assets/`——再写 `feather.toml` 和 `output content hash`。布局见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2、§7.4。
+- 默认 `--kind baked`：先把 archive 的 hash DAG 展开成工作区——`chunks/<x>,<y>,<z>.bin`、各 JSON section、`scripts/`、`assets/`——再写 `feather.toml`。布局见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2、§7.4。
 - `--kind boxproject`：只把归档放进 workspace，`[build].kind = "boxproject"`；构建时重跑官方 publish。
 - 产出必须**不需要任何修改就能 `feather build`**，且 `content.hash` 与源归档一致。
 - `unpack` 由一次性 `featherd unpack` 执行；CLI 不解析 archive、不碰 data root。
-- 当前实现先写预烘焙 workspace（`source/project-state.json` + `source/blobs`），可直接 `feather build`；完整 `chunks/` + JSON sections 展开仍是 P3 后续。
 - 目标目录非空时拒绝，除非 `--force`。
 - 默认目录名 = 归档 basename。
 

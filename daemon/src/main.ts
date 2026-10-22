@@ -53,7 +53,6 @@ async function main() {
       ? !['off', '0', 'false'].includes(process.env.FEATHER_ENABLE_EVAL.toLowerCase())
       : false);
   const daemon = await createDaemon({
-    workspaceRoot: dataRoot,
     dataDir: dataRoot,
     socketPath,
     tcp,

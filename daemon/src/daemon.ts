@@ -80,9 +80,7 @@ export class Daemon implements DaemonHandle {
   private readonly _restarting = new Set<string>();
 
   constructor(private readonly _options: CreateDaemonOptions) {
-    const workspaceRoot = path.resolve(_options.workspaceRoot || process.cwd());
-    this._options.workspaceRoot = workspaceRoot;
-    this._options.dataDir = _options.dataDir || path.join(workspaceRoot, '.feather');
+    this._options.dataDir = path.resolve(_options.dataDir || path.join(os.homedir(), '.feather'));
     fs.mkdirSync(this._options.dataDir, { recursive: true });
     fs.mkdirSync(path.join(this._options.dataDir, 'logs'), { recursive: true });
     fs.mkdirSync(path.join(this._options.dataDir, 'sqlite'), { recursive: true });
@@ -134,7 +132,6 @@ export class Daemon implements DaemonHandle {
     const status: MapStatus = {
       id: spec.id,
       name: spec.name,
-      workspaceId: spec.workspaceId,
       state: 'created',
       runtime: 'worker',
       restartPolicy: spec.restartPolicy,
@@ -190,7 +187,6 @@ export class Daemon implements DaemonHandle {
     record.status = {
       ...record.status,
       name: spec.name,
-      workspaceId: spec.workspaceId,
       state: 'created',
       error: undefined,
       restartPolicy: spec.restartPolicy,
@@ -553,7 +549,7 @@ export class Daemon implements DaemonHandle {
     const shardId = `shard-${this._shardSeq++}`;
     const shard = new ShardRuntime({
       shardId,
-      workspaceRoot: this._options.workspaceRoot!,
+      dataRoot: this._options.dataDir!,
       maps: [record.spec],
       contentArena: this._resolveContentArena(),
       onMapReady: (sid, id, port) => {
@@ -664,8 +660,7 @@ export class Daemon implements DaemonHandle {
           status: {
             id: spec.id,
             name: spec.name,
-            workspaceId: spec.workspaceId,
-            state: 'stopped',
+                  state: 'stopped',
             runtime: 'worker',
             restartPolicy: spec.restartPolicy,
             // 与 createMap 保持一致：少了这个字段，daemon 重启后 volume 会变 undefined

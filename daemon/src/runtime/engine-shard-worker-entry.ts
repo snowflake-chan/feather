@@ -11,7 +11,7 @@ import { collectStats } from './stats';
 
 interface ShardWorkerData {
   shardId: string;
-  workspaceRoot: string;
+  dataRoot: string;
   maps: MapSpec[];
   contentArena?: { data: SharedArrayBuffer; index: SharedArrayBuffer; control: SharedArrayBuffer };
 }
@@ -71,8 +71,8 @@ async function startMap(spec: MapSpec) {
   let scriptServer: WorkerScriptServer | undefined;
   try {
     const base = await getConfig();
-    const config = buildMapConfig(base, spec, data.workspaceRoot);
-    const paths = resolveMapPaths(data.workspaceRoot, spec);
+    const config = buildMapConfig(base, spec, data.dataRoot);
+    const paths = resolveMapPaths(data.dataRoot, spec);
     if (!spec.scriptWorkerEntry) throw new Error(`missing scriptWorkerEntry for ${spec.id}`);
     scriptServer = new WorkerScriptServer({
       workerEntry: spec.scriptWorkerEntry,

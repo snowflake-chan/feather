@@ -30,7 +30,6 @@ async function main() {
       dataDir: path.join(workspace, '.feather', 'data', id),
       databaseUrl: `sqlite:///${path.join(workspace, '.feather', 'sqlite', `${id}.sqlite`)}`,
       dataStorageNamespace: id,
-      groupNamespace: 'shard-group',
       contentId: id === 'a' ? 101 : 102,
     };
   };
@@ -38,7 +37,7 @@ async function main() {
   const logs: string[] = [];
   const shard = new ShardRuntime({
     shardId: 'shard-0',
-    workspaceRoot: workspace,
+    dataRoot: workspace,
     maps: [makeMap('a', 'skin-a'), makeMap('b', 'skin-b')],
     onLog: (_s, stream, message) => logs.push(`${stream}:${message.trim()}`),
     onMapReady: (_s, id, port) => logs.push(`ready:${id}:${port}`),

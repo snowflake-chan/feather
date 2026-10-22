@@ -6,17 +6,17 @@ import type { EngineMapPaths } from 'feather-engine/entry';
 
 import type { MapSpec } from '../contract';
 
-export function resolveMapPaths(workspaceRoot: string, spec: MapSpec): EngineMapPaths {
-  const dataDir = spec.dataDir || path.join(workspaceRoot, '.feather', 'data', spec.id);
+export function resolveMapPaths(dataRoot: string, spec: MapSpec): EngineMapPaths {
+  const dataDir = spec.dataDir || path.join(dataRoot, 'maps', spec.id, 'data');
   fs.mkdirSync(dataDir, { recursive: true });
-  const groupState = path.join(workspaceRoot, '.feather', 'group-state.json');
-  const groupContent = path.join(workspaceRoot, '.feather', 'group-content');
+  const groupState = path.join(dataRoot, 'group-state.json');
+  const groupContent = path.join(dataRoot, 'group-content');
   return {
     projectStatePath: spec.projectStatePath,
     groupProjectStatePath: fs.existsSync(groupState) ? groupState : undefined,
     bundledContentPath: spec.contentDir,
     groupContentPath: fs.existsSync(groupContent) ? groupContent : undefined,
-    derivedStoragePath: path.join(workspaceRoot, '.feather', 'storage'),
+    derivedStoragePath: path.join(dataRoot, 'storage'),
     storagePath: dataDir,
     containerName: spec.id,
   };
@@ -46,18 +46,18 @@ export function normalizeVolumeName(value: string | undefined, fallback: string)
   return name;
 }
 
-export function resolveVolumeDatabasePath(workspaceRoot: string, volume: string): string {
-  return path.join(workspaceRoot, '.feather', 'volumes', `${volume}.db`);
+export function resolveVolumeDatabasePath(dataRoot: string, volume: string): string {
+  return path.join(dataRoot, 'volumes', `${volume}.db`);
 }
 
 export function buildMapConfig(
   base: EngineConfig,
   spec: MapSpec,
-  workspaceRoot: string,
+  dataRoot: string,
 ): EngineConfig {
-  const paths = resolveMapPaths(workspaceRoot, spec);
+  const paths = resolveMapPaths(dataRoot, spec);
   const volume = normalizeVolumeName(spec.volume, spec.id);
-  const sqlitePath = resolveVolumeDatabasePath(workspaceRoot, volume);
+  const sqlitePath = resolveVolumeDatabasePath(dataRoot, volume);
   fs.mkdirSync(path.dirname(sqlitePath), { recursive: true });
   return {
     ...base,
@@ -74,7 +74,7 @@ export function buildMapConfig(
     databaseUrl: spec.databaseUrl ?? `sqlite:///${sqlitePath}`,
     dataStorageDriver: 'sqlite',
     dataStorageNamespace: spec.dataStorageNamespace ?? spec.id,
-    groupStorageNamespace: spec.groupNamespace ?? volume,
+    groupStorageNamespace: volume,
     playerLimit: spec.limits?.players ?? base.playerLimit,
     SCRIPT_MEMORY_LIMIT: resolveScriptMemoryLimitMb(spec, base),
     // 钉死 redis：`engine/config/server.ts` 里 process.env 的优先级高于本地配置

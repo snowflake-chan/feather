@@ -48,7 +48,6 @@ try {
     String(loaded.maps[0].databaseUrl),
   );
   check('显式 group 共享 DB', loaded.maps[1].databaseUrl === loaded.maps[2].databaseUrl, 'not shared');
-  check('显式 group namespace', loaded.maps[1].groupNamespace === 'group', String(loaded.maps[1].groupNamespace));
   const projectStatePath = loaded.maps[0].projectStatePath || '';
   check(
     'content 路径正确',

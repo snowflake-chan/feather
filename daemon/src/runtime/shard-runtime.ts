@@ -20,7 +20,7 @@ export interface ShardMapState {
 
 export interface ShardRuntimeOptions {
   shardId: string;
-  workspaceRoot: string;
+  dataRoot: string;
   maps: MapSpec[];
   /**
    * 跨 shard 共享的内容 arena。由 daemon 创建一次再分发给所有 shard，
@@ -69,12 +69,12 @@ export class ShardRuntime {
       this._resolveReady = resolve;
       this._rejectReady = reject;
     });
-    const localConfigPath = ensureLocalConfig(this._options.workspaceRoot, 9966);
+    const localConfigPath = ensureLocalConfig(this._options.dataRoot, 9966);
     const entry = path.join(__dirname, 'engine-shard-worker-entry.js');
     this._worker = new Worker(entry, {
       workerData: {
         shardId: this.shardId,
-        workspaceRoot: this._options.workspaceRoot,
+        dataRoot: this._options.dataRoot,
         maps: this._options.maps,
         contentArena: this._options.contentArena,
       },

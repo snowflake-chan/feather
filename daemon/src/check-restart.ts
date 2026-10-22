@@ -46,12 +46,10 @@ async function main() {
     dataDir: path.join(workspace, '.feather', 'data', 'restart'),
     databaseUrl: `sqlite:///${path.join(workspace, '.feather', 'sqlite', 'restart.sqlite')}`,
     dataStorageNamespace: 'restart',
-    groupNamespace: 'restart-group',
     contentId: 203,
   };
 
   const daemon = await createDaemon({
-    workspaceRoot: workspace,
     dataDir: path.join(workspace, '.feather'),
     socketPath: path.join(workspace, '.feather', 'daemon.sock'),
   });

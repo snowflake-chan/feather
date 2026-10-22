@@ -122,31 +122,35 @@ export async function buildCommand(options: BuildOptions = {}) {
   if (kind !== 'baked' && kind !== 'native' && kind !== 'boxproject') {
     throw new Error(`unsupported build.kind: ${kind}`);
   }
-  const source = path.resolve(root, cfg.build?.source || 'source');
-  const stateFile = path.join(source, 'project-state.json');
-  const blobs = path.join(source, 'blobs');
-  const baked = kind === 'baked' && fs.existsSync(path.join(root, 'project'));
-  const hasPackagedState = fs.existsSync(stateFile) && fs.existsSync(blobs);
-  if (!baked && !hasPackagedState && !fs.existsSync(path.join(root, 'index.js'))) {
-    throw new Error(`missing project/ or ${stateFile} or ${path.join(root, 'index.js')}`);
+  const projectDir = path.join(root, 'project');
+  if (kind === 'baked' && !fs.existsSync(projectDir)) {
+    throw new Error(`baked workspace is missing project/: ${root}`);
+  }
+  if (kind === 'native' && !fs.existsSync(path.join(root, 'index.js'))) {
+    throw new Error(`native workspace is missing index.js: ${root}`);
+  }
+  if (kind === 'boxproject') {
+    const archive = path.resolve(root, cfg.build?.source || '');
+    if (!fs.existsSync(archive)) throw new Error(`boxproject source not found: ${archive}`);
+    const result = buildProjectArchive(archive, options.output, { version: options.version });
+    return {
+      output: result.output,
+      map: result.manifest.map.id,
+      contentHash: result.manifest.content.hash || '',
+      manifest: result.manifest as unknown as FmapManifest,
+    };
   }
 
   const staging = fs.mkdtempSync(path.join(root, '.feather-build-'));
   try {
     const content = path.join(staging, 'content');
     ensureDir(content);
-    if (baked) {
+    if (kind === 'baked') {
       await buildBakedWorkspace(root, content);
-    } else if (hasPackagedState) {
-      fs.copyFileSync(stateFile, path.join(content, 'project-state.json'));
-      fs.cpSync(blobs, path.join(content, 'blobs'), {
-        recursive: true,
-        dereference: true,
-      });
     } else {
       await generateProject(root, staging);
     }
-    const assets = scanAssets([root, source], path.join(content, 'blobs'));
+    const assets = scanAssets([root], path.join(content, 'blobs'));
 
     const manifest: FmapManifest = {
       format: 'feather.map',
