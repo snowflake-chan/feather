@@ -41,6 +41,7 @@ export class ShardRuntime {
   public readonly startedAt = Date.now();
   private _worker?: Worker;
   private _ready?: Promise<void>;
+  private _readyDone = false;
   private _resolveReady?: () => void;
   private _rejectReady?: (error: Error) => void;
   private _cpuBaseline?: CpuSnapshot;
@@ -103,8 +104,21 @@ export class ShardRuntime {
         waiter.reject(new Error(`shard ${this.shardId} exited ${code}`));
       }
       this._execWaiters.clear();
+      // shard 死了，所有还在等 ack 的 start/stop 立刻失败，不要干等 30s 超时。
+      for (const waiter of this._mapReadyWaiters.values()) {
+        waiter.reject(new Error(`shard ${this.shardId} exited ${code}`));
+      }
+      this._mapReadyWaiters.clear();
+      for (const waiter of this._mapStopWaiters.values()) {
+        waiter.reject(new Error(`shard ${this.shardId} exited ${code}`));
+      }
+      this._mapStopWaiters.clear();
       this._options.onExit?.(this.shardId, code);
-      if (code !== 0) this._rejectReady?.(new Error(`shard ${this.shardId} exited ${code}`));
+      // 不管是 0 还是非 0，只要还没 ready，start() 就必须有个结果，
+      // 否则 `await shard.start()` 会永远挂住。
+      if (!this._readyDone) {
+        this._rejectReady?.(new Error(`shard ${this.shardId} exited ${code} before ready`));
+      }
     });
     // `new Worker()` 返回时线程还没真正跑起来，此时 cpuUsage() 会报
     // ERR_WORKER_NOT_RUNNING，所以要等 'online'。基线越早抓，第一次采样越准。
@@ -167,11 +181,24 @@ export class ShardRuntime {
       this.maps.set(spec.id, { spec, ready: false });
     }
     const port = new Promise<number>((resolve, reject) => {
-      this._mapReadyWaiters.set(spec.id, { resolve, reject });
-      setTimeout(() => {
+      let timer: NodeJS.Timeout | undefined;
+      // 包一层，保证 waiter 被兑现时把超时定时器清掉。否则它会晚 30s 再触发，
+      // 顺手删掉同一张图「下一次」start 的 waiter。
+      this._mapReadyWaiters.set(spec.id, {
+        resolve: (value: number) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        reject: (error: Error) => {
+          clearTimeout(timer);
+          reject(error);
+        },
+      });
+      timer = setTimeout(() => {
         this._mapReadyWaiters.delete(spec.id);
         reject(new Error(`start map timeout: ${spec.id}`));
-      }, timeoutMs).unref();
+      }, timeoutMs);
+      timer.unref();
     });
     this._worker.postMessage({ type: 'addMap', spec });
     return port;
@@ -181,17 +208,27 @@ export class ShardRuntime {
     const state = this.maps.get(id);
     if (!state) return;
     if (!this._worker) throw new Error('shard not started');
+    let timer: NodeJS.Timeout | undefined;
     const stopped = new Promise<void>((resolve, reject) => {
       this._mapStopWaiters.set(id, { resolve, reject });
-      setTimeout(() => {
+      timer = setTimeout(() => {
         this._mapStopWaiters.delete(id);
         reject(new Error(`stop map timeout: ${id}`));
-      }, timeoutMs).unref();
+      }, timeoutMs);
+      timer.unref();
     });
     this._worker.postMessage({ type: 'stopMap', id });
-    await stopped;
-    state.ready = false;
-    this.maps.delete(id);
+    try {
+      await stopped;
+    } finally {
+      clearTimeout(timer);
+      // 不管成功还是超时，shard 侧都不能再认为这张图是活的。
+      // 超时后如果留着旧 port，下一次 start 会读到它并报 running —— 也就是
+      // 「幽灵 running」：status 说在跑，实际图早没了，再 stop 又要等一个超时。
+      state.ready = false;
+      state.port = undefined;
+      this.maps.delete(id);
+    }
   }
 
   public async exec(id: string, command: string, timeoutMs = 30_000): Promise<string> {
@@ -229,6 +266,7 @@ export class ShardRuntime {
   private _onMessage(message: any) {
     switch (message?.type) {
       case 'ready':
+        this._readyDone = true;
         this._resolveReady?.();
         break;
       case 'mapReady': {

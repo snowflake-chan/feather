@@ -103,6 +103,17 @@ async function main() {
     await request(socketPath, 'POST', '/v1/maps/a/stop');
     const after = await request(socketPath, 'GET', '/v1/maps/b');
     if (after.state !== 'running') throw new Error('b not running after a stop');
+    // 停完不能留旧端口：留着的话下一次 start 会读到它并报 running（幽灵 running）
+    const stopped = await request(socketPath, 'GET', '/v1/maps/a');
+    if (stopped.state !== 'stopped') throw new Error(`a not stopped: ${stopped.state}`);
+    if (stopped.port !== undefined) {
+      throw new Error(`a kept stale port after stop: ${stopped.port}`);
+    }
+    await request(socketPath, 'POST', '/v1/maps/a/start');
+    const restarted = await request(socketPath, 'GET', '/v1/maps/a');
+    if (restarted.state !== 'running' || !restarted.port) {
+      throw new Error(`a did not restart cleanly: ${JSON.stringify(restarted)}`);
+    }
     await request(socketPath, 'POST', '/v1/shutdown');
     await new Promise((resolve) => setTimeout(resolve, 500));
     process.stdout.write('daemon checks passed\n');

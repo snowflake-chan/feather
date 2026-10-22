@@ -29,6 +29,12 @@ const VERSION = '0.1.0';
 const API_VERSION = 'v1';
 const MAX_LOG_LINES = 2000;
 const MAX_EVENTS = 2000;
+/** 连续自动重启上限；超过就放弃，把错误留在 status 里等人处理 */
+const MAX_RESTART_ATTEMPTS = 5;
+/** 跑够这么久才算「站住了」，下一次崩溃才重新计数（防止起完就崩的毒图无限循环） */
+const STABLE_RUN_MS = 60_000;
+/** 退避上限 */
+const MAX_RESTART_DELAY_MS = 30_000;
 
 interface MapRecord {
   spec: MapSpec;
@@ -65,6 +71,12 @@ export class Daemon implements DaemonHandle {
   /** 懒创建：没有图要跑就不必占这块地址空间 */
   private _contentArena?: SharedArenaSpec;
   private _contentArenaResolved = false;
+  /** 崩溃后的重启退避定时器；按 map id 去重，手动操作会取消 */
+  private readonly _restartTimers = new Map<string, NodeJS.Timeout>();
+  /** 连续重启次数；成功跑起来一次就清零，用来给毒图兜底 */
+  private readonly _restartAttempts = new Map<string, number>();
+  /** 正在由退避定时器拉起图的 id；用来区分「手动 start」和「自动重启」 */
+  private readonly _restarting = new Set<string>();
 
   constructor(private readonly _options: CreateDaemonOptions) {
     const workspaceRoot = path.resolve(_options.workspaceRoot || process.cwd());
@@ -164,6 +176,8 @@ export class Daemon implements DaemonHandle {
       return this._doneOperation('start', id);
     }
     if (record.busy) throw new DaemonError('OPERATION_IN_PROGRESS', `map busy: ${id}`);
+    // 手动 start 清掉重启计数；自动重启不清，否则「起→崩→起」会无限循环。
+    if (!this._restarting.has(id)) this._restartAttempts.delete(id);
     record.busy = true;
     const operation = makeOperation('start', id);
     this._operations.set(operation.id, operation);
@@ -175,7 +189,11 @@ export class Daemon implements DaemonHandle {
       record.shardId = shard.shardId;
       record.status.shardId = shard.shardId;
       const state = shard.maps.get(id);
-      if (!state?.port) throw new Error(state?.error || `map ${id} did not start`);
+      // 判 ready 而不是判 port：stop 超时后 port 会留着旧值，用它判会把一张
+      // 已经死掉的图报成 running（幽灵 running），下次 stop 又会超时一次。
+      if (!state?.ready || !state.port) {
+        throw new Error(state?.error || `map ${id} did not start`);
+      }
       record.status.state = 'running';
       record.status.port = state.port;
       record.status.url = `http://127.0.0.1:${state.port}`;
@@ -204,6 +222,8 @@ export class Daemon implements DaemonHandle {
       return this._doneOperation('stop', id);
     }
     if (record.busy) throw new DaemonError('OPERATION_IN_PROGRESS', `map busy: ${id}`);
+    // 用户主动停图，就不要在后台偷偷把它重启回来
+    this._cancelRestart(id);
     record.busy = true;
     const operation = makeOperation('stop', id);
     this._operations.set(operation.id, operation);
@@ -248,6 +268,7 @@ export class Daemon implements DaemonHandle {
   public async destroyMap(id: string, opts: DestroyOptions = {}): Promise<void> {
     const record = this._records.get(id);
     if (!record) return;
+    this._cancelRestart(id);
     await this.stopMap(id, { force: opts.force });
     const shard = record.shardId ? this._shards.get(record.shardId) : undefined;
     this._records.delete(id);
@@ -347,6 +368,9 @@ export class Daemon implements DaemonHandle {
   public async close(): Promise<void> {
     if (this._closed) return;
     this._closed = true;
+    for (const timer of this._restartTimers.values()) clearTimeout(timer);
+    this._restartTimers.clear();
+    this._restartAttempts.clear();
     for (const record of this._records.values()) {
       if (record.status.state === 'running') {
         try {
@@ -407,6 +431,77 @@ export class Daemon implements DaemonHandle {
   }
 
   /**
+   * shard 崩溃后按 `restartPolicy` 拉起图。
+   *
+   * 之前这个字段只被写进 status，没有任何地方读它——shard 一崩，图就永久停在
+   * error。而 shard 是进程内线程，崩的概率并不低（一次未捕获异常就够）。
+   *
+   * 退避是必须的：坏包 / 坏脚本会「起→崩→起」循环，没有退避就是 CPU 打满。
+   * 计数在两种情况下清零：跑够 `STABLE_RUN_MS` 之后又崩，或用户手动 start/stop。
+   */
+  private _scheduleRestart(id: string, exitCode: number) {
+    if (this._closed) return;
+    const record = this._records.get(id);
+    if (!record) return;
+    const policy = record.spec.restartPolicy ?? 'no';
+    if (policy === 'no') return;
+    // on-failure 只对非零退出码生效；always 无论如何都重启
+    if (policy === 'on-failure' && exitCode === 0) return;
+
+    const startedAt = record.status.startedAt ? Date.parse(record.status.startedAt) : 0;
+    if (startedAt > 0 && Date.now() - startedAt >= STABLE_RUN_MS) {
+      this._restartAttempts.delete(id);
+    }
+
+    const attempts = (this._restartAttempts.get(id) ?? 0) + 1;
+    this._restartAttempts.set(id, attempts);
+    if (attempts > MAX_RESTART_ATTEMPTS) {
+      record.status.error =
+        `shard exited ${exitCode}; gave up after ${MAX_RESTART_ATTEMPTS} restart attempts`;
+      this._event({
+        type: 'map.error',
+        mapId: id,
+        time: now(),
+        data: { error: record.status.error, attempt: attempts },
+      });
+      return;
+    }
+
+    const delay = Math.min(1000 * 2 ** (attempts - 1), MAX_RESTART_DELAY_MS);
+    const timer = setTimeout(() => {
+      this._restartTimers.delete(id);
+      if (this._closed) return;
+      const current = this._records.get(id);
+      // 退避期间用户可能已经手动 start / stop / destroy 过了
+      if (!current || current.status.state !== 'error' || current.busy) return;
+      this._restarting.add(id);
+      void this.startMap(id)
+        .catch(() => {
+          // startMap 已经把错误写进 status，这里只负责别让 rejection 漏出去
+        })
+        .finally(() => this._restarting.delete(id));
+    }, delay);
+    timer.unref();
+    this._restartTimers.set(id, timer);
+    this._event({
+      type: 'map.error',
+      mapId: id,
+      time: now(),
+      data: { error: record.status.error, restartInMs: delay, attempt: attempts },
+    });
+  }
+
+  /** 取消待执行的重启，并清掉计数（调用方都是「用户主动干预」） */
+  private _cancelRestart(id: string) {
+    const timer = this._restartTimers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      this._restartTimers.delete(id);
+    }
+    this._restartAttempts.delete(id);
+  }
+
+  /**
    * 整个 daemon 只建一个 arena，所有 shard 共用。
    *
    * 关键点：必须共享，否则每个 shard 各建一个就退回到「各存一份」，
@@ -454,20 +549,43 @@ export class Daemon implements DaemonHandle {
       },
       onLog: (sid, stream, message) => this._appendShardLog(sid, stream, message),
       onExit: (sid, code) => {
+        const affected: string[] = [];
         for (const targetRecord of this._records.values()) {
-          if (targetRecord.shardId === sid && targetRecord.status.state === 'running') {
-            targetRecord.status.state = 'error';
-            targetRecord.status.error = `shard exited ${code}`;
-          }
+          if (targetRecord.shardId !== sid) continue;
+          const state = targetRecord.status.state;
+          if (state !== 'running' && state !== 'starting') continue;
+          targetRecord.status.state = 'error';
+          targetRecord.status.error = `shard exited ${code}`;
+          targetRecord.status.port = undefined;
+          targetRecord.status.url = undefined;
+          // shard 已经没了，别让记录继续指向一个不存在的 id
+          targetRecord.shardId = undefined;
+          targetRecord.status.shardId = undefined;
+          affected.push(targetRecord.spec.id);
         }
         this._shards.delete(sid);
+        for (const id of affected) this._scheduleRestart(id, code);
       },
     });
     this._shards.set(shardId, shard);
-    await shard.start();
-    const state = shard.maps.get(record.spec.id);
-    if (!state?.port) throw new Error(state?.error || `shard failed to start map ${record.spec.id}`);
-    return shard;
+    try {
+      await shard.start();
+      const state = shard.maps.get(record.spec.id);
+      if (!state?.ready || !state.port) {
+        throw new Error(state?.error || `shard failed to start map ${record.spec.id}`);
+      }
+      return shard;
+    } catch (error) {
+      // 启动失败必须把 shard 摘掉：留着它既占核预算，又会被 _leastLoadedShard
+      // 选中，让后续 addMap 打进一个已经死掉的 worker，白等 30s 超时。
+      this._shards.delete(shardId);
+      try {
+        await shard.stopAll(5_000);
+      } catch {
+        // 已经退出了
+      }
+      throw error;
+    }
   }
 
   private _appendShardLog(shardId: string, stream: 'stdout' | 'stderr', message: string) {
@@ -518,7 +636,9 @@ export class Daemon implements DaemonHandle {
             state: 'stopped',
             runtime: 'worker',
             restartPolicy: spec.restartPolicy,
-                  labels: spec.labels,
+            // 与 createMap 保持一致：少了这个字段，daemon 重启后 volume 会变 undefined
+            volume: spec.volume || spec.id,
+            labels: spec.labels,
           },
         });
       }

@@ -9,7 +9,23 @@ function arg(name: string) {
   return index >= 0 ? process.argv[index + 1] : undefined;
 }
 
+/**
+ * daemon 是 supervisor：它一崩，所有 shard 和所有图一起没。
+ * 所以这里跟 engine 一样选择「记日志但不退出」——把崩溃降级成一次可见的故障，
+ * 而不是整个 workspace 的静默消失。
+ */
+function installProcessErrorHandlers() {
+  const report = (kind: string, error: unknown) => {
+    const detail =
+      error instanceof Error ? error.stack || error.message : String(error);
+    console.error(`[daemon] ${kind}: ${detail}`);
+  };
+  process.on('unhandledRejection', (reason) => report('Unhandled rejection', reason));
+  process.on('uncaughtException', (error) => report('Uncaught error', error));
+}
+
 async function main() {
+  installProcessErrorHandlers();
   const workspaceRoot = path.resolve(arg('--workspace') || process.cwd());
   const dataDir = path.resolve(arg('--data-dir') || path.join(workspaceRoot, '.feather'));
   fs.mkdirSync(dataDir, { recursive: true });

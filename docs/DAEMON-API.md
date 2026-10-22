@@ -46,6 +46,18 @@ stopped / error → starting（restart）
 任意状态 → destroyed（DELETE，先 stop）
 ```
 
+**shard 崩溃后的自动重启**由 `MapSpec.restartPolicy` 决定：
+
+| 值 | 行为 |
+|---|---|
+| `no`（默认） | 不重启，图停在 `error`，等人工处理 |
+| `on-failure` | 仅当 shard 以非 0 退出码结束时重启 |
+| `always` | 无论退出码都重启 |
+
+退避从 1s 起翻倍、上限 30s；连续失败 5 次后放弃，把原因写进 `MapStatus.error`。
+计数在两种情况下清零：图稳定运行超过 60s 之后又崩，或用户手动 `start` / `stop`。
+退避期间执行 `stop` / `destroy` 会取消待执行的重启。
+
 ## 4. Endpoints
 
 所有管理接口在 `/v1` 下；`/_ping` 不带版本。

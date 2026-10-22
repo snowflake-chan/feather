@@ -41,7 +41,8 @@
     "check:volume": "node dist/check-volume.js",
     "check:stats": "node dist/check-stats.js",
     "check:daemon": "node dist/check-daemon.js",
-    "check:content-arena": "node dist/check-content-arena.js"
+    "check:content-arena": "node dist/check-content-arena.js",
+    "check:restart": "node dist/check-restart.js"
   },
   "dependencies": {
     "feather-engine": "workspace:*",
