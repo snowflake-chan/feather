@@ -1,17 +1,15 @@
-import { resolveDataRoot } from '../data-root';
-import { daemonClient } from '../daemon-process';
+import type { MapStatus } from '@feather/daemon/contract';
+import { requireDaemon } from '../socket';
 
-export async function psCommand(dataDir?: string) {
-  const client = daemonClient(resolveDataRoot(dataDir));
-  const maps = await client.listMaps();
-  if (maps.length === 0) {
-    process.stdout.write('no maps\n');
-    return;
-  }
-  process.stdout.write('ID\tSTATE\tPORT\tSHARD\tVOLUME\n');
+export async function psCommand(socket?: string): Promise<MapStatus[]> {
+  return (await requireDaemon(socket)).listMaps();
+}
+
+export function formatPs(maps: MapStatus[]): string {
+  if (maps.length === 0) return 'no maps\n';
+  const lines = ['ID\tSTATE\tPORT\tSHARD\tVOLUME'];
   for (const map of maps) {
-    process.stdout.write(
-      `${map.id}\t${map.state}\t${map.port ?? '-'}\t${map.shardId || '-'}\t${map.volume || '-'}\n`,
-    );
+    lines.push(`${map.id}\t${map.state}\t${map.port ?? '-'}\t${map.shardId || '-'}\t${map.volume || map.id}`);
   }
+  return `${lines.join('\n')}\n`;
 }

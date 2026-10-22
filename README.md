@@ -4,7 +4,7 @@ engine + shell 的 monorepo。
 
 ```
 feather/
-├── cli/             # feather load / up（workspace CLI）
+├── cli/             # feather CLI（build/unpack/load/up/ps/stop/...）
 ├── engine/          # 主线程：权威状态、物理、网络、内容
 ├── daemon/          # 本地 supervisor + UDS API（Docker-like）
 ├── shell/           # Worker：执行用户代码
@@ -40,15 +40,19 @@ pnpm test:protocol # golden vectors（schema 指纹 + diff/patch 字节）
 pnpm test:daemon   # shard + daemon API E2E（需要 BOX_BUNDLED_CONTENT_PATH）
 ```
 
-workspace：
+CLI：
 
 ```bash
-node cli/bin/feather load map.boxplay --dir ./my-server
-cd my-server
-node ../feather/cli/bin/feather up
-node ../feather/cli/bin/feather ps
-node ../feather/cli/bin/feather down
+# daemon 前台运行（另开终端）
+node cli/bin/feather daemon
+
+node cli/bin/feather load map.fmap
+node cli/bin/feather up
+node cli/bin/feather ps
+node cli/bin/feather stop my-map
 ```
+
+客户端命令只通过 `--socket` 找 daemon；`--data-root` 只属于 `feather daemon`。
 
 ## Smoke
 
@@ -83,7 +87,9 @@ curl http://127.0.0.1:9977/api/health-check
 | [docs/API-DESIGN.md](docs/API-DESIGN.md) | Game API（玩家入口）、engine 契约 |
 | [docs/DAEMON-API.md](docs/DAEMON-API.md) | Daemon API（本地管理面，Docker-like） |
 | [docs/STORAGE.md](docs/STORAGE.md) | 数据存储：SQLite / PostgreSQL / 本地 JSON |
-| [docs/WORKSPACE.md](docs/WORKSPACE.md) | workspace 布局、`feather load`、`.boxplay` / `.boxproject` |
+| [docs/WORKSPACE.md](docs/WORKSPACE.md) | data root、volume、`.fmap` 格式 |
+| [docs/CLI-CONTRACT.md](docs/CLI-CONTRACT.md) | CLI 命令面、daemon 边界、错误码 |
+| [docs/MAP-AUTHORING.md](docs/MAP-AUTHORING.md) | workspace、chunks、git/merge、lock |
 | [docs/SHUTDOWN.md](docs/SHUTDOWN.md) | `GameServer.close()`、单进程多图的生命周期与回收 |
 | [protocol/README.md](protocol/README.md) | 共享协议、构建顺序、golden vectors |
 | [engine/README.md](engine/README.md) | engine 抽取、worker 传输、构建 |
@@ -105,5 +111,5 @@ curl http://127.0.0.1:9977/api/health-check
 
 - **Phase 1（已完成）**：合并、统一 vendor、build + typecheck + smoke
 - **Phase 2（已完成）**：抽 `protocol/`（`ScriptProtocol` + 共享 schema + golden vectors）
-- **Phase 3（D2 已完成）**：daemon shard supervisor + UDS API + `feather up/ps/stop/logs/down`
+- **Phase 3（D2 已完成）**：daemon shard supervisor + UDS API + `feather up/ps/stop/logs`
 - **Phase 4**：共享 HostContext（C2，content/build 复用）、反代、CI

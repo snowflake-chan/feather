@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import http from 'node:http';
 import type { DaemonInfo, MapSpec, MapStatus, MapStats, Operation } from '@feather/daemon/contract';
 
@@ -118,6 +119,73 @@ export class DaemonClient {
   }
   shutdown() {
     return this._request<{ ok: boolean }>('POST', '/v1/shutdown');
+  }
+  deleteMap(id: string, force = false) {
+    return this._request<void>(
+      'DELETE',
+      `/v1/maps/${encodeURIComponent(id)}${force ? '?force=1' : ''}`,
+    );
+  }
+  eval(id: string, code: string) {
+    return this._request<{ result: string }>(
+      'POST',
+      `/v1/maps/${encodeURIComponent(id)}/eval`,
+      { code },
+    );
+  }
+  importArchive(file: string, options: { replace?: boolean; purgeData?: boolean } = {}) {
+    const query = new URLSearchParams();
+    if (options.replace) query.set('replace', '1');
+    if (options.purgeData) query.set('purge', '1');
+    return this._upload<{ maps: { id: string; state: string }[] }>(
+      `/v1/maps/import${query.size ? `?${query}` : ''}`,
+      file,
+    );
+  }
+
+  private _upload<T>(pathname: string, file: string): Promise<T> {
+    const options: http.RequestOptions = {
+      method: 'POST',
+      path: pathname,
+      headers: {
+        'Content-Type': 'application/gzip',
+        'Content-Length': fs.statSync(file).size,
+      },
+    };
+    if (this._options.socketPath) options.socketPath = this._options.socketPath;
+    else {
+      options.host = this._options.host || '127.0.0.1';
+      options.port = this._options.port;
+    }
+    return new Promise<T>((resolve, reject) => {
+      const req = http.request(options, (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        res.on('end', () => {
+          const text = Buffer.concat(chunks).toString('utf8');
+          if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+            let code = 'HTTP_ERROR';
+            let message = text;
+            try {
+              const parsed = JSON.parse(text) as { code?: string; message?: string };
+              code = parsed.code || code;
+              message = parsed.message || message;
+            } catch {
+              // plain text
+            }
+            reject(new ApiError(res.statusCode || 0, code, message));
+            return;
+          }
+          try {
+            resolve(JSON.parse(text) as T);
+          } catch {
+            resolve(text as T);
+          }
+        });
+      });
+      req.on('error', reject);
+      fs.createReadStream(file).pipe(req);
+    });
   }
 
   stream(pathname: string, onLine: (line: string) => void, signal?: AbortSignal): Promise<void> {

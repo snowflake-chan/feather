@@ -68,7 +68,8 @@ stopped / error → starting（restart）
 | GET | `/v1/version` | `{ version, apiVersion }` |
 | GET | `/v1/info` | daemon 信息、runtime、地图数、uptime |
 | GET | `/v1/maps` | 列出 map |
-| POST | `/v1/maps` | 创建/加载 map；`Idempotency-Key` |
+| POST | `/v1/maps` | 创建 map（CLI 不直接使用） |
+| POST | `/v1/maps/import` | 上传 `.fmap` / `.boxplay`；`?replace=1&purge=1` |
 | GET | `/v1/maps/:id` | map status |
 | DELETE | `/v1/maps/:id` | destroy；`?force=1` |
 | POST | `/v1/maps/:id/start` | start；异步返回 operation |
@@ -79,7 +80,8 @@ stopped / error → starting（restart）
 | GET | `/v1/maps/:id/logs` | NDJSON；`follow=1&since=&tail=` |
 | GET | `/v1/events` | NDJSON 生命周期事件；`since=` |
 | GET | `/v1/operations/:id` | 异步操作状态 |
-| POST | `/v1/maps/:id/exec` | 管理命令（谨慎；默认关闭） |
+| POST | `/v1/maps/:id/eval` | JS eval（谨慎；默认关闭） |
+| POST | `/v1/maps/:id/exec` | eval 的兼容别名 |
 | POST | `/v1/shutdown` | 关闭 daemon；仅本地/已认证 |
 | GET | `/v1/metrics` | Prometheus（可选） |
 
@@ -299,17 +301,16 @@ interface DaemonHandle {
 
 | CLI | API |
 |---|---|
+| `feather load <archive>` | `POST /v1/maps/import` |
 | `feather ps` | `GET /v1/maps` |
-| `feather up` | 读 `feather.toml` → `POST /v1/maps` + `/start` |
-| `feather down` | stop all → `POST /v1/shutdown` |
-| `feather start <id>`（planned） | `POST /v1/maps/:id/start` |
-| `feather stop <id>` | `POST /v1/maps/:id/stop` |
-| `feather restart <id>`（planned） | `POST /v1/maps/:id/restart` |
-| `feather rm <id>`（planned） | `DELETE /v1/maps/:id` |
+| `feather up [id...]` | `GET /v1/maps` + `POST /v1/maps/:id/start` |
+| `feather stop <id...>` | `POST /v1/maps/:id/stop` |
+| `feather restart <id...>` | `POST /v1/maps/:id/restart` |
+| `feather rm <id>` | `DELETE /v1/maps/:id` |
 | `feather logs <id> -f` | `GET /v1/maps/:id/logs?follow=1` |
+| `feather eval <id> -- code` | `POST /v1/maps/:id/eval` |
 | `feather stats <id>`（planned） | `GET /v1/maps/:id/stats` |
 | `feather events`（planned） | `GET /v1/events` |
-| `feather exec <id> -- cmd`（planned） | `POST /v1/maps/:id/exec` |
 
 ## 10. 迁移
 

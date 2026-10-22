@@ -3,6 +3,9 @@ import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 
 import type { LogEntry, MapSpec } from '../contract';
+import fsPromises from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import type { Daemon } from '../daemon';
 
 export interface ApiServerOptions {
@@ -75,6 +78,19 @@ export async function startApiServer(
         const status = await daemon.createMap(body);
         return json(res, 201, status);
       }
+      if (url.pathname === '/v1/maps/import' && req.method === 'POST') {
+        const tmp = path.join(os.tmpdir(), `feather-import-${process.pid}-${Date.now()}.fmap`);
+        try {
+          await fsPromises.writeFile(tmp, req);
+          const result = await daemon.importArchive(tmp, {
+            replace: url.searchParams.get('replace') === '1',
+            purgeData: url.searchParams.get('purge') === '1',
+          });
+          return json(res, 201, result);
+        } finally {
+          await fsPromises.rm(tmp, { force: true }).catch(() => {});
+        }
+      }
       if (url.pathname === '/v1/shards' && req.method === 'GET') {
         return json(res, 200, await daemon.listShards());
       }
@@ -102,7 +118,7 @@ export async function startApiServer(
         if (!operation) return error(res, 404, 'OPERATION_NOT_FOUND', 'operation not found');
         return json(res, 200, operation);
       }
-      const mapMatch = url.pathname.match(/^\/v1\/maps\/([^/]+)(?:\/(start|stop|restart|stats|logs|exec))?$/);
+      const mapMatch = url.pathname.match(/^\/v1\/maps\/([^/]+)(?:\/(start|stop|restart|stats|logs|exec|eval))?$/);
       if (mapMatch) {
         const id = decodeURIComponent(mapMatch[1]);
         const action = mapMatch[2];
@@ -142,7 +158,7 @@ export async function startApiServer(
         if (action === 'stats' && req.method === 'GET') {
           return json(res, 200, await daemon.stats(id));
         }
-        if (action === 'exec' && req.method === 'POST') {
+        if ((action === 'exec' || action === 'eval') && req.method === 'POST') {
           const body = (await readJson(req)) as { command?: string; code?: string };
           const command = String(body.command ?? body.code ?? '');
           if (!command.trim()) return error(res, 422, 'INVALID_SPEC', 'missing command');
@@ -177,9 +193,10 @@ export async function startApiServer(
       const code = (e as any)?.code;
       const status =
         code === 'MAP_NOT_FOUND' ? 404
-          : code === 'EXEC_DISABLED' ? 403
-            : code === 'MAP_CONFLICT' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
+          : code === 'EXEC_DISABLED' || code === 'EVAL_DISABLED' ? 403
+            : code === 'MAP_CONFLICT' || code === 'MAP_BUSY' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
               : code === 'INVALID_SPEC' ? 422
+                : code === 'ARCHIVE_INVALID' || code === 'ARCHIVE_UNSUPPORTED' ? 422
                 : code === 'NOT_IMPLEMENTED' ? 501
                   : 500;
       return error(res, status, code || 'INTERNAL', e instanceof Error ? e.message : String(e));

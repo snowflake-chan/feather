@@ -24,6 +24,7 @@ import { resolveShardBudget, shouldCreateShard } from './runtime/shard-policy';
 import { createContentArenaSpec } from './runtime/content-arena';
 import { NOMINAL_TICK_RATE } from './runtime/stats';
 import { ShardRuntime } from './runtime/shard-runtime';
+import { prepareImport, type ImportOptions, type ImportResult } from './import';
 
 const VERSION = '0.1.0';
 const API_VERSION = 'v1';
@@ -144,6 +145,37 @@ export class Daemon implements DaemonHandle {
     this._persist();
     this._event({ type: 'map.created', mapId: spec.id, time: now() });
     return { ...status };
+  }
+
+  public async importArchive(file: string, options: ImportOptions = {}): Promise<ImportResult> {
+    const prepared = prepareImport(file, this._options.dataDir!, options);
+    try {
+      const conflicts = prepared.specs.filter((spec) => this._records.has(spec.id));
+      if (conflicts.length > 0 && !options.replace) {
+        throw new DaemonError('MAP_CONFLICT', `map already exists: ${conflicts.map((map) => map.id).join(', ')}`);
+      }
+      for (const spec of conflicts) {
+        const state = this._records.get(spec.id)!.status.state;
+        if (state === 'running' || state === 'starting' || state === 'stopping') {
+          throw new DaemonError('MAP_BUSY', `map is busy: ${spec.id}`);
+        }
+      }
+      for (const spec of conflicts) {
+        await this.destroyMap(spec.id, { force: true });
+      }
+      for (const spec of prepared.specs) {
+        prepared.install(spec);
+        await this.createMap(spec);
+      }
+      return {
+        maps: prepared.specs.map((spec) => ({
+          id: spec.id,
+          state: this._records.get(spec.id)!.status.state,
+        })),
+      };
+    } finally {
+      prepared.cleanup();
+    }
   }
 
   public async updateMap(id: string, spec: MapSpec): Promise<MapStatus> {
@@ -348,8 +380,8 @@ export class Daemon implements DaemonHandle {
   public async exec(id: string, command: string): Promise<unknown> {
     if (!this._options.enableExec) {
       throw new DaemonError(
-        'EXEC_DISABLED',
-        'exec is disabled; start the daemon with FEATHER_ENABLE_EXEC=1',
+        'EVAL_DISABLED',
+        'eval is disabled; start the daemon with --enable-eval',
       );
     }
     const record = this._requireMap(id);

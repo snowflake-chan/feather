@@ -1,132 +1,191 @@
-import { daemonCommand } from './commands/daemon';
-import { downCommand } from './commands/down';
-import { execCommand } from './commands/exec';
-import { logsCommand } from './commands/logs';
-import { psCommand } from './commands/ps';
-import { stopCommand } from './commands/stop';
-import { upCommand } from './commands/up';
 import { buildCommand } from './build';
+import { parseArgs } from './args';
+import type { ParsedArgs } from './args';
+import { CliError } from './errors';
+import { writeError, writeJson } from './output';
+import { unpackCommand } from './unpack';
+import { daemonCommand } from './commands/daemon';
+import { evalCommand } from './commands/eval';
 import { loadCommand } from './load';
+import { logsCommand } from './commands/logs';
+import { formatPs, psCommand } from './commands/ps';
+import { rmCommand } from './commands/rm';
+import { formatOperations, stopCommand } from './commands/stop';
+import { restartCommand } from './commands/restart';
+import { formatUp, upCommand } from './commands/up';
 
 function usage() {
-  console.log(`
-feather load <archive> [options]
+  process.stdout.write(`
+Usage: feather [--socket <path>] [--json] <command> [options]
 
 Commands:
-  build <workspace|.boxproject>  build a native arena workspace or official project into .fmap
-  load <archive>       extract a .boxplay into the data root
-  up [mapId...]        start maps from the data root (default: all)
-  ps                   list maps
-  stop <id>            stop a map
-  logs <id> [-f]       show map logs
-  exec <id> -- <code>  eval in the map script shell
-  down                 stop maps and daemon
-  daemon               run daemon in foreground
+  daemon [--data-root <path>] [--socket <path>] [--enable-eval]
+  build <workspace|.boxproject> [--output <file>] [--project-version <v>] [--check] [--locked]
+  unpack <project archive> [--dir <path>] [--kind baked|boxproject] [--force]
+  load <archive> [--replace] [--purge-data]
+  up [map...]
+  stop <map...>
+  restart <map...>
+  ps
+  logs <map> [-f] [--tail N]
+  eval <map> -- <code>
+  rm <map> [--force]
 
-Data root:
-  --data-dir <path>    daemon state/data (default: ~/.feather or FEATHER_DATA_DIR)
-
-Load options:
-  --force              replace existing maps with the same id
+Global:
+  --socket <path>   daemon socket (default: ~/.feather/daemon.sock)
+  --json            machine-readable output
+  --help
+  --version
 `);
 }
 
-function getArg(args: string[], name: string) {
-  const index = args.indexOf(name);
-  if (index < 0) return undefined;
-  return args[index + 1];
+function commandResult(command: string, parsed: ParsedArgs, data: unknown) {
+  if (parsed.flags.has('--json')) writeJson(command, data);
+  return data;
+}
+
+async function run(parsed: ParsedArgs) {
+  const { command, positionals, values, flags, rest } = parsed;
+  const socket = values.get('--socket');
+  if (flags.has('--help')) {
+    usage();
+    return;
+  }
+  if (flags.has('--version')) {
+    process.stdout.write('feather 0.0.0\n');
+    return;
+  }
+
+  switch (command) {
+    case 'daemon': {
+      await daemonCommand({
+        dataRoot: values.get('--data-root'),
+        socket,
+        enableEval: flags.has('--enable-eval'),
+      });
+      return;
+    }
+    case 'build': {
+      const root = positionals[0];
+      if (!root) throw new CliError('USAGE', 'build requires a workspace or .boxproject', 2);
+      if (flags.has('--check') || flags.has('--locked')) {
+        throw new CliError('NOT_IMPLEMENTED', '--check/--locked requires feather.lock.json support');
+      }
+      await buildCommand({
+        root,
+        output: values.get('--output'),
+        version: values.get('--project-version'),
+      });
+      return;
+    }
+    case 'unpack': {
+      const archive = positionals[0];
+      if (!archive) throw new CliError('USAGE', 'unpack requires a project archive', 2);
+      await unpackCommand({
+        archive,
+        dir: values.get('--dir'),
+        kind: values.get('--kind'),
+        force: flags.has('--force'),
+      });
+      return;
+    }
+    case 'load': {
+      const archive = positionals[0];
+      if (!archive) throw new CliError('USAGE', 'load requires an archive', 2);
+      const result = await loadCommand({
+        archive,
+        socket,
+        replace: flags.has('--replace'),
+        purgeData: flags.has('--purge-data'),
+      });
+      if (flags.has('--json')) writeJson(command, result);
+      else {
+        for (const map of result.maps) {
+          process.stdout.write(`${map.id}\t${map.state}\n`);
+        }
+      }
+      return;
+    }
+    case 'up': {
+      const maps = await upCommand({ ids: positionals, socket });
+      commandResult(command, parsed, maps);
+      if (!flags.has('--json')) process.stdout.write(formatUp(maps));
+      return;
+    }
+    case 'stop': {
+      const operations = await stopCommand(positionals, socket);
+      commandResult(command, parsed, operations);
+      if (!flags.has('--json')) process.stdout.write(formatOperations(operations));
+      return;
+    }
+    case 'restart': {
+      const operations = await restartCommand(positionals, socket);
+      commandResult(command, parsed, operations);
+      if (!flags.has('--json')) process.stdout.write(formatOperations(operations));
+      return;
+    }
+    case 'ps': {
+      const maps = await psCommand(socket);
+      commandResult(command, parsed, maps);
+      if (!flags.has('--json')) process.stdout.write(formatPs(maps));
+      return;
+    }
+    case 'logs': {
+      const id = positionals[0];
+      if (!id) throw new CliError('USAGE', 'logs requires a map id', 2);
+      await logsCommand(id, {
+        follow: flags.has('--follow') || flags.has('-f'),
+        tail: values.has('--tail') ? Number(values.get('--tail')) : undefined,
+        socket,
+      });
+      return;
+    }
+    case 'eval': {
+      const id = positionals[0];
+      if (!id) throw new CliError('USAGE', 'eval requires a map id', 2);
+      const code = rest.length > 0 ? rest.join(' ') : positionals.slice(1).join(' ');
+      const result = await evalCommand(id, code, socket);
+      commandResult(command, parsed, { result });
+      if (!flags.has('--json')) process.stdout.write(`${result}\n`);
+      return;
+    }
+    case 'rm': {
+      const id = positionals[0];
+      if (!id) throw new CliError('USAGE', 'rm requires a map id', 2);
+      await rmCommand(id, { force: flags.has('--force'), socket });
+      if (flags.has('--json')) writeJson(command, { id, removed: true });
+      return;
+    }
+    default:
+      throw new CliError('USAGE', `unknown command: ${command}`, 2);
+  }
 }
 
 async function main() {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  if (!command || command === '-h' || command === '--help') {
-    usage();
-    return;
-  }
-  const dataDir = getArg(args, '--data-dir');
-  if (command === 'build') {
-    const root = getArg(args, '--workspace') || getArg(args, '-C') || args.find((arg, i) => i > 0 && !arg.startsWith('-')) || process.cwd();
-    await buildCommand({
-      root,
-      output: getArg(args, '--output'),
-      version: getArg(args, '--version'),
-    });
-    return;
-  }
-  if (command === 'up') {
-    const ids: string[] = [];
-    for (let i = 1; i < args.length; i++) {
-      const arg = args[i];
-      if (arg === '--data-dir') {
-        i++;
-        continue;
-      }
-      if (arg.startsWith('-')) continue;
-      ids.push(arg);
+  let parsed: ParsedArgs;
+  try {
+    parsed = parseArgs(process.argv.slice(2));
+  } catch (error) {
+    if (error instanceof CliError) {
+      writeError('feather', error.code, error.hint ? `${error.message}\nhint: ${error.hint}` : error.message, process.argv.includes('--json'));
+      process.exitCode = error.exitCode;
+      return;
     }
-    await upCommand({
-      ids,
-      dataDir,
-      foreground: args.includes('--foreground'),
-    });
-    return;
+    throw error;
   }
-  if (command === 'ps') {
-    await psCommand(dataDir);
-    return;
-  }
-  if (command === 'stop') {
-    const id = args[1];
-    if (!id) throw new Error('missing map id');
-    await stopCommand(id, dataDir);
-    return;
-  }
-  if (command === 'exec') {
-    const id = args[1];
-    if (!id) throw new Error('missing map id');
-    const separator = args.indexOf('--');
-    const code = (separator >= 0 ? args.slice(separator + 1) : args.slice(2)).join(' ');
-    if (!code.trim()) throw new Error('missing code');
-    await execCommand(id, code, dataDir);
-    return;
-  }
-  if (command === 'logs') {
-    const id = args[1];
-    if (!id) throw new Error('missing map id');
-    await logsCommand(id, {
-      follow: args.includes('-f') || args.includes('--follow'),
-      tail: Number(getArg(args, '--tail') || 0) || undefined,
-      root: dataDir,
-    });
-    return;
-  }
-  if (command === 'down') {
-    await downCommand(dataDir);
-    return;
-  }
-  if (command === 'daemon') {
-    await daemonCommand(dataDir);
-    return;
-  }
-  if (command !== 'load') {
-    console.error(`unknown command: ${command}`);
-    usage();
+  try {
+    await run(parsed);
+  } catch (error) {
+    const json = parsed.flags.has('--json');
+    if (error instanceof CliError) {
+      writeError(parsed.command, error.code, error.hint ? `${error.message}\nhint: ${error.hint}` : error.message, json);
+      process.exitCode = error.exitCode;
+      return;
+    }
+    const code = (error as { code?: string })?.code || 'RUNTIME_ERROR';
+    writeError(parsed.command, code, error instanceof Error ? error.message : String(error), json);
     process.exitCode = 1;
-    return;
   }
-  const archive = args[1];
-  if (!archive) {
-    console.error('missing archive path');
-    usage();
-    process.exitCode = 1;
-    return;
-  }
-  await loadCommand({
-    archive,
-    dataDir,
-    force: args.includes('--force'),
-  });
 }
 
 main().catch((error) => {

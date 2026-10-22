@@ -1,11 +1,11 @@
-import path from 'node:path';
+import { requireDaemon } from '../socket';
 
-import { daemonClient } from '../daemon-process';
-import { resolveDataRoot } from '../data-root';
-
-export async function logsCommand(id: string, options: { follow?: boolean; tail?: number; root?: string } = {}) {
-  const root = resolveDataRoot(options.root);
-  const client = daemonClient(root);
+export async function logsCommand(
+  id: string,
+  options: { follow?: boolean; tail?: number; socket?: string } = {},
+) {
+  if (!id) throw new Error('missing map id');
+  const client = await requireDaemon(options.socket);
   const query = new URLSearchParams();
   if (options.follow) query.set('follow', '1');
   if (options.tail) query.set('tail', String(options.tail));

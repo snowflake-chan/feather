@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import { startApiServer } from './api/server';
@@ -26,27 +27,34 @@ function installProcessErrorHandlers() {
 
 async function main() {
   installProcessErrorHandlers();
-  const workspaceRoot = path.resolve(arg('--workspace') || process.cwd());
-  const dataDir = path.resolve(arg('--data-dir') || path.join(workspaceRoot, '.feather'));
-  fs.mkdirSync(dataDir, { recursive: true });
+  const dataRoot = path.resolve(
+    arg('--data-root') ||
+      process.env.FEATHER_DATA_ROOT ||
+      process.env.FEATHER_DATA_DIR ||
+      path.join(os.homedir(), '.feather'),
+  );
+  fs.mkdirSync(dataRoot, { recursive: true });
   const tcp = process.argv.includes('--tcp');
-  const socketPath = arg('--socket') || path.join(dataDir, 'daemon.sock');
+  const socketPath = path.resolve(
+    arg('--socket') ||
+      process.env.FEATHER_SOCKET ||
+      path.join(os.homedir(), '.feather', 'daemon.sock'),
+  );
   const token = arg('--token') || process.env.FEATHER_DAEMON_TOKEN;
+  const enableEval =
+    process.argv.includes('--enable-eval') ||
+    (process.env.FEATHER_ENABLE_EVAL
+      ? !['off', '0', 'false'].includes(process.env.FEATHER_ENABLE_EVAL.toLowerCase())
+      : false);
   const daemon = await createDaemon({
-    workspaceRoot,
-    dataDir,
+    workspaceRoot: dataRoot,
+    dataDir: dataRoot,
     socketPath,
     tcp,
     token,
-    enableExec:
-      process.argv.includes('--enable-exec') ||
-      (process.env.FEATHER_ENABLE_EXEC
-        ? !['off', '0', 'false'].includes(
-            process.env.FEATHER_ENABLE_EXEC.toLowerCase(),
-          )
-        : !tcp),
+    enableExec: enableEval,
   });
-  const pidFile = path.join(dataDir, 'daemon.pid');
+  const pidFile = path.join(dataRoot, 'daemon.pid');
   fs.writeFileSync(pidFile, `${process.pid}\n`);
   let api: Awaited<ReturnType<typeof startApiServer>> | undefined;
   const shutdown = async () => {

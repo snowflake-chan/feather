@@ -226,6 +226,7 @@ export interface DaemonHandle {
   listMaps(): Promise<MapStatus[]>;
   getMap(id: string): Promise<MapStatus | undefined>;
   createMap(spec: MapSpec): Promise<MapStatus>;
+  importArchive(file: string, options?: { replace?: boolean; purgeData?: boolean }): Promise<{ maps: { id: string; state: string }[] }>;
   startMap(id: string): Promise<Operation>;
   stopMap(id: string, opts?: StopOptions): Promise<Operation>;
   restartMap(id: string): Promise<Operation>;
