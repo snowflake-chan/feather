@@ -17,6 +17,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 	"time"
 )
 
@@ -60,7 +61,7 @@ var valueOptions = map[string]map[string]bool{
 var flagOptions = map[string]map[string]bool{
 	"unpack": {"--force": true},
 	"load":   {"--replace": true, "--purge-data": true},
-	"logs":   {"-f": true, "--follow": true},
+	"logs":   {"-f": true, "--follow": true, "--raw": true},
 	"rm":     {"--force": true},
 	"rmi":    {"--force": true},
 	"up":     {"--recreate": true},
@@ -165,7 +166,7 @@ func (c *client) request(method, path string, body io.Reader, contentType string
 	}
 	res, err := c.http.Do(req)
 	if err != nil {
-		return nil, runtimeError("DAEMON_NOT_RUNNING", fmt.Sprintf("daemon not running: %s\nhint: start it with: featherd --data-root ~/.feather --socket %s", c.socket, c.socket))
+		return nil, runtimeError("DAEMON_NOT_RUNNING", fmt.Sprintf("daemon not running: %s", c.socket))
 	}
 	defer res.Body.Close()
 	data, err := io.ReadAll(res.Body)
@@ -197,6 +198,63 @@ func (c *client) json(method, path string, body any) ([]byte, error) {
 func printJSON(command string, value any) {
 	data, _ := json.Marshal(map[string]any{"ok": true, "command": command, "data": value})
 	fmt.Println(string(data))
+}
+
+func errorHint(code string) string {
+	switch code {
+	case "DAEMON_NOT_RUNNING":
+		return "start it with: featherd --data-root ~/.feather --socket <socket>"
+	case "MAP_NOT_FOUND":
+		return "run `feather maps`"
+	case "INSTANCE_NOT_FOUND":
+		return "run `feather ps`"
+	case "USAGE":
+		return "use --help"
+	case "MAP_CONFLICT", "INSTANCE_CONFLICT":
+		return "use `feather ps` to inspect existing instances"
+	}
+	return ""
+}
+
+func errorCode(err error) (string, string) {
+	var ce *cliError
+	if errors.As(err, &ce) {
+		return ce.code, ce.msg
+	}
+	return "INTERNAL", err.Error()
+}
+
+func printErrorJSON(command string, err error) {
+	code, message := errorCode(err)
+	body := map[string]any{"ok": false, "error": map[string]any{"code": code, "message": message}}
+	if hint := errorHint(code); hint != "" {
+		body["error"].(map[string]any)["hint"] = hint
+	}
+	if command != "" {
+		body["command"] = command
+	}
+	data, _ := json.Marshal(body)
+	fmt.Println(string(data))
+}
+
+func printHumanError(err error) {
+	code, message := errorCode(err)
+	fmt.Fprintf(os.Stderr, "error: %s\n  code: %s\n", message, code)
+	if hint := errorHint(code); hint != "" {
+		fmt.Fprintf(os.Stderr, "  hint: %s\n", hint)
+	}
+}
+
+func writeTable(headers []string, rows [][]string) {
+	if len(rows) == 0 {
+		return
+	}
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, strings.Join(headers, "\t"))
+	for _, row := range rows {
+		fmt.Fprintln(w, strings.Join(row, "\t"))
+	}
+	w.Flush()
 }
 
 var toolExitCode = 0
@@ -238,10 +296,10 @@ func run(p *parsed) error {
 			return nil
 		}
 		if len(maps) == 0 {
-			fmt.Println("no maps")
+			fmt.Println("no instances")
 			return nil
 		}
-		fmt.Println("INSTANCE\tMAP\tSTATE\tPORT\tSHARD\tVOLUME")
+		rows := [][]string{}
 		for _, m := range maps {
 			port := "-"
 			if v, ok := m["port"]; ok && v != nil {
@@ -255,8 +313,9 @@ func run(p *parsed) error {
 			if volume == "<nil>" || volume == "" {
 				volume = fmt.Sprint(m["id"])
 			}
-			fmt.Printf("%v\t%v\t%v\t%s\t%s\t%s\n", m["id"], m["mapId"], m["state"], port, shard, volume)
+			rows = append(rows, []string{fmt.Sprint(m["id"]), fmt.Sprint(m["mapId"]), fmt.Sprint(m["state"]), port, shard, volume})
 		}
+		writeTable([]string{"INSTANCE", "MAP", "STATE", "PORT", "SHARD", "VOLUME"}, rows)
 		return nil
 	case "maps":
 		data, err := c.json("GET", "/v1/maps", nil)
@@ -275,10 +334,11 @@ func run(p *parsed) error {
 			fmt.Println("no maps")
 			return nil
 		}
-		fmt.Println("ID\tVERSION\tHASH\tSIZE\tINSTANCES")
+		rows := [][]string{}
 		for _, m := range maps {
-			fmt.Printf("%v\t%v\t%v\t%v\t%v\n", m["id"], m["version"], m["contentHash"], m["size"], m["instanceCount"])
+			rows = append(rows, []string{fmt.Sprint(m["id"]), fmt.Sprint(m["version"]), fmt.Sprint(m["contentHash"]), fmt.Sprint(m["size"]), fmt.Sprint(m["instanceCount"])})
 		}
+		writeTable([]string{"ID", "VERSION", "HASH", "SIZE", "INSTANCES"}, rows)
 		return nil
 	case "inspect":
 		if len(p.positionals) == 0 {
@@ -415,7 +475,17 @@ func run(p *parsed) error {
 			printJSON(p.command, json.RawMessage(data))
 			return nil
 		}
-		fmt.Println(string(data))
+		var imported struct {
+			Maps []struct {
+				ID string `json:"id"`
+			} `json:"maps"`
+		}
+		if err := json.Unmarshal(data, &imported); err != nil {
+			return err
+		}
+		for _, m := range imported.Maps {
+			fmt.Printf("loaded  %s\n", m.ID)
+		}
 		return nil
 	case "logs":
 		if len(p.positionals) == 0 {
@@ -446,9 +516,17 @@ func run(p *parsed) error {
 		scanner.Buffer(make([]byte, 64*1024), 4*1024*1024)
 		for scanner.Scan() {
 			line := scanner.Text()
+			if p.json {
+				fmt.Println(line)
+				continue
+			}
 			var entry struct{ Time, Stream, Message string }
 			if json.Unmarshal([]byte(line), &entry) == nil && entry.Message != "" {
-				fmt.Printf("%s [%s] %s\n", entry.Time, entry.Stream, entry.Message)
+				if p.flags["--raw"] {
+					fmt.Println(entry.Message)
+				} else {
+					fmt.Printf("%s [%s] %s\n", entry.Time, entry.Stream, entry.Message)
+				}
 			} else {
 				fmt.Println(line)
 			}
@@ -660,20 +738,16 @@ func runDeploy(c *client, p *parsed) error {
 			return err
 		}
 	}
-	data, err = c.json("GET", "/v1/instances", nil)
+	targets, err := fetchInstances(c, names)
 	if err != nil {
 		return err
 	}
 	if p.json {
-		printJSON("up", json.RawMessage(data))
+		printJSON("up", targets)
 		return nil
 	}
-	var instances []map[string]any
-	if err := json.Unmarshal(data, &instances); err != nil {
-		return err
-	}
-	for _, m := range instances {
-		fmt.Printf("%v\t%v\t%v\t%v\tshard=%v\n", m["id"], m["mapId"], m["state"], m["url"], m["shardId"])
+	for _, m := range targets {
+		fmt.Printf("up  %v  map=%v  state=%v  url=%v\n", m["id"], m["mapId"], m["state"], m["url"])
 	}
 	return nil
 }
@@ -692,6 +766,7 @@ func runUp(c *client, p *parsed) error {
 		replicas = n
 	}
 	baseName := p.values["--name"]
+	allNames := []string{}
 	for _, mapID := range maps {
 		names := []string{}
 		if replicas == 1 {
@@ -709,6 +784,7 @@ func runUp(c *client, p *parsed) error {
 			}
 		}
 		for _, name := range names {
+			allNames = append(allNames, name)
 			if _, err := c.json("POST", "/v1/instances", map[string]any{"mapId": mapID, "id": name}); err != nil {
 				return err
 			}
@@ -717,22 +793,34 @@ func runUp(c *client, p *parsed) error {
 			}
 		}
 	}
-	data, err := c.json("GET", "/v1/instances", nil)
+	created, err := fetchInstances(c, allNames)
 	if err != nil {
 		return err
 	}
 	if p.json {
-		printJSON("up", json.RawMessage(data))
+		printJSON("run", created)
 		return nil
 	}
-	var instances []map[string]any
-	if err := json.Unmarshal(data, &instances); err != nil {
-		return err
-	}
-	for _, m := range instances {
-		fmt.Printf("%v\t%v\t%v\t%v\tshard=%v\n", m["id"], m["mapId"], m["state"], m["url"], m["shardId"])
+	for _, m := range created {
+		fmt.Printf("created  %v  map=%v  state=%v\n", m["id"], m["mapId"], m["state"])
 	}
 	return nil
+}
+
+func fetchInstances(c *client, names []string) ([]map[string]any, error) {
+	result := []map[string]any{}
+	for _, name := range names {
+		data, err := c.json("GET", "/v1/instances/"+url.PathEscape(name), nil)
+		if err != nil {
+			return nil, err
+		}
+		var m map[string]any
+		if err := json.Unmarshal(data, &m); err != nil {
+			return nil, err
+		}
+		result = append(result, m)
+	}
+	return result, nil
 }
 
 func runMapAction(c *client, p *parsed) error {
@@ -760,20 +848,23 @@ func runMapAction(c *client, p *parsed) error {
 			if p.json {
 				printJSON(p.command, json.RawMessage(data))
 			} else {
-				fmt.Printf("%s\tremoved\n", id)
+				fmt.Printf("removed  %s\n", id)
 			}
 			continue
 		}
-		data, err := c.json("POST", path, nil)
+		if _, err := c.json("POST", path, nil); err != nil {
+			return err
+		}
+		instData, err := c.json("GET", "/v1/instances/"+url.PathEscape(id), nil)
 		if err != nil {
 			return err
 		}
 		if p.json {
-			printJSON(p.command, json.RawMessage(data))
+			printJSON(p.command, json.RawMessage(instData))
 		} else {
-			var op map[string]any
-			_ = json.Unmarshal(data, &op)
-			fmt.Printf("%v\t%v\n", op["mapId"], op["state"])
+			var inst map[string]any
+			_ = json.Unmarshal(instData, &inst)
+			fmt.Printf("%s  %v  map=%v\n", p.command, inst["id"], inst["mapId"])
 		}
 	}
 	return nil
@@ -831,12 +922,15 @@ func main() {
 	}
 	p, err := parse(os.Args[1:])
 	if err != nil {
+		if slices.Contains(os.Args[1:], "--json") {
+			printErrorJSON("", err)
+		} else {
+			printHumanError(err)
+		}
 		var ce *cliError
 		if errors.As(err, &ce) {
-			fmt.Fprintln(os.Stderr, ce.code+": "+ce.msg)
 			os.Exit(ce.exit)
 		}
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
@@ -866,16 +960,24 @@ func main() {
 			hint = "featherc"
 			use = "feather"
 		}
-		fmt.Fprintf(os.Stderr, "USAGE: %s does not support %s; use %s\n", hint, p.command, use)
+		err := usageError(fmt.Sprintf("%s does not support %s; use %s", hint, p.command, use))
+		if p.json {
+			printErrorJSON(p.command, err)
+		} else {
+			printHumanError(err)
+		}
 		os.Exit(2)
 	}
 	if err := run(p); err != nil {
+		if p.json {
+			printErrorJSON(p.command, err)
+		} else {
+			printHumanError(err)
+		}
 		var ce *cliError
 		if errors.As(err, &ce) {
-			fmt.Fprintln(os.Stderr, ce.code+": "+ce.msg)
 			os.Exit(ce.exit)
 		}
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	if toolExitCode != 0 {
