@@ -405,14 +405,15 @@ func run(p *parsed) error {
 		}
 		defaults, _ := m["defaults"].(map[string]any)
 		limits, _ := defaults["limits"].(map[string]any)
-		fmt.Printf("ID          %v\n", m["id"])
-		fmt.Printf("NAME        %v\n", m["name"])
-		fmt.Printf("VERSION     %v\n", m["version"])
-		fmt.Printf("CONTENT     %v\n", m["contentHash"])
-		fmt.Printf("SIZE        %v\n", m["size"])
-		fmt.Printf("INSTALLED   %v\n", m["installedAt"])
-		fmt.Printf("DEFAULTS    port=%v volume=%v players=%v memoryMb=%v\n", defaults["port"], defaults["volume"], limits["players"], limits["memoryMb"])
-		fmt.Printf("INSTANCES   %v\n", m["instanceCount"])
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		fmt.Fprintf(w, "id\t%v\n", m["id"])
+		fmt.Fprintf(w, "name\t%v\n", m["name"])
+		fmt.Fprintf(w, "version\t%v\n", m["version"])
+		fmt.Fprintf(w, "content\t%v\n", m["contentHash"])
+		fmt.Fprintf(w, "size\t%v\n", m["size"])
+		fmt.Fprintf(w, "installed\t%v\n", m["installedAt"])
+		fmt.Fprintf(w, "defaults\tport=%v volume=%v players=%v memoryMb=%v\n", defaults["port"], defaults["volume"], limits["players"], limits["memoryMb"])
+		fmt.Fprintf(w, "instances\t%v\n", m["instanceCount"])
 		if labels, ok := m["labels"].(map[string]any); ok {
 			parts := []string{}
 			for _, key := range []string{"version", "source"} {
@@ -421,9 +422,10 @@ func run(p *parsed) error {
 				}
 			}
 			if len(parts) > 0 {
-				fmt.Printf("LABELS      %s\n", strings.Join(parts, " "))
+				fmt.Fprintf(w, "labels\t%s\n", strings.Join(parts, " "))
 			}
 		}
+		w.Flush()
 		return nil
 	case "init":
 		args := []string{"workspace", "init"}
@@ -774,7 +776,7 @@ func runDeploy(c *client, p *parsed) error {
 			}
 		} else {
 			var ce *cliError
-			if !errors.As(err, &ce) || ce.code != "MAP_NOT_FOUND" {
+			if !errors.As(err, &ce) || (ce.code != "MAP_NOT_FOUND" && ce.code != "INSTANCE_NOT_FOUND") {
 				return err
 			}
 		}
@@ -795,7 +797,7 @@ func runDeploy(c *client, p *parsed) error {
 	}
 	if !p.flags["--quiet"] {
 		for _, m := range targets {
-			fmt.Printf("up  %v  map=%v  state=%v  url=%v\n", m["id"], m["mapId"], m["state"], m["url"])
+			fmt.Printf("started  %v  map=%v  state=%v  url=%v\n", m["id"], m["mapId"], m["state"], m["url"])
 		}
 	}
 	return nil
@@ -944,7 +946,16 @@ func runMapAction(c *client, p *parsed) error {
 		if p.json {
 			printJSON(p.command, inst)
 		} else if !p.flags["--quiet"] {
-			fmt.Printf("%s  %v  map=%v  state=%v\n", p.command, inst["id"], inst["mapId"], inst["state"])
+			verb := p.command + "ed"
+			switch p.command {
+			case "start":
+				verb = "started"
+			case "stop":
+				verb = "stopped"
+			case "restart":
+				verb = "restarted"
+			}
+			fmt.Printf("%s  %v  map=%v  state=%v\n", verb, inst["id"], inst["mapId"], inst["state"])
 		}
 	}
 	return nil

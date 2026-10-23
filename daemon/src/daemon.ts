@@ -262,7 +262,7 @@ export class Daemon implements DaemonHandle {
     if (record.status.state === 'running') {
       return this._doneOperation('start', id);
     }
-    if (record.busy) throw new DaemonError('OPERATION_IN_PROGRESS', `map busy: ${id}`);
+    if (record.busy) throw new DaemonError('OPERATION_IN_PROGRESS', `instance busy: ${id}`);
     // 手动 start 清掉重启计数；自动重启不清，否则「起→崩→起」会无限循环。
     if (!this._restarting.has(id)) this._restartAttempts.delete(id);
     record.busy = true;
@@ -308,7 +308,7 @@ export class Daemon implements DaemonHandle {
     if (record.status.state === 'stopped' || record.status.state === 'created') {
       return this._doneOperation('stop', id);
     }
-    if (record.busy) throw new DaemonError('OPERATION_IN_PROGRESS', `map busy: ${id}`);
+    if (record.busy) throw new DaemonError('OPERATION_IN_PROGRESS', `instance busy: ${id}`);
     // 用户主动停图，就不要在后台偷偷把它重启回来
     this._cancelRestart(id);
     record.busy = true;
@@ -760,7 +760,7 @@ export class Daemon implements DaemonHandle {
 
   private _requireMap(id: string): MapRecord {
     const record = this._records.get(id);
-    if (!record) throw new DaemonError('MAP_NOT_FOUND', `map not found: ${id}`);
+    if (!record) throw new DaemonError('INSTANCE_NOT_FOUND', `instance not found: ${id}`);
     return record;
   }
 

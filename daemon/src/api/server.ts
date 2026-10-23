@@ -101,7 +101,7 @@ export async function startApiServer(
         const action = instanceMatch[2];
         if (!action && req.method === 'GET') {
           const status = await daemon.getMap(id);
-          return status ? json(res, 200, status) : error(res, 404, 'MAP_NOT_FOUND', `instance not found: ${id}`);
+          return status ? json(res, 200, status) : error(res, 404, 'INSTANCE_NOT_FOUND', `instance not found: ${id}`);
         }
         if (!action && req.method === 'DELETE') {
           await daemon.destroyInstance(id, { force: url.searchParams.get('force') === '1' });
@@ -196,7 +196,7 @@ export async function startApiServer(
     } catch (e) {
       const code = (e as any)?.code;
       const status =
-        code === 'MAP_NOT_FOUND' ? 404
+        code === 'MAP_NOT_FOUND' || code === 'INSTANCE_NOT_FOUND' ? 404
           : code === 'EXEC_DISABLED' || code === 'EVAL_DISABLED' ? 403
             : code === 'MAP_CONFLICT' || code === 'INSTANCE_CONFLICT' || code === 'MAP_BUSY' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
               : code === 'INVALID_SPEC' ? 422
