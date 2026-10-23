@@ -45,7 +45,7 @@ installed ──load --replace──▶ updated ──rmi──▶ removed
 
 - map 没有 running 状态；只有 `installedAt` / `contentHash` / `instanceCount`。
 - `DELETE /v1/maps/:id` 在仍有 instance 时返回 `409 MAP_HAS_INSTANCES`；`?force=1` 连 instance 一起删。
-- map 更新不影响已有 instance：instance 创建时 pin `mapContentHash`（当前 `--replace` 例外，见 §4.4）。
+- map 更新不影响已有 instance：instance 创建时 pin `mapContentHash`。`up <archive>` 才会自动 recreate 目标 instance；裸 `load --replace` 遇到运行中的 instance 返回 `MAP_BUSY`。
 
 ### 3.2 Instance 状态机（container）
 
@@ -105,7 +105,6 @@ stopped / error → starting（restart）
 
 没有。发版前不保留 `/v1/maps/:id/{start,stop,restart,stats,logs,eval,exec}` 或 `POST /v1/maps`；cached map 只走 `/v1/maps` / `/v1/maps/import`，运行副本只走 `/v1/instances`。
 
-唯一例外：`PUT /v1/maps/:id` 仍是旧 MapSpec 更新路径，发版前删除。
 
 ### 4.3 指标口径（`stats` / `shards`）
 
@@ -188,7 +187,7 @@ Content-Type: application/gzip
 
 - 只写 `<dataRoot>/maps/<mapId>/` + 合并 blobs；**不创建 instance**。
 - `.boxplay` 的多个成员一起注册为多个 cached map。
-- `--replace` 更新 definition；已有 instance pin 旧 `mapContentHash`，不会被自动更新。
+- `--replace` 更新 definition；有运行中的 instance 时返回 `MAP_BUSY`。`up <archive>` 带 `recreate=1` 才 stop + rm 后重建。
 
 `state` 是兼容字段；目标只返回 definition 字段（`id` / `version` / `contentHash`）。
 
@@ -207,7 +206,7 @@ Content-Type: application/json
 }
 ```
 
-- `id` 缺省 = `mapId`；重复返回 `409 MAP_CONFLICT`。
+- `id` 缺省 = `mapId`；重复返回 `409 INSTANCE_CONFLICT`。
 - `volume` 缺省 = `id`；显式同名会共享 SQLite（多写要警告）。
 - 返回 `201` + `InstanceStatus`（`state = "created"`）。
 - `POST /v1/instances/:id/start` 返回 `202` + operation。
@@ -255,7 +254,7 @@ GET /v1/events?since=...
 | instance | `instance.created`、`instance.starting`、`instance.running`、`instance.stopping`、`instance.stopped`、`instance.error`、`instance.destroyed` |
 | daemon | `daemon.ready`、`daemon.shutdown` |
 
-> 迁移中：`instance.created` 已发；start/stop 生命周期仍发 `map.starting/running/...`（`mapId` = instance id）。新代码用 `instance.*`。
+> `instance.created` 已发；start/stop 生命周期当前仍发 `map.starting/running/...`（`mapId` = instance id），后续改 `instance.*`。
 
 ## 5. 错误模型
 
@@ -273,13 +272,13 @@ GET /v1/events?since=...
 | 401 | `UNAUTHORIZED` |
 | 403 | `FORBIDDEN`、`EVAL_DISABLED` |
 | 404 | `MAP_NOT_FOUND`、`OPERATION_NOT_FOUND` |
-| 409 | `MAP_CONFLICT`、`MAP_HAS_INSTANCES`、`MAP_BUSY`、`OPERATION_IN_PROGRESS` |
+| 409 | `MAP_CONFLICT`、`INSTANCE_CONFLICT`、`MAP_HAS_INSTANCES`、`MAP_BUSY`、`OPERATION_IN_PROGRESS` |
 | 422 | `INVALID_SPEC`、`ARCHIVE_INVALID`、`ARCHIVE_UNSUPPORTED` |
 | 500 | `INTERNAL` |
 | 503 | `NOT_READY` |
 
 - `MAP_NOT_FOUND` 目前同时用于 map 和 instance；后续拆 `INSTANCE_NOT_FOUND`。
-- `MAP_CONFLICT`：import 目标 mapId 已存在，或 instance id 已存在。
+- `MAP_CONFLICT`：import 目标 mapId 已存在。`INSTANCE_CONFLICT`：instance id 已存在。
 - `MAP_HAS_INSTANCES`：`DELETE /v1/maps/:id` 时仍有 instance。
 - 异步操作返回 `202` + `operation`
 - 冲突时返回 `409`，带当前状态
@@ -295,9 +294,8 @@ GET /v1/events?since=...
 ## 7. 实现状态
 
 - map / instance 拆分已在 contract、API、Go CLI 落地：`MapDefinition` / `InstanceSpec` / `InstanceStatus`。
-- `MapStatus` / `MapSpec` 仍保留为 deprecated 兼容类型。
+- `MapStatus` / `MapSpec` 仅作为内部旧类型；新代码用 `MapDefinition` / `InstanceStatus` / `ResolvedMapSpec`。
 - `importArchive` 现在只装 definition；但 `--replace` 仍会 force 删除该 map 的 instance。目标是保留 instance、只更新 definition。
-- `PUT /v1/maps/:id` 仍是旧 MapSpec 路径；发版前删除。
 - `instance.created` 已发；start/stop 生命周期仍发 `map.*`，目标是 `instance.*`。
 - `featherd` 默认 `~/.feather/daemon.sock`。
 - daemon 重启只恢复 instance 注册表，不自动启动；需要显式 `run` / `start`。
@@ -344,7 +342,6 @@ interface DaemonHandle {
   // instance status（legacy 名字；/v1/instances/:id 仍在用）
   getMap(id: string): Promise<MapStatus | undefined>;
 
-  // legacy aliases（deprecated）
   listMaps(): Promise<MapStatus[]>;
   destroyMap(id: string, opts?: DestroyOptions): Promise<void>;
 
@@ -359,7 +356,7 @@ interface DaemonHandle {
 ```
 
 - `MapDefinition` / `InstanceSpec` / `InstanceStatus` / `ResolvedMapSpec` 见契约文件。
-- `MapSpec` / `MapStatus` 是 deprecated 兼容类型。
+- `MapSpec` / `MapStatus` 仅内部旧类型；新代码用 `MapDefinition` / `InstanceStatus` / `ResolvedMapSpec`。
 - engine 侧仍然消费 `ResolvedMapSpec`，由 MapDefinition + InstanceSpec 合成；engine contract 尽量不改。
 - `MapStats` 是 per-instance；`ShardStats` 是 per-shard。
 
@@ -368,6 +365,7 @@ interface DaemonHandle {
 | CLI | API |
 |---|---|
 | `feather load <archive>` | `POST /v1/maps/import` |
+| `feather up <archive\|map>` | `POST /v1/maps/import?recreate=1` + `/v1/instances` |
 | `feather maps` | `GET /v1/maps` |
 | `feather inspect <map>` | `GET /v1/maps/:id` |
 | `feather rmi <map>` | `DELETE /v1/maps/:id` |
@@ -392,7 +390,6 @@ interface DaemonHandle {
 
 当前剩余：
 
-- 删除 `PUT /v1/maps/:id` 旧路径。
 - 删除 `listMaps` / `destroyMap` legacy 方法；`getMap` 改名 `getInstance`。
 - 删除 `MapSpec` / `MapStatus` 兼容类型。
 - 事件全面切到 `instance.*`（`instance.created` 已发）。

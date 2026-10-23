@@ -110,7 +110,7 @@ workspace 布局、`kind = baked|native|boxproject`、JSON sections、chunks、g
 ```bash
 feather load /path/to/map.fmap
 feather maps
-feather run <mapId>
+feather up <mapId>
 ```
 
 一个 `.boxplay` group 会拆成多个独立地图：
@@ -154,9 +154,9 @@ featherd --data-root /var/lib/feather
 
 # 客户端只认 socket
 feather maps
-feather run cloud-4e84...                 # 默认 instance id = map id
-feather run cloud-4e84... --replicas 2    # cloud-4e84...-1 / -2
-feather run cloud-4e84... cloud-3b56...   # 每张 map 一个默认 instance
+feather up cloud-4e84...                 # 默认 instance id = map id
+feather up cloud-4e84... --scale 2    # cloud-4e84...-1 / -2
+feather up cloud-4e84... cloud-3b56...   # 每张 map 一个默认 instance
 feather ps
 feather logs <instance> -f
 feather stop <instance> [<instance>...]

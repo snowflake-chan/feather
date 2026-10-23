@@ -2,7 +2,7 @@
 
 > **状态**：已定稿（本会话）
 > **读者**：实现 `cli/`、`daemon/`、`builder/`、编辑器的 agent
-> **关系**：本文是**数据模型与创作流程**的唯一规范；命令面、daemon 生命周期、退出码见 [CLI-CONTRACT.md](CLI-CONTRACT.md)。
+> **关系**：本文是**数据模型与创作流程**的唯一规范；runtime 命令面、daemon 生命周期、退出码见 [CLI-CONTRACT.md](CLI-CONTRACT.md)；作者侧命令面见 [DESIGN.md](DESIGN.md) §5。
 > **优先级**：本文与代码、README、旧 docs 冲突时，以本文为准。
 
 ---
@@ -48,7 +48,7 @@ workspace ──build──▶ archive ──load(daemon)──▶ map (image / 
 feather workspace init my-map
 ```
 
-生成空白 `feather.toml`、`project/`、`chunks/`、`scripts/`、`assets/`，可直接 `feather build my-map`。
+生成空白 `feather.toml`、`project/`、`chunks/`、`scripts/`、`assets/`，可直接 `featherc build my-map`。
 
 ## 2. 工作区布局
 
@@ -132,19 +132,21 @@ assets/**          -diff
 | 想改 | 去哪里 | 命令 |
 |---|---|---|
 | 地图 id / version | `feather.toml` | 手动改 |
-| 显示名 / 描述 / 封面 | `project/info.json` | `feather info set` |
-| 天气 / 时间 / 雾 | `project/environment.json` | `feather weather set` |
-| 实体 / NPC / 刷怪点 | `project/entities/<id>.json` | `feather entity add\|rm\|set` |
-| UI 屏幕 | `project/ui/<screen>.json`、`project/ui.json` | `feather ui ...` |
-| spawn / 移动 | `project/player.json` | `feather player set` |
-| 物理 | `project/physics.json` | `feather physics set` |
-| 区域 | `project/zones.json` | `feather zone ...` |
-| 权限 | `project/permissions.json` | `feather permission ...` |
-| 体素 | `chunks/*.bin` | `feather terrain ...` |
+| 显示名 / 描述 / 封面 | `project/info.json` | `featherc meta set` |
+| 天气 / 时间 / 雾 | `project/environment.json` | `featherc environment set` |
+| 实体 / NPC / 刷怪点 | `project/entities/<id>.json` | `featherc entity add\|rm\|set` |
+| UI 屏幕 | `project/ui/<screen>.json`、`project/ui.json` | `featherc ui ...` |
+| spawn / 移动 | `project/player.json` | `featherc player set` |
+| 物理 | `project/physics.json` | `featherc physics set` |
+| 区域 | `project/zones.json` | `featherc zone ...` |
+| 权限 | `project/permissions.json` | `featherc permission ...` |
+| 体素 | `chunks/*.bin` | `featherc terrain ...` |
 | 人数 / 端口 / 视距 | `server.toml` | 手动改 / 运维 |
 | token / DB URL | 环境变量 | 运维 |
 
-`feather config where <key>` 应直接回答这张表。
+`featherc config where <key>` 应直接回答这张表。
+
+> `player` / `physics` / `zone` / `permission` / `config` 尚未进入 [DESIGN.md](DESIGN.md) §5，是待设计项；当前先按文件编辑，不要按命令名实现。
 
 ---
 
@@ -248,7 +250,7 @@ version = "1.2.0"
 | workspace | `chunks/0,0,0.bin` | 可 merge、可读 |
 | archive | `blobs/Qm...` | 去重、不可变、官方兼容 |
 
-`feather build` 对每个 chunk 文件做 hash，按官方顺序组装 `voxels.chunks` 数组，再写 archive。**不需要重新编码**，因为文件内容就是 blob 内容。
+`featherc build` 对每个 chunk 文件做 hash，按官方顺序组装 `voxels.chunks` 数组，再写 archive。**不需要重新编码**，因为文件内容就是 blob 内容。
 
 git 的对象存储按内容去重：不同路径、不同地图里相同的 chunk 只存一份 blob。工作区可能看到重复文件，仓库不会因此变大。
 
@@ -403,9 +405,9 @@ git config merge.feather-voxel.driver "feather merge-chunk %O %A %B"
 验收：
 
 ```bash
-feather build my-map
+featherc build my-map
 sha256sum dist/my-map.fmap > /tmp/a
-feather build my-map
+featherc build my-map
 sha256sum dist/my-map.fmap > /tmp/b
 diff /tmp/a /tmp/b          # 必须为空
 ```
@@ -423,33 +425,32 @@ diff /tmp/a /tmp/b          # 必须为空
 
 ```bash
 # 新建
-feather init my-map --template arena
+featherc init my-map --template arena
 
 # 或从官方源码展开
-feather unpack bedwars.boxproject --dir my-map
+featherc unpack bedwars.boxproject --dir my-map
 
 # 编辑（全部走 CLI，不需要 GUI）
-feather terrain heightmap --from height.png
-feather terrain fill --box 0,0,0,128,32,128 --block stone
-feather terrain stamp --file structures/castle.vox --at 40,32,40
-feather terrain carve --sphere 64,40,64,12
-feather weather set --preset rain --time 18:00
-feather entity add npc --id shopkeeper --at 10,64,10
-feather ui add-screen --id shop --from ui/shop.json
+featherc terrain heightmap --from height.png
+featherc terrain fill --box 0,0,0,128,32,128 --block stone
+featherc terrain stamp --file structures/castle.vox --at 40,32,40
+featherc terrain carve --sphere 64,40,64,12
+featherc environment set --preset rain --time 18:00
+featherc entity add npc --id shopkeeper --at 10,64,10
+featherc ui add shop --from ui/shop.json
 
 # 反馈
-feather preview --out preview.png
-feather diff --out diff.png
+featherc preview --out preview.png
+featherc diff --out diff.png
 
-# 构建 / 校验 / 打包
-feather build my-map
-feather pack
+# 构建 / 校验
+featherc build my-map
 
 # 运行（map = image，instance = container）
 feather load dist/my-map.fmap
 feather maps
-feather run my-map                 # 默认 instance id = map id
-feather run my-map --replicas 2    # my-map-1, my-map-2
+feather up my-map                 # 默认 instance id = map id
+feather up my-map --scale 2    # my-map-1, my-map-2
 feather ps
 feather rmi my-map                 # 有 instance 时拒绝；--force 连 instance 一起删
 ```
@@ -459,9 +460,9 @@ feather rmi my-map                 # 有 instance 时拒绝；--force 连 instan
 - 一张 map 可以起多个 instance；instance 的运行时数据在 `<dataRoot>/instances/<instanceId>/data`。
 - `load` 只装 map；`run` 才创建 instance；`rm` 删 instance，`rmi` 删 map。
 - 所有编辑命令只改工作区文件，不维护隐藏状态。
-- `feather preview` 是 AI 闭环的必需项；没有预览等于盲写。
-- `feather diff` 是内容级：变化的 chunk 坐标、实体增删、UI 节点、天气字段，外加渲染图。
-- `feather build` 只做校验 + 组装；`feather pack` 只做打包。
+- `featherc preview` 是 AI 闭环的必需项；没有预览等于盲写。
+- `featherc diff` 是内容级：变化的 chunk 坐标、实体增删、UI 节点、天气字段，外加渲染图。
+- `featherc build` 只做校验 + 组装；`pack` 暂缓（见 [DESIGN.md](DESIGN.md) §7）。
 
 ---
 
@@ -544,7 +545,7 @@ level = "info"
 
 - `unpack`：archive → `project/` + `chunks/` + `scripts/` + `assets/` + `feather.toml`。
 - `build`：反向组装，校验 `content.hash`。
-- 验收：`unpack x.boxproject && cd x && feather build .` 通过。
+- 验收：`unpack x.boxproject && cd x && featherc build .` 通过。
 
 ### C. 合并
 
@@ -554,18 +555,18 @@ level = "info"
 
 ### D. 反馈
 
-- `feather preview`（无头渲染）。
-- `feather diff <rev>`（内容级 + 渲染）。
+- `featherc preview`（无头渲染）。
+- `featherc diff <rev>`（内容级 + 渲染）。
 - 验收：AI 能只靠 CLI 完成「改 → 看 → 再改」。
 
 ### E. CI / build-twice
 
-- `feather build` 两次输出 contentHash 相同。
+- `featherc build` 两次输出 contentHash 相同。
 - CI：clone → build → check，不依赖外部 store。
 
 ### F. 服务器配置
 
-- `server.toml` + 优先级 + `feather config where`。
+- `server.toml` + 优先级 + `featherc config where`。
 - 迁移现有 `--data-root` / `--socket` / `--enable-eval` 到配置表面。
 
 ---
@@ -573,7 +574,7 @@ level = "info"
 ## 16. 待确认
 
 1. chunk 文件名用 `0,0,0.bin` 还是 `0_0_0.bin`（逗号在 shell/工具里是否需要转义）。
-2. `feather preview` 用无头浏览器还是自写体素 raycaster。
+2. `featherc preview` 用无头浏览器还是自写体素 raycaster。
 3. `server.toml` 放部署仓库还是引擎仓库。
 4. LFS 迁移阈值（1 GB / 30 s 是否合适）。
 5. 实体是否永远按 id 拆文件，还是小图允许单个 `entities.json`。

@@ -51,7 +51,8 @@ feather workspace init my-map # blank workspace
 feather load map.fmap          # install image / cached map
 feather maps                  # list maps（image）
 feather inspect my-map        # map definition
-feather run my-map             # create default instance
+feather up my-map             # load if needed + recreate/start default instance
+feather run my-map             # primitive create+start
 feather up my-map --scale 2
 feather ps                    # list instances（container）
 feather start my-map-1
@@ -101,6 +102,7 @@ curl http://127.0.0.1:9977/api/health-check
 
 | 文档 | 内容 |
 |---|---|
+| [docs/DESIGN.md](docs/DESIGN.md) | 设计决策：session-on-demand、CLI 三件套、创作闭环 |
 | [docs/API-DESIGN.md](docs/API-DESIGN.md) | Game API（玩家入口）、engine 契约 |
 | [docs/DAEMON-API.md](docs/DAEMON-API.md) | Daemon API（本地管理面，Docker-like） |
 | [docs/STORAGE.md](docs/STORAGE.md) | 数据存储：SQLite / PostgreSQL / 本地 JSON |
@@ -128,5 +130,5 @@ curl http://127.0.0.1:9977/api/health-check
 
 - **Phase 1（已完成）**：合并、统一 vendor、build + typecheck + smoke
 - **Phase 2（已完成）**：抽 `protocol/`（`ScriptProtocol` + 共享 schema + golden vectors）
-- **Phase 3（D2 已完成）**：daemon shard supervisor + UDS API + `feather run/ps/stop/logs`
+- **Phase 3（D2 已完成）**：daemon shard supervisor + UDS API + `feather up/ps/stop/logs`
 - **Phase 4**：共享 HostContext（C2，content/build 复用）、反代、CI

@@ -4,6 +4,8 @@
 > **读者**：实现 `cli/`、`daemon/`、`builder/` 的 agent
 > **优先级**：本文与代码、README、旧 docs 冲突时，以本文为准。当前实现状态见 §10。
 > **数据模型**：workspace 布局、JSON sections、chunks、git/merge 见 [MAP-AUTHORING.md](MAP-AUTHORING.md)。
+> **作者侧 CLI**：`featherc` 的设计见 [DESIGN.md](DESIGN.md) §4–§5；本文描述 `feather` 的当前命令面。
+> **迁移目标**：`build` / `unpack` / `init` 设计上归 `featherc`（见 DESIGN.md §4.3）；当前 `feather` 仍提供，后续保留 alias。
 
 ---
 
@@ -17,7 +19,7 @@
 6. `data root` 是 **daemon 配置**。客户端命令一律不接受 `--data-root`。
 7. `socket` 是**客户端端点**，独立于 data root。客户端只靠 `--socket` / `FEATHER_SOCKET` 找 daemon。
 8. daemon **复制 dockerd**：前台进程、信号停止、不自动拉起、没有 `down` 命令。
-9. `load` 走 daemon。`build` / `unpack` 是一次性子进程；`feather` 只负责 spawn `featherd build` / `featherd unpack` 并转发输出。
+9. `load` 走 daemon。`build` / `unpack` / `workspace init` 是一次性子进程；`feather` 只负责 spawn `featherd` 并转发输出。
 10. CLI **不读 data root**。P2 之后，`cli/src` 里不应出现 `resolveDataRoot` / `maps/` / `blobs/` 的路径拼接。
 
 ---
@@ -94,7 +96,7 @@ installed ──load --replace──▶ updated ──rmi──▶ removed
 
 - map 没有 running 状态；只有 `installedAt` / `contentHash` / `instanceCount`。
 - `rmi` 有 instance 时拒绝（`MAP_HAS_INSTANCES`）；`--force` 连 instance 一起删。
-- 目标：map 更新不影响已有 instance（instance pin `mapContentHash`）；要更新就 `rm` + `run`。当前 `load --replace` 仍会 force 删除该 map 的 instance（迁移中）。
+- map 更新不影响已有 instance（instance pin `mapContentHash`）；要更新就 `up <archive>` 或 `rm` + `run`。
 
 ### 2.3 Instance 生命周期（container）
 
@@ -164,7 +166,7 @@ Docker 是三层，feather 也必须三层。之前把 archive 当 image 是错�
 
 - `load` 安装/更新 cached map；`run` 创建并启动 instance。
 - 一个 map 可以起多个 instance（多房间、测试服、replica）。
-- instance 创建时 pin `mapContentHash`；目标：map 更新不影响 running instance（当前 `--replace` 例外，见 §5.4）。
+- instance 创建时 pin `mapContentHash`；map 更新不影响 running instance；`up <archive>` 才会自动 recreate。
 - 重建 instance：`rm` + `run`（或后续 `run --recreate`）。
 - 默认 instance id = mapId；`--name` / `--replicas` 生成其它 id。
 - instance volume 默认 = instance id；`--volume` 显式覆盖/共享。SQLite 多写要警告。
@@ -330,12 +332,12 @@ daemon 侧：
 冲突策略：
 
 - 默认：任一目标 mapId 已存在 → `MAP_CONFLICT`，不写入任何一张（原子性）。
-- `--replace`：目标行为是只更新 cached map 内容，已有 instance 保持旧 `mapContentHash`；当前实现会 force 删除该 map 的 instance（迁移中）。
+- `--replace`：更新 cached map 内容；若有运行中的 instance，返回 `MAP_BUSY`。`up <archive>` 带 `recreate=1`，才会先 stop + rm 再重建。
 - `--purge-data`：只对旧 per-map `data/` 有效；新模型的 instance data 用 `rm` 删除，flag 将移除。
 
 `.boxproject` 不走这个接口；`load` 遇到 `.boxproject` 直接报 `ARCHIVE_UNSUPPORTED` 并提示 `feather unpack`。
 
-> **迁移中**：`importArchive` 现在只装 map definition；但 `--replace` 仍会 force 删除该 map 的 instance。目标是保留 instance、只更新 definition。
+> `load --replace` 只更新 definition；运行中的 instance 不会被隐式删除。需要重建时用 `up <archive>`。
 
 ---
 
@@ -400,7 +402,7 @@ feather up lobby --scale 3
 `run` 是 Docker 的 create + start：
 
 - 必须给 map；未知 id → `MAP_NOT_FOUND`。
-- 同名 instance 已存在 → `MAP_CONFLICT`；用 `start` 启动已有 instance。
+- 同名 instance 已存在 → `INSTANCE_CONFLICT`；用 `start` 启动已有 instance。
 - 不 import、不 build、不 unpack。
 - `run` 之后输出 instance 的 `id / map / state / url / shard`。
 
@@ -472,7 +474,8 @@ feather stop --socket /tmp/s.sock map-a # 现在把 --socket 当 map id
 |---|---|
 | `DAEMON_NOT_RUNNING` | 客户端：socket 不存在 / ping 失败 |
 | `MAP_NOT_FOUND` | 未知 map id；instance 未找到目前也复用此码（待拆 `INSTANCE_NOT_FOUND`） |
-| `MAP_CONFLICT` | 目标 mapId 已存在（import）或 instance id 已存在（run） |
+| `MAP_CONFLICT` | import 目标 mapId 已存在 |
+| `INSTANCE_CONFLICT` | instance id 已存在 |
 | `MAP_HAS_INSTANCES` | `rmi` 时仍有 instance |
 | `MAP_BUSY` | instance running/starting/stopping，操作不允许 |
 | `INVALID_SPEC` | 非法 id / 缺少 mapId |
@@ -544,9 +547,9 @@ bedwars-lobby   1.0.0     sha256:4ce4fb...  10.0 KB  2
 
 迁移中：
 
-- `POST /v1/maps` 和 `/v1/maps/:id/{start,...}` 已删除；`PUT /v1/maps/:id` 仍保留为旧 MapSpec 路径，发版前删除。
+- `POST /v1/maps`、`PUT /v1/maps/:id` 和 `/v1/maps/:id/{start,...}` 已删除。
 - `importArchive` 已只装 definition；但 `load --replace` 仍会 force 删除该 map 的 instance。
-- instance 错误码暂时复用 `MAP_*`；后续拆 `INSTANCE_*`。
+- instance id 冲突返回 `INSTANCE_CONFLICT`；其它 instance 错误码仍可能复用 `MAP_*`。
 - `instance.created` 已发；start/stop 生命周期仍发 `map.*`，目标 `instance.*`。
 
 剩余：
