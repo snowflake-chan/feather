@@ -47,10 +47,10 @@ CLI（Go，`cli/`）：
 featherd
 
 featherc init [my-map]        # blank workspace; default cwd
-feather load map.fmap          # install image / cached map
+feather load [map.fmap]       # default: cwd archive
 feather maps                  # list maps（image）
 feather inspect my-map        # map definition
-feather up my-map             # load if needed + recreate/start default instance
+feather up                    # workspace cwd: build + load + recreate/start
 feather run my-map             # primitive create+start
 feather up my-map --scale 2
 feather ps                    # list instances（container）

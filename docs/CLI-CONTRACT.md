@@ -240,7 +240,7 @@ contentHash = "sha256:..."
 ### 4.4 `unpack`
 
 ```
-featherc unpack <project archive> [--dir <workspace>] [--force]
+featherc unpack [project archive] [--dir <workspace>] [--force]
 ```
 
 - 把 archive 的 hash DAG 展开成工作区——`chunks/<x>,<y>,<z>.bin`、各 JSON section、`scripts/`、`assets/`——再写 `feather.toml`。布局见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2、§7.4。
@@ -347,12 +347,12 @@ daemon 侧：
 |---|---|---|---|---|
 | `featherc init [dir]` | 创建 workspace | ❌ | `--force` | 默认 cwd；id = 目录名 |
 | `featherc build [workspace\|.boxproject]` | workspace → archive | ❌ | 覆盖输出 | spawn `featherd build` |
-| `featherc unpack <project archive>` | archive → workspace | ❌ | `--force` | spawn `featherd unpack` |
-| `feather load <archive>` | archive → cached map | ✅ | `--replace` | 安装/更新 image |
+| `featherc unpack [project archive]` | archive → workspace | ❌ | `--force` | 默认 cwd 唯一 archive |
+| `feather load [archive]` | cwd archive → cached map | ✅ | `--replace` | 安装/更新 image |
 | `feather maps` | 列表 | ✅ | 是 | 列 cached maps |
 | `feather inspect <map>` | map | ✅ | 是 | map 详情 |
 | `feather rmi <map> [--force]` | image → gone | ✅ | 是 | 有 instance 时拒绝；`--force` 连 instance 一起删 |
-| `feather up <archive\|map> [--name X] [--scale N]` | archive/map → instance | ✅ | 是 | 自动 load + run；hash 变化自动 recreate |
+| `feather up [workspace\|archive\|map] [--name X] [--scale N]` | workspace/archive/map → instance | ✅ | 是 | 自动 load + run；hash 变化自动 recreate |
 | `feather run <map> [--name X] [--replicas N]` | map → instance | ✅ | 是 | 创建并启动 instance |
 | `feather start <instance...>` | instance → running | ✅ | 是 | |
 | `feather stop <instance...>` | running → stopped | ✅ | 是 | 不删 instance |
@@ -382,18 +382,25 @@ daemon 侧：
 `up` 是服主的一行部署入口，Compose 风格，不是 Docker `run`：
 
 ```bash
+# cwd 是 workspace：自动 build + load + run
+feather up
+
+# 显式 workspace / archive / map
+feather up ./my-map --name lobby
 feather up lobby.fmap --name lobby
 feather up lobby --scale 3
 ```
 
 行为：
 
-1. 如果参数是 archive，先 `load --replace`，并 recreate 该 map 的 instance。
-2. 如果参数是已安装 map，直接确保 instance。
-3. instance 不存在则创建。
-4. instance 存在但 `mapContentHash` 与 map 当前 contentHash 不同，自动 `stop + rm + run`（recreate）。
-5. instance 已是当前内容且 stopped，则 `start`。
-6. 输出 instance 状态。
+1. 无参：cwd 有 `feather.toml` → 自动 `featherd build`；否则找 cwd 唯一 archive；再否则用目录名当已安装 map。
+2. 参数是 workspace 目录：先 build 成临时 archive，再 load。
+3. 参数是 archive：先 `load --replace`，并 recreate 该 map 的 instance。
+4. 参数是已安装 map：直接确保 instance。
+5. instance 不存在则创建。
+6. instance 存在但 `mapContentHash` 与 map 当前 contentHash 不同，自动 `stop + rm + run`（recreate）。
+7. instance 已是当前内容且 stopped，则 `start`。
+8. 输出 instance 状态。
 
 `run` 仍是底层 create+start：同名冲突不隐式 recreate。
 
@@ -401,10 +408,10 @@ feather up lobby --scale 3
 
 `run` 是 Docker 的 create + start：
 
-- 必须给 map；未知 id → `MAP_NOT_FOUND`。
-- 同名 instance 已存在 → `INSTANCE_CONFLICT`；用 `start` 启动已有 instance。
-- 不 import、不 build、不 unpack。
-- `run` 之后输出 instance 的 `id / map / state / url / shard`。
+- 无参时：cwd 有 `feather.toml` 则自动 `featherd build`，否则找 cwd 唯一 archive，再否则把目录名当已安装 map。
+- 显式参数可以是 workspace 目录、archive 文件、或已安装 map id。
+- workspace/archive 会先安装/更新 map；同名 instance 已存在且 hash 不同则 recreate。
+- 输出 instance 的 `id / map / state / url / shard`。
 
 `start/stop/restart/rm` 只接受 instance id；`restart` 等价于 `stop` + `start`。
 

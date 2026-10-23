@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -356,10 +357,17 @@ func run(p *parsed) error {
 		}
 		return runFeatherd(args)
 	case "unpack":
-		if len(p.positionals) == 0 {
-			return usageError("unpack requires a project archive")
+		archiveArg := ""
+		if len(p.positionals) > 0 {
+			archiveArg = p.positionals[0]
+		} else {
+			found, err := findArchiveInCwd(".boxproject", ".fmap")
+			if err != nil {
+				return err
+			}
+			archiveArg = found
 		}
-		archive, err := filepath.Abs(p.positionals[0])
+		archive, err := filepath.Abs(archiveArg)
 		if err != nil {
 			return err
 		}
@@ -375,10 +383,16 @@ func run(p *parsed) error {
 		}
 		return runFeatherd(args)
 	case "load":
-		if len(p.positionals) == 0 {
-			return usageError("load requires an archive")
+		archive := ""
+		if len(p.positionals) > 0 {
+			archive = p.positionals[0]
+		} else {
+			found, err := findArchiveInCwd(".fmap", ".boxplay")
+			if err != nil {
+				return err
+			}
+			archive = found
 		}
-		archive := p.positionals[0]
 		f, err := os.Open(archive)
 		if err != nil {
 			return err
@@ -488,23 +502,93 @@ func run(p *parsed) error {
 	return usageError("unknown command: " + p.command)
 }
 
+func buildWorkspaceForUp(workspace string) (string, func(), error) {
+	tmp, err := os.CreateTemp("", "feather-up-*.fmap")
+	if err != nil {
+		return "", nil, err
+	}
+	tmpPath := tmp.Name()
+	tmp.Close()
+	os.Remove(tmpPath)
+	toolExitCode = 0
+	if err := runFeatherd([]string{"build", workspace, "--output", tmpPath}); err != nil {
+		os.Remove(tmpPath)
+		return "", nil, err
+	}
+	if toolExitCode != 0 {
+		os.Remove(tmpPath)
+		return "", nil, runtimeError("BUILD_FAILED", "featherd build failed")
+	}
+	return tmpPath, func() { os.Remove(tmpPath) }, nil
+}
+
+func resolveUpInput(input string) (archive string, mapID string, cleanup func(), err error) {
+	if input == "" {
+		input = "."
+	}
+	info, statErr := os.Stat(input)
+	if statErr == nil && info.IsDir() {
+		if _, err := os.Stat(filepath.Join(input, "feather.toml")); err == nil {
+			archive, cleanup, err = buildWorkspaceForUp(input)
+			return archive, "", cleanup, err
+		}
+		return "", "", nil, usageError("up directory is not a workspace (missing feather.toml): " + input)
+	}
+	if statErr == nil && !info.IsDir() {
+		return input, "", func() {}, nil
+	}
+	if input == "." {
+		wd, _ := os.Getwd()
+		return "", filepath.Base(wd), func() {}, nil
+	}
+	return "", input, func() {}, nil
+}
+
+func importUpArchive(c *client, archive string) (string, error) {
+	f, err := os.Open(archive)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	q := url.Values{}
+	q.Set("replace", "1")
+	q.Set("recreate", "1")
+	data, err := c.request("POST", "/v1/maps/import?"+q.Encode(), f, "application/gzip")
+	if err != nil {
+		return "", err
+	}
+	var imported struct {
+		Maps []struct {
+			ID string `json:"id"`
+		} `json:"maps"`
+	}
+	if err := json.Unmarshal(data, &imported); err != nil {
+		return "", err
+	}
+	if len(imported.Maps) == 0 {
+		return "", runtimeError("ARCHIVE_INVALID", "archive has no maps")
+	}
+	return imported.Maps[0].ID, nil
+}
+
 func runDeploy(c *client, p *parsed) error {
-	mapIDs := append([]string{}, p.positionals...)
-	if len(mapIDs) == 0 {
-		data, err := c.json("GET", "/v1/maps", nil)
+	input := ""
+	if len(p.positionals) > 0 {
+		input = p.positionals[0]
+	}
+	archive, mapID, cleanup, err := resolveUpInput(input)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+	if archive != "" {
+		mapID, err = importUpArchive(c, archive)
 		if err != nil {
 			return err
 		}
-		var defs []map[string]any
-		if err := json.Unmarshal(data, &defs); err != nil {
-			return err
-		}
-		for _, d := range defs {
-			mapIDs = append(mapIDs, fmt.Sprint(d["id"]))
-		}
 	}
-	if len(mapIDs) == 0 {
-		return usageError("up requires a map or archive")
+	if mapID == "" {
+		return usageError("up could not determine a map")
 	}
 	scale := 1
 	if value := p.values["--scale"]; value != "" {
@@ -521,91 +605,62 @@ func runDeploy(c *client, p *parsed) error {
 		scale = n
 	}
 	baseName := p.values["--name"]
-	for _, input := range mapIDs {
-		mapID := input
-		if info, err := os.Stat(input); err == nil && !info.IsDir() {
-			f, err := os.Open(input)
-			if err != nil {
-				return err
-			}
-			q := url.Values{}
-			q.Set("replace", "1")
-			q.Set("recreate", "1")
-			data, err := c.request("POST", "/v1/maps/import?"+q.Encode(), f, "application/gzip")
-			f.Close()
-			if err != nil {
-				return err
-			}
-			var imported struct {
-				Maps []struct {
-					ID string `json:"id"`
-				} `json:"maps"`
-			}
-			if err := json.Unmarshal(data, &imported); err != nil {
-				return err
-			}
-			if len(imported.Maps) == 0 {
-				return runtimeError("ARCHIVE_INVALID", "archive has no maps")
-			}
-			mapID = imported.Maps[0].ID
+	data, err := c.json("GET", "/v1/maps/"+url.PathEscape(mapID), nil)
+	if err != nil {
+		return err
+	}
+	var def map[string]any
+	if err := json.Unmarshal(data, &def); err != nil {
+		return err
+	}
+	hash := fmt.Sprint(def["contentHash"])
+	names := []string{}
+	if scale == 1 {
+		name := baseName
+		if name == "" {
+			name = mapID
 		}
-		data, err := c.json("GET", "/v1/maps/"+url.PathEscape(mapID), nil)
-		if err != nil {
-			return err
+		names = append(names, name)
+	} else {
+		base := baseName
+		if base == "" {
+			base = mapID
 		}
-		var def map[string]any
-		if err := json.Unmarshal(data, &def); err != nil {
-			return err
-		}
-		hash := fmt.Sprint(def["contentHash"])
-		names := []string{}
-		if scale == 1 {
-			name := baseName
-			if name == "" {
-				name = mapID
-			}
-			names = append(names, name)
-		} else {
-			base := baseName
-			if base == "" {
-				base = mapID
-			}
-			for i := 1; i <= scale; i++ {
-				names = append(names, fmt.Sprintf("%s-%d", base, i))
-			}
-		}
-		for _, name := range names {
-			existing, err := c.json("GET", "/v1/instances/"+url.PathEscape(name), nil)
-			if err == nil {
-				var inst map[string]any
-				_ = json.Unmarshal(existing, &inst)
-				needsRecreate := p.flags["--recreate"] || fmt.Sprint(inst["mapContentHash"]) != hash
-				if needsRecreate {
-					_, _ = c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/stop", nil)
-					if _, err := c.json("DELETE", "/v1/instances/"+url.PathEscape(name), nil); err != nil {
-						return err
-					}
-				} else {
-					if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
-						return err
-					}
-					continue
-				}
-			} else {
-				var ce *cliError
-				if !errors.As(err, &ce) || ce.code != "MAP_NOT_FOUND" {
-					return err
-				}
-			}
-			if _, err := c.json("POST", "/v1/instances", map[string]any{"mapId": mapID, "id": name}); err != nil {
-				return err
-			}
-			if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
-				return err
-			}
+		for i := 1; i <= scale; i++ {
+			names = append(names, fmt.Sprintf("%s-%d", base, i))
 		}
 	}
-	data, err := c.json("GET", "/v1/instances", nil)
+	for _, name := range names {
+		existing, err := c.json("GET", "/v1/instances/"+url.PathEscape(name), nil)
+		if err == nil {
+			var inst map[string]any
+			_ = json.Unmarshal(existing, &inst)
+			needsRecreate := p.flags["--recreate"] || fmt.Sprint(inst["mapContentHash"]) != hash
+			if needsRecreate {
+				_, _ = c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/stop", nil)
+				if _, err := c.json("DELETE", "/v1/instances/"+url.PathEscape(name), nil); err != nil {
+					return err
+				}
+			} else {
+				if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
+					return err
+				}
+				continue
+			}
+		} else {
+			var ce *cliError
+			if !errors.As(err, &ce) || ce.code != "MAP_NOT_FOUND" {
+				return err
+			}
+		}
+		if _, err := c.json("POST", "/v1/instances", map[string]any{"mapId": mapID, "id": name}); err != nil {
+			return err
+		}
+		if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
+			return err
+		}
+	}
+	data, err = c.json("GET", "/v1/instances", nil)
 	if err != nil {
 		return err
 	}
@@ -726,6 +781,39 @@ func runMapAction(c *client, p *parsed) error {
 
 func modeAuthoringCommand(command string) bool {
 	return command == "init" || command == "build" || command == "unpack"
+}
+
+func findArchiveInCwd(exts ...string) (string, error) {
+	dirs := []string{".", "dist"}
+	seen := map[string]bool{}
+	var found []string
+	for _, dir := range dirs {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
+			}
+			if !slices.Contains(exts, strings.ToLower(filepath.Ext(entry.Name()))) {
+				continue
+			}
+			full := filepath.Join(dir, entry.Name())
+			if seen[full] {
+				continue
+			}
+			seen[full] = true
+			found = append(found, full)
+		}
+	}
+	if len(found) == 0 {
+		return "", usageError("no archive in current directory; pass an archive path")
+	}
+	if len(found) > 1 {
+		return "", usageError("multiple archives in current directory: " + strings.Join(found, ", "))
+	}
+	return found[0], nil
 }
 
 func main() {
