@@ -29,7 +29,7 @@ function safeId(value: string) {
 }
 
 export async function workspaceInitCommand(options: WorkspaceInitOptions = {}): Promise<WorkspaceInitResult> {
-  const target = path.resolve(options.dir || 'my-map');
+  const target = path.resolve(options.dir || process.cwd());
   if (fs.existsSync(target)) {
     const entries = fs.readdirSync(target);
     if (entries.length > 0 && !options.force) {

@@ -318,10 +318,10 @@ func run(p *parsed) error {
 		}
 		return nil
 	case "init":
-		if len(p.positionals) < 1 {
-			return usageError("usage: featherc init <dir> [--id <id>] [--name <name>] [--version <v>] [--force]")
+		args := []string{"workspace", "init"}
+		if len(p.positionals) > 0 {
+			args = append(args, p.positionals[0])
 		}
-		args := []string{"workspace", "init", p.positionals[0]}
 		for _, key := range []string{"--id", "--name", "--version"} {
 			if value := p.values[key]; value != "" {
 				args = append(args, key, value)
