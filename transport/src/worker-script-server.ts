@@ -21,6 +21,8 @@ export interface WorkerScriptServerOptions {
    * ——一个 shard 承载多图，撞上限会一次带走整批图。
    */
   memoryLimitMb?: number;
+  /** 日志前缀；daemon 用 instance id 让 shard 共享 stdout 也能归属。 */
+  label?: string;
 }
 
 /**
@@ -83,8 +85,16 @@ export class WorkerScriptServer implements ScriptServer {
       stdout: true,
       stderr: true,
     });
-    if (worker.stdout) worker.stdout.on('data', (d) => process.stdout.write(d));
-    if (worker.stderr) worker.stderr.on('data', (d) => process.stderr.write(d));
+    const prefix = this._options.label ? `[${this._options.label}] ` : '';
+    const writePrefixed = (stream: NodeJS.WriteStream, chunk: Buffer | string) => {
+      if (!prefix) { stream.write(chunk); return; }
+      const text = String(chunk);
+      for (const line of text.split('\n')) {
+        if (line) stream.write(prefix + line + '\n');
+      }
+    };
+    if (worker.stdout) worker.stdout.on('data', (d) => writePrefixed(process.stdout, d));
+    if (worker.stderr) worker.stderr.on('data', (d) => writePrefixed(process.stderr, d));
     this._workers.add(worker);
     worker.once('exit', (code) => {
       if (code !== 0 && !this._closing) console.error('[WorkerScriptServer] worker exit', code);

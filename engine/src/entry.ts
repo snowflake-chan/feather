@@ -214,7 +214,7 @@ export async function startServer(
     LOGGER_HOST_UUID,
   );
 
-  const logger = rootLogger;
+  const logger = rootLogger.child({ container: spec.containerName || "" });
 
   // print a start up message
   if (isDevelopment) {

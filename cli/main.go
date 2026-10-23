@@ -346,6 +346,12 @@ func run(p *parsed) error {
 			fmt.Println("no instances")
 			return nil
 		}
+		if p.flags["--quiet"] {
+			for _, m := range maps {
+				fmt.Println(m["id"])
+			}
+			return nil
+		}
 		rows := [][]string{}
 		for _, m := range maps {
 			port := "-"
@@ -360,9 +366,17 @@ func run(p *parsed) error {
 			if volume == "<nil>" || volume == "" {
 				volume = fmt.Sprint(m["id"])
 			}
-			rows = append(rows, []string{fmt.Sprint(m["id"]), fmt.Sprint(m["mapId"]), fmt.Sprint(m["state"]), port, shard, volume})
+			row := []string{fmt.Sprint(m["id"]), fmt.Sprint(m["mapId"]), fmt.Sprint(m["state"]), port, shard, volume}
+			if p.flags["--wide"] {
+				row = append(row, fmt.Sprint(m["url"]))
+			}
+			rows = append(rows, row)
 		}
-		writeTable([]string{"INSTANCE", "MAP", "STATE", "PORT", "SHARD", "VOLUME"}, rows, p.flags["--no-headers"])
+		headers := []string{"INSTANCE", "MAP", "STATE", "PORT", "SHARD", "VOLUME"}
+		if p.flags["--wide"] {
+			headers = append(headers, "URL")
+		}
+		writeTable(headers, rows, p.flags["--no-headers"])
 		return nil
 	case "maps":
 		data, err := c.json("GET", "/v1/maps", nil)
@@ -381,11 +395,25 @@ func run(p *parsed) error {
 			fmt.Println("no maps")
 			return nil
 		}
+		if p.flags["--quiet"] {
+			for _, m := range maps {
+				fmt.Println(m["id"])
+			}
+			return nil
+		}
 		rows := [][]string{}
 		for _, m := range maps {
-			rows = append(rows, []string{fmt.Sprint(m["id"]), fmt.Sprint(m["version"]), fmt.Sprint(m["contentHash"]), fmt.Sprint(m["size"]), fmt.Sprint(m["instanceCount"])})
+			row := []string{fmt.Sprint(m["id"]), fmt.Sprint(m["version"]), fmt.Sprint(m["contentHash"]), fmt.Sprint(m["size"]), fmt.Sprint(m["instanceCount"])}
+			if p.flags["--wide"] {
+				row = append(row, fmt.Sprint(m["installedAt"]))
+			}
+			rows = append(rows, row)
 		}
-		writeTable([]string{"ID", "VERSION", "HASH", "SIZE", "INSTANCES"}, rows, p.flags["--no-headers"])
+		headers := []string{"ID", "VERSION", "HASH", "SIZE", "INSTANCES"}
+		if p.flags["--wide"] {
+			headers = append(headers, "INSTALLED")
+		}
+		writeTable(headers, rows, p.flags["--no-headers"])
 		return nil
 	case "inspect":
 		if len(p.positionals) == 0 {

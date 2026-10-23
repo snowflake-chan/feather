@@ -231,12 +231,18 @@ GET /v1/instances/bedwars-2/logs?follow=1&tail=200
 NDJSON，每行一条：
 
 ```json
-{"time":"2026-10-19T16:00:00.000Z","stream":"stdout","message":"..."}
+{"time":"2026-10-19T16:00:00.000Z","level":"info","source":"script","instanceId":"bedwars-2","mapId":"bedwars","shardId":"shard-0","message":"..."}
 ```
 
-`stream`: `stdout` | `stderr` | `engine` | `script`。
+`level`: `error|warn|info|debug|trace`
+`source`: `daemon|gateway|engine|script|process`
+`stream`: 旧字段，保留兼容
 
-当前底层是 shard 级 stdout/stderr，还没有按 instance 打标；per-instance 日志在后续补。
+归属：
+
+- script worker 的输出由 daemon 加 `[instanceId]` 前缀，再解析为 `source=script`。
+- engine pino 日志的 `container` 字段映射到 `instanceId`，`source=engine`。
+- shard 原始 stdout/stderr 没有归属时仍是 `source=process`，只能按 shard 查看。
 
 ### 4.8 事件
 

@@ -480,19 +480,26 @@ export class Daemon implements DaemonHandle {
       ...entry,
       level: entry.level || (entry.stream === 'stderr' ? 'error' : 'info'),
       source: entry.source || (entry.stream === 'engine' ? 'engine' : entry.stream === 'script' ? 'script' : 'process'),
-      instanceId: id,
+      instanceId: entry.instanceId || id,
       mapId,
       shardId,
     });
     const store = shardId ? this._shardLogs.get(shardId) || [] : [];
     const tail = opts.tail && opts.tail > 0 ? store.slice(-opts.tail) : store;
-    for (const entry of tail) yield decorate(entry);
+    for (const entry of tail) {
+      if (entry.instanceId && entry.instanceId !== id) continue;
+      yield decorate(entry);
+    }
     if (!opts.follow) return;
     let cursor = store.length;
     while (!this._closed) {
       await new Promise((resolve) => setTimeout(resolve, 200));
       const current = shardId ? this._shardLogs.get(shardId) || [] : [];
-      for (; cursor < current.length; ++cursor) yield decorate(current[cursor]);
+      for (; cursor < current.length; ++cursor) {
+        const entry = current[cursor];
+        if (entry.instanceId && entry.instanceId !== id) continue;
+        yield decorate(entry);
+      }
     }
   }
 
@@ -755,9 +762,44 @@ export class Daemon implements DaemonHandle {
       store = [];
       this._shardLogs.set(shardId, store);
     }
+    const levelFor = (value: unknown): LogEntry['level'] => {
+      const n = Number(value);
+      if (n >= 60) return 'error';
+      if (n >= 50) return 'error';
+      if (n >= 40) return 'warn';
+      if (n >= 30) return 'info';
+      if (n >= 20) return 'debug';
+      return 'trace';
+    };
     for (const line of message.split('\n')) {
       if (!line) continue;
-      store.push({ time: now(), stream, message: line });
+      let entry: LogEntry = { time: now(), stream, message: line };
+      try {
+        const parsed = JSON.parse(line) as { msg?: unknown; level?: unknown; container?: unknown };
+        if (typeof parsed.msg === 'string') {
+          entry = {
+            time: now(),
+            stream,
+            level: levelFor(parsed.level),
+            source: 'engine',
+            message: parsed.msg,
+            instanceId: typeof parsed.container === 'string' ? parsed.container : undefined,
+          };
+        }
+      } catch {
+        const prefixed = line.match(/^\[([A-Za-z0-9._-]+)\] (.*)$/);
+        if (prefixed) {
+          entry = {
+            time: now(),
+            stream,
+            level: stream === 'stderr' ? 'error' : 'info',
+            source: 'script',
+            message: prefixed[2],
+            instanceId: prefixed[1],
+          };
+        }
+      }
+      store.push(entry);
     }
     if (store.length > MAX_LOG_LINES) store.splice(0, store.length - MAX_LOG_LINES);
   }
