@@ -78,6 +78,7 @@ async function startMap(spec: MapSpec) {
       workerEntry: spec.scriptWorkerEntry,
       // 单图上限；shard 本身不设限，否则会一次带走同 shard 的所有图。
       memoryLimitMb: config.SCRIPT_MEMORY_LIMIT,
+      label: spec.id,
     });
     const result = await startServer(config, { scriptServer, paths });
     if (!result.httpServer.listening) {
