@@ -47,7 +47,7 @@ type parsed struct {
 
 var commands = map[string]bool{
 	"build": true, "unpack": true, "init": true, "load": true, "create": true, "up": true, "run": true, "rmi": true,
-	"stop": true, "start": true, "restart": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
+	"stop": true, "start": true, "restart": true, "seal": true, "unseal": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
 }
 
 var valueOptions = map[string]map[string]bool{
@@ -215,6 +215,8 @@ func errorHint(code string) string {
 		return "run `feather ps`"
 	case "USAGE":
 		return "use --help"
+	case "INSTANCE_SEALED":
+		return "run `feather unseal <instance>`"
 	case "MAP_CONFLICT", "INSTANCE_CONFLICT":
 		return "use `feather ps` to inspect existing instances"
 	}
@@ -664,6 +666,8 @@ func run(p *parsed) error {
 		return runUp(c, p)
 	case "start", "stop", "restart", "rm":
 		return runMapAction(c, p)
+	case "seal", "unseal":
+		return runSeal(c, p)
 	case "rmi":
 		if len(p.positionals) == 0 {
 			return usageError("rmi requires a map id")
@@ -1015,6 +1019,26 @@ func waitInstance(c *client, id string, terminal []string, timeout time.Duration
 	}
 }
 
+func runSeal(c *client, p *parsed) error {
+	if len(p.positionals) == 0 {
+		return usageError(p.command + " requires an instance id")
+	}
+	for _, id := range p.positionals {
+		data, err := c.json("POST", "/v1/instances/"+url.PathEscape(id)+"/"+p.command, nil)
+		if err != nil {
+			return err
+		}
+		if p.json {
+			printJSON(p.command, json.RawMessage(data))
+		} else if !p.flags["--quiet"] {
+			var inst map[string]any
+			_ = json.Unmarshal(data, &inst)
+			fmt.Printf("%sed  %v  map=%v  state=%v\n", p.command, inst["id"], inst["mapId"], inst["state"])
+		}
+	}
+	return nil
+}
+
 func runMapAction(c *client, p *parsed) error {
 	if len(p.positionals) == 0 {
 		return usageError(p.command + " requires a map id")
@@ -1115,7 +1139,7 @@ func main() {
 		if mode == "authoring" {
 			fmt.Println("featherc <init|build|unpack> [options]")
 		} else {
-			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|create|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|create|up|run|start|stop|restart|seal|unseal|ps|logs|eval|rm|rmi>")
 		}
 		return
 	}
@@ -1140,7 +1164,7 @@ func main() {
 		if mode == "authoring" {
 			fmt.Println("featherc <init|build|unpack> [options]")
 		} else {
-			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|create|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|create|up|run|start|stop|restart|seal|unseal|ps|logs|eval|rm|rmi>")
 		}
 		return
 	}
@@ -1150,7 +1174,7 @@ func main() {
 	}
 	allowed := map[string]bool{
 		"load": true, "maps": true, "inspect": true, "create": true, "up": true, "run": true,
-		"start": true, "stop": true, "restart": true, "ps": true, "logs": true,
+		"start": true, "stop": true, "restart": true, "seal": true, "unseal": true, "ps": true, "logs": true,
 		"eval": true, "rm": true, "rmi": true,
 	}
 	if mode == "authoring" {

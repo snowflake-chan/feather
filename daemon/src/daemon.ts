@@ -259,6 +259,9 @@ export class Daemon implements DaemonHandle {
 
   public async startMap(id: string): Promise<Operation> {
     const record = this._requireMap(id);
+    if (record.status.state === 'sealed' || record.spec.sealed) {
+      throw new DaemonError('INSTANCE_SEALED', `instance is sealed: ${id}`);
+    }
     if (record.status.state === 'running') {
       return this._doneOperation('start', id);
     }
@@ -388,6 +391,7 @@ export class Daemon implements DaemonHandle {
       dataDir: path.join(this._options.dataDir!, 'instances', id, 'data'),
       databaseUrl: `sqlite:///${path.join(this._options.dataDir!, 'volumes', `${volume}.db`)}`,
       dataStorageNamespace: id,
+      sealed: false,
       limits: options.limits || base.limits,
       labels: { ...(base.labels || {}), ...(options.labels || {}) },
     };
@@ -411,6 +415,32 @@ export class Daemon implements DaemonHandle {
       mapId,
       mapContentHash: definition.contentHash,
     };
+  }
+
+  public async sealInstance(id: string): Promise<InstanceStatus> {
+    const record = this._requireMap(id);
+    if (record.status.state !== 'sealed') {
+      await this.stopMap(id, { force: true });
+      record.spec.sealed = true;
+      record.status.state = 'sealed';
+      record.status.port = undefined;
+      record.status.url = undefined;
+      record.status.shardId = undefined;
+      this._persist();
+      this._event({ type: 'instance.sealed', mapId: record.spec.mapId || record.spec.id, instanceId: id, time: now() });
+    }
+    return { ...record.status, mapId: record.spec.mapId || record.spec.id, mapContentHash: record.spec.contentHash || record.spec.mapId || record.spec.id };
+  }
+
+  public async unsealInstance(id: string): Promise<InstanceStatus> {
+    const record = this._requireMap(id);
+    if (record.status.state === 'sealed') {
+      record.spec.sealed = false;
+      record.status.state = 'stopped';
+      this._persist();
+      this._event({ type: 'instance.unsealed', mapId: record.spec.mapId || record.spec.id, instanceId: id, time: now() });
+    }
+    return { ...record.status, mapId: record.spec.mapId || record.spec.id, mapContentHash: record.spec.contentHash || record.spec.mapId || record.spec.id };
   }
 
   public async destroyInstance(id: string, opts: DestroyOptions = {}): Promise<void> {
@@ -843,7 +873,7 @@ export class Daemon implements DaemonHandle {
             mapId: spec.mapId || spec.id,
             mapContentHash: spec.contentHash || spec.mapId || spec.id,
             name: spec.name,
-            state: 'stopped',
+            state: spec.sealed ? 'sealed' : 'stopped',
             runtime: 'worker',
             restartPolicy: spec.restartPolicy,
             volume: spec.volume || spec.id,

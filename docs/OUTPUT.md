@@ -83,6 +83,8 @@ content  sha256:...
 ```text
 created  bedwars-1  map=bedwars  state=created
 started  bedwars-1  map=bedwars  state=running
+sealed   bedwars-1  map=bedwars  state=sealed
+unsealed bedwars-1  map=bedwars  state=stopped
 removed  bedwars-1
 loaded   bedwars  sha256:...
 ```

@@ -95,7 +95,7 @@ export async function startApiServer(
         if (!body.mapId) return error(res, 422, 'INVALID_SPEC', 'mapId is required');
         return json(res, 201, await daemon.createInstance(body.mapId, body));
       }
-      const instanceMatch = url.pathname.match(/^\/v1\/instances\/([^/]+)(?:\/(start|stop|restart|stats|logs|exec|eval))?$/);
+      const instanceMatch = url.pathname.match(/^\/v1\/instances\/([^/]+)(?:\/(start|stop|restart|seal|unseal|stats|logs|exec|eval))?$/);
       if (instanceMatch) {
         const id = decodeURIComponent(instanceMatch[1]);
         const action = instanceMatch[2];
@@ -115,6 +115,8 @@ export async function startApiServer(
         if (action === 'restart' && req.method === 'POST') {
           return json(res, 202, await daemon.restartMap(id, { timeoutMs: Number(url.searchParams.get('timeout') || 60) * 1000, force: url.searchParams.get('force') === '1' }));
         }
+        if (action === 'seal' && req.method === 'POST') return json(res, 200, await daemon.sealInstance(id));
+        if (action === 'unseal' && req.method === 'POST') return json(res, 200, await daemon.unsealInstance(id));
         if (action === 'stats' && req.method === 'GET') return json(res, 200, await daemon.stats(id));
         if ((action === 'exec' || action === 'eval') && req.method === 'POST') {
           const body = (await readJson(req)) as { command?: string; code?: string };
@@ -165,7 +167,7 @@ export async function startApiServer(
         if (!operation) return error(res, 404, 'OPERATION_NOT_FOUND', 'operation not found');
         return json(res, 200, operation);
       }
-      const mapMatch = url.pathname.match(/^\/v1\/maps\/([^/]+)(?:\/(start|stop|restart|stats|logs|exec|eval))?$/);
+      const mapMatch = url.pathname.match(/^\/v1\/maps\/([^/]+)(?:\/(start|stop|restart|seal|unseal|stats|logs|exec|eval))?$/);
       if (mapMatch) {
         const id = decodeURIComponent(mapMatch[1]);
         const action = mapMatch[2];
@@ -198,7 +200,7 @@ export async function startApiServer(
       const status =
         code === 'MAP_NOT_FOUND' || code === 'INSTANCE_NOT_FOUND' ? 404
           : code === 'EXEC_DISABLED' || code === 'EVAL_DISABLED' ? 403
-            : code === 'MAP_CONFLICT' || code === 'INSTANCE_CONFLICT' || code === 'MAP_BUSY' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
+            : code === 'MAP_CONFLICT' || code === 'INSTANCE_CONFLICT' || code === 'INSTANCE_SEALED' || code === 'MAP_BUSY' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
               : code === 'INVALID_SPEC' ? 422
                 : code === 'ARCHIVE_INVALID' || code === 'ARCHIVE_UNSUPPORTED' ? 422
                 : code === 'NOT_IMPLEMENTED' ? 501

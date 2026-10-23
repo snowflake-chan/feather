@@ -358,6 +358,8 @@ daemon 侧：
 | `feather start <instance...>` | instance → running | ✅ | 是 | |
 | `feather stop <instance...>` | running → stopped | ✅ | 是 | 不删 instance |
 | `feather restart <instance...>` | running → running | ✅ | 是 | |
+| `feather seal <instance...>` | instance → sealed | ✅ | 是 | 停 runtime + 关监听；保留注册 |
+| `feather unseal <instance...>` | sealed → stopped | ✅ | 是 | 恢复注册，不自动启动 |
 | `feather ps` | 列表 | ✅ | 是 | 列 instances |
 | `feather logs <instance> [-f] [--tail N]` | instance | ✅ | 是 | shard 级输出 |
 | `feather eval <instance> -- <code>` | instance | ✅ | ❌ | JS eval；需 daemon `--enable-eval` |
@@ -414,7 +416,9 @@ feather up lobby --scale 3
 - workspace/archive 会先安装/更新 map；同名 instance 已存在且 hash 不同则 recreate。
 - 输出 instance 的 `id / map / state / url / shard`。
 
-`start/stop/restart/rm` 只接受 instance id；`restart` 等价于 `stop` + `start`。
+`start/stop/restart/seal/unseal/rm` 只接受 instance id；`restart` 等价于 `stop` + `start`。
+
+`stop` 只停 runtime，registration 保留；`seal` 连监听一起关，直到 `unseal`；`rm` 才是注销。
 
 ---
 
@@ -529,7 +533,7 @@ bedwars-lobby   1.0.0     sha256:4ce4fb...  10.0 KB  2
 | `--scale` | `feather run <map> --replicas N` | 多 instance |
 | `docker ps` | `feather ps` | 列 instances |
 | `docker start` | `feather start <instance>` | 启动已创建 instance |
-| `docker stop` | `feather stop <instance>` | 不删除 |
+| `docker stop` | `feather stop <instance>` | 停 runtime，保留 registration |
 | `docker rm` | `feather rm <instance>` | 删 instance |
 | `docker logs` | `feather logs <instance>` | 目前是 shard 级输出 |
 | `docker exec` | `feather eval <instance> -- <code>` | 是 JS eval，不是进程 exec |

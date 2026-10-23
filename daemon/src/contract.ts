@@ -7,6 +7,7 @@ export type MapState =
   | 'running'
   | 'stopping'
   | 'stopped'
+  | 'sealed'
   | 'error'
   | 'destroyed';
 
@@ -111,6 +112,8 @@ export interface MapSpec {
   /** archive/size for display */
   size?: number;
   labels?: Record<string, string>;
+  /** sealed instance 不监听、不启动；unseal 后回到 stopped */
+  sealed?: boolean;
 }
 
 export interface MapStatus {
@@ -227,6 +230,8 @@ export type DaemonEventType =
   | 'map.installed'
   | 'map.removed'
   | 'instance.created'
+  | 'instance.sealed'
+  | 'instance.unsealed'
   | 'instance.starting'
   | 'instance.running'
   | 'instance.stopping'
@@ -324,6 +329,8 @@ export interface DaemonHandle {
   listInstances(): Promise<InstanceStatus[]>;
   createInstance(mapId: string, options?: { id?: string; port?: number; volume?: string; limits?: MapLimits; labels?: Record<string, string> }): Promise<InstanceStatus>;
   destroyInstance(id: string, opts?: DestroyOptions): Promise<void>;
+  sealInstance(id: string): Promise<InstanceStatus>;
+  unsealInstance(id: string): Promise<InstanceStatus>;
   destroyDefinition(mapId: string, opts?: DestroyOptions): Promise<void>;
   getMap(id: string): Promise<MapStatus | undefined>;
   defineMap(spec: MapSpec): Promise<MapDefinition>;

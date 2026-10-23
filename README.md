@@ -61,7 +61,9 @@ feather up                    # workspace cwd: build + load + start
 feather up my-map --scale 2
 feather ps                    # list instances（container）
 feather stop my-map-1         # stop runtime, keep registration
-feather rm my-map-1
+feather seal my-map-1         # stop runtime + close listener until unseal
+feather unseal my-map-1
+feather rm my-map-1           # unregister
 feather rmi my-map
 ```
 

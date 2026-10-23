@@ -91,6 +91,8 @@ stopped / error → starting（restart）
 | POST | `/v1/instances/:id/start` | start；异步返回 operation |
 | POST | `/v1/instances/:id/stop` | stop；`?timeout=10&force=1` |
 | POST | `/v1/instances/:id/restart` | restart |
+| POST | `/v1/instances/:id/seal` | stop runtime + close listener；保留 registration |
+| POST | `/v1/instances/:id/unseal` | sealed → stopped，不自动启动 |
 | GET | `/v1/instances/:id/stats` | `tickRate`（TPS）/ `tickDuration`（每帧计算耗时，MC 的 MSPT）/ players / 所在 shard 的资源快照 |
 | GET | `/v1/instances/:id/logs` | NDJSON；`follow=1&since=&tail=` |
 | POST | `/v1/instances/:id/eval` | JS eval（谨慎；默认关闭） |
