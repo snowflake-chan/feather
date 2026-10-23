@@ -9,8 +9,9 @@
 ## 0. TL;DR
 
 - **map = image**；**instance = registration + runtime**；**session = 玩家会话**。
-- `featherd` 启动后监听地图访问；**玩家进入才启动 runtime / createSession**；空闲后 stop，registration 保留。
-- **不需要用 `server.toml` 声明 instance/route**。`run` 就是注册，`state.json` 持久化。
+- `featherd` 启动后监听地图访问；**玩家进入才启动 runtime / createSession**；空闲后回到 `created`，registration 保留。
+- **`create` 注册 + 监听；`run` = create + start；`up` = 从工作区 build + load + start dev instance。**
+- **不需要用 `server.toml` 声明 instance/route**。`state.json` 持久化。
 - CLI 三件套：**`feather`**（runtime / ops）、**`featherc`**（authoring，`apc` 的开放对应物）、**`featherd`**（daemon + one-shot）。
 - 创作闭环：`featherc terrain/entity/... → preview → diff → check → build`，然后 `feather load → run`。
 - registry / `pull` / `push` 后置；不做托管开服。
@@ -34,27 +35,32 @@
 |---|---|---|
 | archive | image tar | `.fmap` 分发物 |
 | map | image | 已安装的地图定义；`load` / `pull` 产生 |
-| instance | container + registration | `run` 注册；玩家进入后才启动 runtime |
+| instance | container + registration | `create` 注册；`run` 启动；玩家进入后才启动 runtime |
 | session | 玩家会话 | 玩家连接时 `createSession` |
 | volume | volume | SQLite 持久化边界 |
 
 ### 2.2 生命周期
 
 ```text
-dormant ──player/start──▶ starting ──▶ running ──last player──▶ idle
-   ▲                                      │                      │
-   │                                      │ stop                 │ idle timeout
-   └──────────────────────────────────────┴──────────────────────┘
-任意 ──rm──▶ removed
+create ──▶ created ──player/start──▶ starting ──▶ running
+              ▲                                      │
+              │ idle timeout                         │ last player
+              └──────────── idle ◀───────────────────┘
+                                                      │ stop
+                                                      ▼
+                                                   stopped ──start──▶ starting
+任意状态 ──rm──▶ removed
 ```
 
-- `dormant`：已注册，无 runtime；listener 在等玩家。
+- `created`：listener 在，runtime 不在；玩家可触发。
 - `starting`：cold start；玩家排队。
 - `running`：有玩家，或 `start` 预热。
-- `idle`：0 玩家，等 timeout。
-- `stop`：回 `dormant`，保留注册。
+- `idle`：runtime 在，0 玩家；timeout 后回 `created`。
+- `stopped`：listener 和 runtime 都不在；玩家进不来；`start` 恢复。
+- `stop`：下线（runtime + listener）；idle timeout 是内部行为，不是 CLI `stop`。
 - `rm`：注销。
 - `error`：启动/运行失败；按 `restartPolicy` 处理。
+- daemon 重启恢复 `created` / `stopped`，不自动启动。
 
 ### 2.3 命令语义
 
@@ -62,10 +68,11 @@ dormant ──player/start──▶ starting ──▶ running ──last player
 |---|---|
 | `feather load <archive>` | 安装 cached map（image） |
 | `feather pull <ref>` | 从 registry 安装（后置） |
-| `feather run <map>` | 注册 instance，进入 `dormant`；不启动 runtime |
-| `feather run <map> --start` | 注册并预热 |
-| `feather start <instance>` | 预热已有 registration |
-| `feather stop <instance>` | 停 runtime，保留 registration |
+| `feather create <map>` | 注册 instance + 监听；不启动 runtime；状态 `created` |
+| `feather run <map>` | create + start；真正启动 runtime |
+| `feather up [workspace]` | build + load + create + start dev instance（开发者一条龙） |
+| `feather start <instance>` | 启动 runtime；`stopped` 时同时恢复 listener |
+| `feather stop <instance>` | 停 runtime + 停 listener；下线 |
 | `feather rm <instance>` | 注销 registration |
 | `feather ps` | 列 instance：`INSTANCE MAP STATE PORT PLAYERS UPTIME VOLUME` |
 | `feather maps` | 列 cached map |
@@ -75,15 +82,19 @@ dormant ──player/start──▶ starting ──▶ running ──last player
 
 | Docker | feather |
 |---|---|
-| `docker run` 立即启动并长期运行 | `feather run` 注册；玩家进入才启动 |
-| 开机/重启自动拉起服务 | daemon 重启恢复 dormant，不自动启动 |
-| container 长期驻留 | runtime 空闲后 stop，registration 保留 |
-| compose 文件声明服务 | 不需要 `server.toml` 声明 instance；`run` 就是注册 |
+| `docker create` | `feather create`：注册 + 监听；不启动 runtime |
+| `docker start` | `feather start`：启动 runtime |
+| `docker run` | `feather run`：create + start |
+| `docker stop` | `feather stop`：停 runtime + 停 listener（下线） |
+| `docker rm` | `feather rm`：注销 |
+| `docker compose up` | `feather up`：单工作区 dev 流程；不是多服务 manifest |
+| 开机/重启自动拉起服务 | daemon 重启恢复 `created` / `stopped`，不自动启动 |
+| container 长期驻留 | runtime 空闲后回 `created`，registration 保留 |
 | image / container | map / instance |
 
 ### 2.5 不需要 `server.toml` 声明 instance
 
-- `run` 是注册动作；`state.json` 持久化。
+- `create` 是注册动作；`run` = create + start；`state.json` 持久化。
 - `server.toml` 若存在，只放 daemon / network 等全局配置，不声明 instance / route。
 - 需要备份/GitOps 时用 `feather export` / `feather import`；它是**备份格式**，不是 source of truth。
 - 不回到 Docker Compose 的「声明 + 开机启动」。
