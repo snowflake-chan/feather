@@ -29,7 +29,7 @@ function installProcessErrorHandlers() {
 async function main() {
   installProcessErrorHandlers();
   const tool = process.argv[2];
-  if (tool === 'build' || tool === 'unpack') {
+  if (tool === 'build' || tool === 'unpack' || tool === 'workspace') {
     await runFeatherdTool(process.argv.slice(2));
     return;
   }

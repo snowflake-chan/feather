@@ -47,6 +47,7 @@ CLI（Go，`cli-go/`）：
 # daemon 前台运行（另开终端）
 featherd
 
+feather workspace init my-map # blank workspace
 feather load map.fmap          # install image / cached map
 feather maps                  # list maps（image）
 feather inspect my-map        # map definition

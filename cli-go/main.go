@@ -43,24 +43,26 @@ type parsed struct {
 }
 
 var commands = map[string]bool{
-	"build": true, "unpack": true, "load": true, "up": true, "run": true, "rmi": true,
+	"build": true, "unpack": true, "workspace": true, "load": true, "up": true, "run": true, "rmi": true,
 	"stop": true, "start": true, "restart": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
 }
 
 var valueOptions = map[string]map[string]bool{
-	"build":  {"--output": true, "--project-version": true},
-	"unpack": {"--dir": true},
-	"logs":   {"--tail": true},
-	"run":    {"--name": true, "--replicas": true},
-	"up":     {"--name": true, "--scale": true, "--replicas": true},
+	"build":     {"--output": true, "--project-version": true},
+	"unpack":    {"--dir": true},
+	"logs":      {"--tail": true},
+	"run":       {"--name": true, "--replicas": true},
+	"up":        {"--name": true, "--scale": true, "--replicas": true},
+	"workspace": {"--id": true, "--name": true, "--version": true},
 }
 var flagOptions = map[string]map[string]bool{
-	"unpack": {"--force": true},
-	"load":   {"--replace": true, "--purge-data": true},
-	"logs":   {"-f": true, "--follow": true},
-	"rm":     {"--force": true},
-	"rmi":    {"--force": true},
-	"up":     {"--recreate": true},
+	"unpack":    {"--force": true},
+	"load":      {"--replace": true, "--purge-data": true},
+	"logs":      {"-f": true, "--follow": true},
+	"rm":        {"--force": true},
+	"rmi":       {"--force": true},
+	"up":        {"--recreate": true},
+	"workspace": {"--force": true},
 }
 
 func parse(argv []string) (*parsed, error) {
@@ -314,6 +316,23 @@ func run(p *parsed) error {
 			}
 		}
 		return nil
+	case "workspace":
+		if len(p.positionals) < 2 || p.positionals[0] != "init" {
+			return usageError("usage: feather workspace init <dir> [--id <id>] [--name <name>] [--version <v>] [--force]")
+		}
+		args := []string{"workspace", "init", p.positionals[1]}
+		for _, key := range []string{"--id", "--name", "--version"} {
+			if value := p.values[key]; value != "" {
+				args = append(args, key, value)
+			}
+		}
+		if p.flags["--force"] {
+			args = append(args, "--force")
+		}
+		if p.json {
+			args = append(args, "--json")
+		}
+		return runFeatherd(args)
 	case "build":
 		if len(p.positionals) == 0 {
 			return usageError("build requires a workspace or .boxproject")
@@ -704,7 +723,7 @@ func runMapAction(c *client, p *parsed) error {
 
 func main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|workspace|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
@@ -722,7 +741,7 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|workspace|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		return
 	}
 	if p.flags["--version"] {

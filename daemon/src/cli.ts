@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import { buildCommand } from './build';
 import { unpackCommand } from './unpack';
+import { workspaceInitCommand } from './workspace-init';
 
 interface ToolArgs {
   positionals: string[];
@@ -42,6 +43,7 @@ export async function runFeatherdTool(argv: string[]): Promise<void> {
   const command = argv[0];
   if (command === 'build') return runBuild(argv.slice(1));
   if (command === 'unpack') return runUnpack(argv.slice(1));
+  if (command === 'workspace') return runWorkspace(argv.slice(1));
   throw toolError('USAGE', `unknown featherd command: ${command || ''}`);
 }
 
@@ -59,6 +61,23 @@ async function runUnpack(argv: string[]) {
     return;
   }
   process.stdout.write(`unpacked: ${result.dir}\nmap: ${result.map}\n`);
+}
+
+async function runWorkspace(argv: string[]) {
+  if (argv[0] !== 'init') throw toolError('USAGE', 'usage: featherd workspace init [dir] [--id <id>] [--name <name>] [--version <v>]');
+  const args = parseTool(argv.slice(1), ['--id', '--name', '--version'], ['--force', '--json']);
+  const result = await workspaceInitCommand({
+    dir: args.positionals[0],
+    id: args.values.get('--id'),
+    name: args.values.get('--name'),
+    version: args.values.get('--version'),
+    force: args.flags.has('--force'),
+  });
+  if (args.flags.has('--json')) {
+    process.stdout.write(`${JSON.stringify({ ok: true, command: 'workspace.init', data: result })}\n`);
+    return;
+  }
+  process.stdout.write(`initialized: ${result.dir}\nmap: ${result.id}\n`);
 }
 
 async function runBuild(argv: string[]) {
