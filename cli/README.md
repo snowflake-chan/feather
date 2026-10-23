@@ -4,7 +4,7 @@ Runtime/ops CLI `feather`; authoring CLI `featherc`. It speaks JSON over `feathe
 not parse workspaces, build archives, or run the builder.
 
 ```bash
-cd cli-go
+cd cli
 go build -o feather .
 go build -ldflags "-X main.mode=authoring" -o featherc .
 ./feather --socket ~/.feather/daemon.sock ps

@@ -539,7 +539,7 @@ bedwars-lobby   1.0.0     sha256:4ce4fb...  10.0 KB  2
 
 已完成：
 
-- Go CLI canonical（`feather`）；JS CLI legacy（`feather-js`）。
+- Go CLI canonical（`feather`）；JS CLI 已删除。
 - `featherd` daemon；`build` / `unpack` 是一次性 `featherd` 子进程。
 - `load` 装 cached map；`run/start/stop/restart/rm/ps/maps/inspect/rmi` 已接入。
 - contract：`MapDefinition` / `InstanceSpec` / `InstanceStatus`；`MapSpec` / `MapStatus` deprecated。

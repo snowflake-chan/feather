@@ -5,6 +5,5 @@ packages:
   - shell
   - engine
   - daemon
-  - cli
   - client
   - vendor/*
