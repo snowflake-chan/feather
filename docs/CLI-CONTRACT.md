@@ -349,6 +349,7 @@ daemon 侧：
 | `feather maps` | 列表 | ✅ | 是 | 列 cached maps |
 | `feather inspect <map>` | map | ✅ | 是 | map 详情 |
 | `feather rmi <map> [--force]` | image → gone | ✅ | 是 | 有 instance 时拒绝；`--force` 连 instance 一起删 |
+| `feather up <archive\|map> [--name X] [--scale N]` | archive/map → instance | ✅ | 是 | 自动 load + run；hash 变化自动 recreate |
 | `feather run <map> [--name X] [--replicas N]` | map → instance | ✅ | 是 | 创建并启动 instance |
 | `feather start <instance...>` | instance → running | ✅ | 是 | |
 | `feather stop <instance...>` | running → stopped | ✅ | 是 | 不删 instance |
@@ -372,6 +373,26 @@ daemon 侧：
 | 客户端 `--data-dir` | 删除 |
 
 占位符统一：`<workspace>`、`<archive>`、`<map>`、`<instance>`、`<code>`。不要混用 `<id>` / `<mapId>`。
+
+### 6.0 `up` 的语义
+
+`up` 是服主的一行部署入口，Compose 风格，不是 Docker `run`：
+
+```bash
+feather up lobby.fmap --name lobby
+feather up lobby --scale 3
+```
+
+行为：
+
+1. 如果参数是 archive，先 `load --replace`，并 recreate 该 map 的 instance。
+2. 如果参数是已安装 map，直接确保 instance。
+3. instance 不存在则创建。
+4. instance 存在但 `mapContentHash` 与 map 当前 contentHash 不同，自动 `stop + rm + run`（recreate）。
+5. instance 已是当前内容且 stopped，则 `start`。
+6. 输出 instance 状态。
+
+`run` 仍是底层 create+start：同名冲突不隐式 recreate。
 
 ### 6.1 `run` 的语义
 
@@ -522,7 +543,7 @@ bedwars-lobby   1.0.0     sha256:4ce4fb...  10.0 KB  2
 
 迁移中：
 
-- `POST /v1/maps`、`PUT /v1/maps/:id` 和 `/v1/maps/:id/{start,...}` 已删除。
+- `POST /v1/maps` 和 `/v1/maps/:id/{start,...}` 已删除；`PUT /v1/maps/:id` 仍保留为旧 MapSpec 路径，发版前删除。
 - `importArchive` 已只装 definition；但 `load --replace` 仍会 force 删除该 map 的 instance。
 - instance 错误码暂时复用 `MAP_*`；后续拆 `INSTANCE_*`。
 - `instance.created` 已发；start/stop 生命周期仍发 `map.*`，目标 `instance.*`。

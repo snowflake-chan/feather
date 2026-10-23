@@ -51,7 +51,7 @@ feather load map.fmap          # install image / cached map
 feather maps                  # list maps（image）
 feather inspect my-map        # map definition
 feather run my-map             # create default instance
-feather run my-map --replicas 2
+feather up my-map --scale 2
 feather ps                    # list instances（container）
 feather start my-map-1
 feather stop my-map-1

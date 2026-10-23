@@ -105,6 +105,8 @@ stopped / error → starting（restart）
 
 没有。发版前不保留 `/v1/maps/:id/{start,stop,restart,stats,logs,eval,exec}` 或 `POST /v1/maps`；cached map 只走 `/v1/maps` / `/v1/maps/import`，运行副本只走 `/v1/instances`。
 
+唯一例外：`PUT /v1/maps/:id` 仍是旧 MapSpec 更新路径，发版前删除。
+
 ### 4.3 指标口径（`stats` / `shards`）
 
 资源指标**只有 shard 口径**。engine 允许一个 shard 打包多个 instance，CPU 和 V8 堆是整条线程 / 整个 isolate 共享的，摊不到单个 instance 上。
@@ -295,6 +297,7 @@ GET /v1/events?since=...
 - map / instance 拆分已在 contract、API、Go CLI 落地：`MapDefinition` / `InstanceSpec` / `InstanceStatus`。
 - `MapStatus` / `MapSpec` 仍保留为 deprecated 兼容类型。
 - `importArchive` 现在只装 definition；但 `--replace` 仍会 force 删除该 map 的 instance。目标是保留 instance、只更新 definition。
+- `PUT /v1/maps/:id` 仍是旧 MapSpec 路径；发版前删除。
 - `instance.created` 已发；start/stop 生命周期仍发 `map.*`，目标是 `instance.*`。
 - `featherd` 默认 `~/.feather/daemon.sock`。
 - daemon 重启只恢复 instance 注册表，不自动启动；需要显式 `run` / `start`。
@@ -336,9 +339,14 @@ interface DaemonHandle {
   stopMap(id: string, opts?: StopOptions): Promise<Operation>;
   restartMap(id: string): Promise<Operation>;
 
-  listMaps(): Promise<MapStatus[]>;
-  getMap(id: string): Promise<MapStatus | undefined>;
   defineMap(spec: MapSpec): Promise<MapDefinition>;
+
+  // instance status（legacy 名字；/v1/instances/:id 仍在用）
+  getMap(id: string): Promise<MapStatus | undefined>;
+
+  // legacy aliases（deprecated）
+  listMaps(): Promise<MapStatus[]>;
+  destroyMap(id: string, opts?: DestroyOptions): Promise<void>;
 
   stats(id: string): Promise<MapStats>;
   listShards(): Promise<ShardStats[]>;
@@ -384,11 +392,11 @@ interface DaemonHandle {
 
 当前剩余：
 
+- 删除 `PUT /v1/maps/:id` 旧路径。
+- 删除 `listMaps` / `destroyMap` legacy 方法；`getMap` 改名 `getInstance`。
 - 删除 `MapSpec` / `MapStatus` 兼容类型。
-- `importArchive` 改为只装 definition，不再创建默认 instance。
-- 事件全面切到 `instance.*`。
+- 事件全面切到 `instance.*`（`instance.created` 已发）。
 - instance 错误码拆 `INSTANCE_*`。
-- Postman collection 按 maps/instances 重新生成。
 
 ## 11. 明确不做
 

@@ -80,6 +80,7 @@ export async function startApiServer(
           const result = await daemon.importArchive(tmp, {
             replace: url.searchParams.get('replace') === '1',
             purgeData: url.searchParams.get('purge') === '1',
+            recreate: url.searchParams.get('recreate') === '1',
           });
           return json(res, 201, result);
         } finally {
@@ -197,7 +198,7 @@ export async function startApiServer(
       const status =
         code === 'MAP_NOT_FOUND' ? 404
           : code === 'EXEC_DISABLED' || code === 'EVAL_DISABLED' ? 403
-            : code === 'MAP_CONFLICT' || code === 'MAP_BUSY' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
+            : code === 'MAP_CONFLICT' || code === 'INSTANCE_CONFLICT' || code === 'MAP_BUSY' || code === 'OPERATION_IN_PROGRESS' || code === 'MAP_NOT_RUNNING' ? 409
               : code === 'INVALID_SPEC' ? 422
                 : code === 'ARCHIVE_INVALID' || code === 'ARCHIVE_UNSUPPORTED' ? 422
                 : code === 'NOT_IMPLEMENTED' ? 501

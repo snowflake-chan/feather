@@ -43,7 +43,7 @@ type parsed struct {
 }
 
 var commands = map[string]bool{
-	"build": true, "unpack": true, "load": true, "run": true, "rmi": true,
+	"build": true, "unpack": true, "load": true, "up": true, "run": true, "rmi": true,
 	"stop": true, "start": true, "restart": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
 }
 
@@ -52,6 +52,7 @@ var valueOptions = map[string]map[string]bool{
 	"unpack": {"--dir": true},
 	"logs":   {"--tail": true},
 	"run":    {"--name": true, "--replicas": true},
+	"up":     {"--name": true, "--scale": true, "--replicas": true},
 }
 var flagOptions = map[string]map[string]bool{
 	"unpack": {"--force": true},
@@ -59,6 +60,7 @@ var flagOptions = map[string]map[string]bool{
 	"logs":   {"-f": true, "--follow": true},
 	"rm":     {"--force": true},
 	"rmi":    {"--force": true},
+	"up":     {"--recreate": true},
 }
 
 func parse(argv []string) (*parsed, error) {
@@ -436,6 +438,8 @@ func run(p *parsed) error {
 		_ = json.Unmarshal(data, &result)
 		fmt.Println(result["result"])
 		return nil
+	case "up":
+		return runDeploy(c, p)
 	case "run":
 		return runUp(c, p)
 	case "start", "stop", "restart", "rm":
@@ -460,6 +464,141 @@ func run(p *parsed) error {
 		return nil
 	}
 	return usageError("unknown command: " + p.command)
+}
+
+func runDeploy(c *client, p *parsed) error {
+	mapIDs := append([]string{}, p.positionals...)
+	if len(mapIDs) == 0 {
+		data, err := c.json("GET", "/v1/maps", nil)
+		if err != nil {
+			return err
+		}
+		var defs []map[string]any
+		if err := json.Unmarshal(data, &defs); err != nil {
+			return err
+		}
+		for _, d := range defs {
+			mapIDs = append(mapIDs, fmt.Sprint(d["id"]))
+		}
+	}
+	if len(mapIDs) == 0 {
+		return usageError("up requires a map or archive")
+	}
+	scale := 1
+	if value := p.values["--scale"]; value != "" {
+		n, err := strconv.Atoi(value)
+		if err != nil || n < 1 {
+			return usageError("--scale must be >= 1")
+		}
+		scale = n
+	} else if value := p.values["--replicas"]; value != "" {
+		n, err := strconv.Atoi(value)
+		if err != nil || n < 1 {
+			return usageError("--replicas must be >= 1")
+		}
+		scale = n
+	}
+	baseName := p.values["--name"]
+	for _, input := range mapIDs {
+		mapID := input
+		if info, err := os.Stat(input); err == nil && !info.IsDir() {
+			f, err := os.Open(input)
+			if err != nil {
+				return err
+			}
+			q := url.Values{}
+			q.Set("replace", "1")
+			q.Set("recreate", "1")
+			data, err := c.request("POST", "/v1/maps/import?"+q.Encode(), f, "application/gzip")
+			f.Close()
+			if err != nil {
+				return err
+			}
+			var imported struct {
+				Maps []struct {
+					ID string `json:"id"`
+				} `json:"maps"`
+			}
+			if err := json.Unmarshal(data, &imported); err != nil {
+				return err
+			}
+			if len(imported.Maps) == 0 {
+				return runtimeError("ARCHIVE_INVALID", "archive has no maps")
+			}
+			mapID = imported.Maps[0].ID
+		}
+		data, err := c.json("GET", "/v1/maps/"+url.PathEscape(mapID), nil)
+		if err != nil {
+			return err
+		}
+		var def map[string]any
+		if err := json.Unmarshal(data, &def); err != nil {
+			return err
+		}
+		hash := fmt.Sprint(def["contentHash"])
+		names := []string{}
+		if scale == 1 {
+			name := baseName
+			if name == "" {
+				name = mapID
+			}
+			names = append(names, name)
+		} else {
+			base := baseName
+			if base == "" {
+				base = mapID
+			}
+			for i := 1; i <= scale; i++ {
+				names = append(names, fmt.Sprintf("%s-%d", base, i))
+			}
+		}
+		for _, name := range names {
+			existing, err := c.json("GET", "/v1/instances/"+url.PathEscape(name), nil)
+			if err == nil {
+				var inst map[string]any
+				_ = json.Unmarshal(existing, &inst)
+				needsRecreate := p.flags["--recreate"] || fmt.Sprint(inst["mapContentHash"]) != hash
+				if needsRecreate {
+					_, _ = c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/stop", nil)
+					if _, err := c.json("DELETE", "/v1/instances/"+url.PathEscape(name), nil); err != nil {
+						return err
+					}
+				} else {
+					if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
+						return err
+					}
+					continue
+				}
+			} else {
+				var ce *cliError
+				if !errors.As(err, &ce) || ce.code != "MAP_NOT_FOUND" {
+					return err
+				}
+			}
+			if _, err := c.json("POST", "/v1/instances", map[string]any{"mapId": mapID, "id": name}); err != nil {
+				return err
+			}
+			if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
+				return err
+			}
+		}
+	}
+	data, err := c.json("GET", "/v1/instances", nil)
+	if err != nil {
+		return err
+	}
+	if p.json {
+		printJSON("up", json.RawMessage(data))
+		return nil
+	}
+	var instances []map[string]any
+	if err := json.Unmarshal(data, &instances); err != nil {
+		return err
+	}
+	for _, m := range instances {
+		fmt.Printf("%v\t%v\t%v\t%v\tshard=%v\n", m["id"], m["mapId"], m["state"], m["url"], m["shardId"])
+	}
+	return nil
 }
 
 func runUp(c *client, p *parsed) error {
@@ -565,7 +704,7 @@ func runMapAction(c *client, p *parsed) error {
 
 func main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
@@ -583,7 +722,7 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		return
 	}
 	if p.flags["--version"] {

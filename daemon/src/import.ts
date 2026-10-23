@@ -9,6 +9,7 @@ import type { MapSpec } from './contract';
 export interface ImportOptions {
   replace?: boolean;
   purgeData?: boolean;
+  recreate?: boolean;
 }
 
 export interface ImportResult {

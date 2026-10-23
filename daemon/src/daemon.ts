@@ -215,7 +215,7 @@ export class Daemon implements DaemonHandle {
         const instances = Array.from(this._records.values()).filter(
           (record) => (record.spec.mapId || record.spec.id) === spec.id,
         );
-        if (instances.some((record) => ['running', 'starting', 'stopping'].includes(record.status.state))) {
+        if (!options.recreate && instances.some((record) => ['running', 'starting', 'stopping'].includes(record.status.state))) {
           throw new DaemonError('MAP_BUSY', `map is busy: ${spec.id}`);
         }
       }
@@ -376,7 +376,7 @@ export class Daemon implements DaemonHandle {
     if (!definition || !base) throw new DaemonError('MAP_NOT_FOUND', `map not found: ${mapId}`);
     const id = options.id || mapId;
     if (!/^[A-Za-z0-9._-]+$/.test(id)) throw new DaemonError('INVALID_SPEC', `invalid instance id: ${id}`);
-    if (this._records.has(id)) throw new DaemonError('MAP_CONFLICT', `instance already exists: ${id}`);
+    if (this._records.has(id)) throw new DaemonError('INSTANCE_CONFLICT', `instance already exists: ${id}`);
     const volume = options.volume || id;
     const spec: MapSpec = {
       ...base,
