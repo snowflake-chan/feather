@@ -165,6 +165,7 @@ export class Daemon implements DaemonHandle {
         name: spec.name,
         version: spec.labels?.version || undefined,
         contentHash: spec.contentHash || spec.projectHash || mapId,
+        size: spec.size,
         installedAt: now(),
         defaults: {
           port: spec.port,
@@ -175,8 +176,20 @@ export class Daemon implements DaemonHandle {
         labels: spec.labels,
       };
       this._definitions.set(mapId, definition);
-      this._definitionSpecs.set(mapId, { ...spec, id: mapId, mapId: undefined });
+    } else {
+      // load --replace 更新 definition；已有 instance 仍 pin 旧 contentHash。
+      definition.name = spec.name;
+      definition.version = spec.labels?.version || definition.version;
+      definition.contentHash = spec.contentHash || spec.projectHash || definition.contentHash;
+      definition.size = spec.size ?? definition.size;
+      definition.defaults = {
+        port: spec.port,
+        volume: spec.volume || mapId,
+        limits: spec.limits,
+      };
+      definition.labels = spec.labels;
     }
+    this._definitionSpecs.set(mapId, { ...spec, id: mapId, mapId: undefined });
     return definition;
   }
 

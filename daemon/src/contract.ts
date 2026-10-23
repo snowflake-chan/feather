@@ -108,6 +108,8 @@ export interface MapSpec {
   mapId?: string;
   /** archive content.hash；instance 创建时 pin */
   contentHash?: string;
+  /** archive/size for display */
+  size?: number;
   labels?: Record<string, string>;
 }
 

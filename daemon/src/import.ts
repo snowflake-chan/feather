@@ -250,7 +250,10 @@ export function prepareImport(
     });
   }
 
-  const specs = maps.map((entry) => specFor(entry.id, entry.name, entry.mapDir, dataRoot, entry.manifest));
+  const specs = maps.map((entry) => ({
+    ...specFor(entry.id, entry.name, entry.mapDir, dataRoot, entry.manifest),
+    size: fs.statSync(archive).size,
+  }));
   return {
     temp,
     specs,
