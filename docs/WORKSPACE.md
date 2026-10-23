@@ -146,7 +146,7 @@ feather load map.fmap
 
 ```bash
 # daemon 前台运行（另开终端）
-feather daemon --data-root /var/lib/feather
+featherd --data-root /var/lib/feather
 
 # 客户端只认 socket
 feather up

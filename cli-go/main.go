@@ -42,18 +42,16 @@ type parsed struct {
 }
 
 var commands = map[string]bool{
-	"daemon": true, "build": true, "unpack": true, "load": true, "up": true,
+	"build": true, "unpack": true, "load": true, "up": true,
 	"stop": true, "restart": true, "ps": true, "logs": true, "eval": true, "rm": true,
 }
 
 var valueOptions = map[string]map[string]bool{
-	"daemon": {"--data-root": true, "--host": true, "--port": true, "--token": true},
 	"build":  {"--output": true, "--project-version": true},
 	"unpack": {"--dir": true},
 	"logs":   {"--tail": true},
 }
 var flagOptions = map[string]map[string]bool{
-	"daemon": {"--enable-eval": true, "--tcp": true},
 	"unpack": {"--force": true},
 	"load":   {"--replace": true, "--purge-data": true},
 	"logs":   {"-f": true, "--follow": true},
@@ -119,9 +117,6 @@ func parse(argv []string) (*parsed, error) {
 	if p.command == "" {
 		return nil, usageError("missing command")
 	}
-	if p.values["--data-root"] != "" && p.command != "daemon" {
-		return nil, usageError("--data-root is a daemon option; client commands use --socket")
-	}
 	return p, nil
 }
 
@@ -161,7 +156,7 @@ func (c *client) request(method, path string, body io.Reader, contentType string
 	}
 	res, err := c.http.Do(req)
 	if err != nil {
-		return nil, runtimeError("DAEMON_NOT_RUNNING", fmt.Sprintf("daemon not running: %s\nhint: start it with: feather daemon", c.socket))
+		return nil, runtimeError("DAEMON_NOT_RUNNING", fmt.Sprintf("daemon not running: %s\nhint: start it with: featherd --data-root ~/.feather --socket %s", c.socket, c.socket))
 	}
 	defer res.Body.Close()
 	data, err := io.ReadAll(res.Body)
@@ -220,32 +215,6 @@ func run(p *parsed) error {
 	socket := socketPath(p.socket)
 	c := newClient(socket)
 	switch p.command {
-	case "daemon":
-		bin := os.Getenv("FEATHERD_BIN")
-		if bin == "" {
-			bin = "featherd"
-		}
-		args := []string{}
-		if p.values["--data-root"] != "" {
-			args = append(args, "--data-root", p.values["--data-root"])
-		}
-		if p.socket != "" {
-			args = append(args, "--socket", p.socket)
-		}
-		if p.flags["--enable-eval"] {
-			args = append(args, "--enable-eval")
-		}
-		for _, key := range []string{"--host", "--port", "--token"} {
-			if value := p.values[key]; value != "" {
-				args = append(args, key, value)
-			}
-		}
-		if p.flags["--tcp"] {
-			args = append(args, "--tcp")
-		}
-		cmd := exec.Command(bin, args...)
-		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
-		return cmd.Run()
 	case "ps":
 		data, err := c.json("GET", "/v1/maps", nil)
 		if err != nil {
@@ -280,54 +249,6 @@ func run(p *parsed) error {
 			fmt.Printf("%v\t%v\t%s\t%s\t%s\n", m["id"], m["state"], port, shard, volume)
 		}
 		return nil
-	case "up":
-		if len(p.positionals) == 0 {
-			data, err := c.json("GET", "/v1/maps", nil)
-			if err != nil {
-				return err
-			}
-			var maps []map[string]any
-			if err := json.Unmarshal(data, &maps); err != nil {
-				return err
-			}
-			for _, m := range maps {
-				p.positionals = append(p.positionals, fmt.Sprint(m["id"]))
-			}
-		}
-		for _, id := range p.positionals {
-			if _, err := c.json("POST", "/v1/maps/"+url.PathEscape(id)+"/start", nil); err != nil {
-				return err
-			}
-		}
-		data, err := c.json("GET", "/v1/maps", nil)
-		if err != nil {
-			return err
-		}
-		var maps []map[string]any
-		if err := json.Unmarshal(data, &maps); err != nil {
-			return err
-		}
-		if p.json {
-			printJSON("up", maps)
-			return nil
-		}
-		selected := map[string]bool{}
-		for _, id := range p.positionals {
-			selected[id] = true
-		}
-		for _, m := range maps {
-			if !selected[fmt.Sprint(m["id"])] {
-				continue
-			}
-			shard := "-"
-			if v, ok := m["shardId"]; ok && v != nil {
-				shard = fmt.Sprint(v)
-			}
-			fmt.Printf("%v\t%v\t%v\tshard=%s\n", m["id"], m["state"], m["url"], shard)
-		}
-		return nil
-	case "stop", "restart", "rm":
-		return runMapAction(c, p)
 	case "build":
 		if len(p.positionals) == 0 {
 			return usageError("build requires a workspace or .boxproject")
@@ -502,7 +423,7 @@ func runMapAction(c *client, p *parsed) error {
 
 func main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
-		fmt.Println("feather [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
@@ -520,7 +441,7 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather [--socket <path>] [--json] <daemon|build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
 		return
 	}
 	if p.flags["--version"] {

@@ -1,4 +1,4 @@
-# feather-go
+# feather
 
 Thin control-plane CLI. It speaks JSON over `featherd`'s Unix socket and does
 not parse workspaces, build archives, or run the builder.
@@ -11,6 +11,6 @@ go build -o feather .
 ./feather load /path/to/map.fmap
 ```
 
-`feather daemon` starts the Node daemon (`FEATHERD_BIN`, default
+`featherd` starts the Node daemon (`FEATHERD_BIN`, default
 `featherd`). The daemon/engine remain Node; this binary replaces only the
 CLI.

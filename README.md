@@ -45,7 +45,7 @@ CLI（Go，`cli-go/`）：
 
 ```bash
 # daemon 前台运行（另开终端）
-feather daemon
+featherd
 
 feather load map.fmap
 feather up
@@ -53,7 +53,7 @@ feather ps
 feather stop my-map
 ```
 
-客户端命令只通过 `--socket` 找 daemon；`--data-root` 只属于 `feather daemon`。
+客户端命令只通过 `--socket` 找 daemon；`--data-root` 只属于 `featherd`。
 
 构建 Go CLI：
 

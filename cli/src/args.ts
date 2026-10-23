@@ -9,7 +9,7 @@ export interface ParsedArgs {
 }
 
 const COMMANDS = new Set([
-  'daemon', 'build', 'unpack', 'load', 'up', 'stop', 'restart', 'ps',
+  'build', 'unpack', 'load', 'up', 'stop', 'restart', 'ps',
   'logs', 'eval', 'rm',
 ]);
 
@@ -17,7 +17,6 @@ const COMMON_VALUES = new Set(['--socket']);
 const COMMON_FLAGS = new Set(['--json', '--help', '-h', '--version']);
 
 const COMMAND_VALUES: Record<string, Set<string>> = {
-  daemon: new Set(['--data-root', '--host', '--port', '--token']),
   build: new Set(['--output', '--project-version']),
   unpack: new Set(['--dir']),
   load: new Set(),
@@ -31,7 +30,6 @@ const COMMAND_VALUES: Record<string, Set<string>> = {
 };
 
 const COMMAND_FLAGS: Record<string, Set<string>> = {
-  daemon: new Set(['--enable-eval', '--tcp']),
   build: new Set(),
   unpack: new Set(['--force']),
   load: new Set(['--replace', '--purge-data']),
@@ -119,11 +117,5 @@ export function parseArgs(argv: string[]): ParsedArgs {
   }
 
   if (!command) usage('missing command');
-  if (values.has('--data-root') && command !== 'daemon') {
-    usage('--data-root is a daemon option; client commands use --socket');
-  }
-  if (flags.has('--enable-eval') && command !== 'daemon') {
-    usage('--enable-eval is a daemon option');
-  }
   return { command, positionals, rest, values, flags };
 }

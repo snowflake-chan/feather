@@ -5,7 +5,6 @@ import { parseArgs } from './args';
 import type { ParsedArgs } from './args';
 import { CliError } from './errors';
 import { writeError, writeJson } from './output';
-import { daemonCommand } from './commands/daemon';
 import { evalCommand } from './commands/eval';
 import { loadCommand } from './load';
 import { logsCommand } from './commands/logs';
@@ -20,7 +19,6 @@ function usage() {
 Usage: feather [--socket <path>] [--json] <command> [options]
 
 Commands:
-  daemon [--data-root <path>] [--socket <path>] [--enable-eval]
   build <workspace|.boxproject> [--output <file>] [--project-version <v>]
   unpack <project archive> [--dir <path>] [--force]
   load <archive> [--replace] [--purge-data]
@@ -34,6 +32,7 @@ Commands:
 
 Global:
   --socket <path>   daemon socket (default: ~/.feather/daemon.sock)
+  daemon is started separately with featherd
   --json            machine-readable output
   --help
   --version
@@ -58,14 +57,6 @@ async function run(parsed: ParsedArgs) {
   }
 
   switch (command) {
-    case 'daemon': {
-      await daemonCommand({
-        dataRoot: values.get('--data-root'),
-        socket,
-        enableEval: flags.has('--enable-eval'),
-      });
-      return;
-    }
     case 'build': {
       const root = positionals[0];
       if (!root) throw new CliError('USAGE', 'build requires a workspace or .boxproject', 2);

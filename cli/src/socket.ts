@@ -21,7 +21,7 @@ export async function requireDaemon(socketPath?: string): Promise<DaemonClient> 
       'DAEMON_NOT_RUNNING',
       `daemon not running: ${socket}`,
       1,
-      'start it with: feather daemon',
+      'start it with: featherd --data-root ~/.feather --socket <socket>',
     );
   }
 }

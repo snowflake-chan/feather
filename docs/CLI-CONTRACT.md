@@ -38,7 +38,7 @@
 | **running map** | 正在运行的 map。状态 `starting` / `running` / `stopping` | `MapState` |
 | **volume** | 存储单元：一个 SQLite 文件 = 一个持久化边界。**不是 Docker volume** | `storage.volume`、`volumes/<volume>.db` |
 | **data root** | daemon 的运行时数据根：`maps/ blobs/ volumes/ logs/` | `--data-root`、`FEATHER_DATA_ROOT` |
-| **daemon** | supervisor 进程。前台运行，信号停止 | `feather daemon` |
+| **daemon** | supervisor 进程。前台运行，信号停止 | `featherd` |
 | **blob** | 内容寻址文件，全局去重 | `<dataRoot>/blobs/` |
 | **asset** | 逻辑路径（`mesh/` `audio/` `image/`）→ blob 的映射 | `feather.json.assets` |
 | **content** | 一张 map 的内容集合：`project-state.json` + `blobs/` | 归档内 `content/` |
@@ -251,14 +251,14 @@ feather build <workspace|project archive> [--output <file>] [--project-version <
 
 ### 5.1 生命周期
 
-- 只有一种启动方式：`feather daemon`，前台运行，日志写 stdout/stderr。
+- 只有一种启动方式：`featherd`，前台运行，日志写 stdout/stderr。`feather` 不启动 daemon。
 - 停止方式：SIGINT / SIGTERM（Ctrl-C、systemd、容器 stop）。
 - **没有** `feather down`；`/v1/shutdown` 只作为内部/测试 API，不映射成 CLI 命令。
 - **不自动 spawn**。daemon 没起时，`load` / `up` / `ps` / `stop` / `logs` / `eval` / `rm` 一律：
 
   ```
   daemon not running: <socket>
-  start it with: feather daemon
+  start it with: featherd --data-root ~/.feather --socket <socket>
   ```
 
   exit 1，错误码 `DAEMON_NOT_RUNNING`。
@@ -267,13 +267,13 @@ feather build <workspace|project archive> [--output <file>] [--project-version <
 
 | 项 | 归属 | 默认 | 覆盖 |
 |---|---|---|---|
-| data root | daemon | `~/.feather` | `feather daemon --data-root`、`FEATHER_DATA_ROOT` |
+| data root | daemon | `~/.feather` | `featherd --data-root`、`FEATHER_DATA_ROOT` |
 | socket | 客户端端点 | `~/.feather/daemon.sock` | `--socket`、`FEATHER_SOCKET` |
 | daemon 日志 | daemon | stdout/stderr | systemd / 重定向 |
 
 规则：
 
-- `--data-root` **只**出现在 `feather daemon`。
+- `--data-root` **只**出现在 `featherd`。
 - socket 路径是固定公式，不随 `--data-root` 漂移。自定义 data root 的 daemon 仍听默认 socket，除非显式 `--socket`。
 - 一个 socket 对应一个 daemon；两个 daemon 必须用不同 socket。
 - socket 权限 `0600`。
@@ -319,7 +319,6 @@ daemon 侧：
 
 | 命令 | 层 | 需要 daemon | 幂等 | 说明 |
 |---|---|---|---|---|
-| `feather daemon [--data-root <p>] [--socket <p>]` | daemon | — | — | 前台；信号停止 |
 | `feather build <workspace\|.boxproject>` | workspace → archive | ❌ | 覆盖输出 | `feather build` 子进程 |
 | `feather unpack <project archive>` | archive → workspace | ❌ | `--force` | `feather unpack` 子进程；默认 baked |
 | `feather load <archive>` | archive → map | ✅ | `--replace` | 只接受 `.fmap` / `.boxplay` |
@@ -338,7 +337,7 @@ daemon 侧：
 | `feather down` | 删除。daemon 用信号停；停所有 map 用 `feather stop`（多选）或停 daemon |
 | `feather exec` | 改名 `feather eval`。语义是 JS eval，不是进程 exec |
 | `feather load *.boxproject` | 删除该分支；改用 `unpack` |
-| `feather daemon` 自动 spawn | 删除；daemon 只由 `feather daemon` 启动 |
+| `feather` 自动 spawn daemon | 删除；daemon 只由 `featherd` 启动 |
 | `feather build --workspace` / `-C` | 删除；只保留位置参数 |
 | `feather build --version` | 删除；改用 `--project-version` |
 | `feather load --force` | 改名 `--replace`（+ `--purge-data`） |
@@ -368,8 +367,8 @@ daemon 侧：
 |---|---|---|
 | `--socket <path>` | 全部客户端命令 | `FEATHER_SOCKET` |
 | `--json` | 全部客户端命令 | — |
-| `--data-root <path>` | **仅** `feather daemon` | `FEATHER_DATA_ROOT` |
-| `--enable-eval` | **仅** `feather daemon` | `FEATHER_ENABLE_EVAL` |
+| `--data-root <path>` | **仅** `featherd` | `FEATHER_DATA_ROOT` |
+| `--enable-eval` | **仅** `featherd` | `FEATHER_ENABLE_EVAL` |
 
 ### 7.2 解析规则
 
@@ -437,9 +436,9 @@ new-map         created   -      -       new-map
 
 | Docker | feather | 规则 |
 |---|---|---|
-| `dockerd` | `feather daemon` | 前台进程；SIGTERM/systemd 停止 |
+| `dockerd` | `featherd` | 前台进程；SIGTERM/systemd 停止 |
 | `docker` CLI | `feather` CLI | 只通过 socket 说话 |
-| `dockerd --data-root` | `feather daemon --data-root` | data root 只属于 daemon |
+| `dockerd --data-root` | `featherd --data-root` | data root 只属于 daemon |
 | `/var/run/docker.sock`、`DOCKER_HOST` | `~/.feather/daemon.sock`、`--socket`、`FEATHER_SOCKET` | 客户端只用这个找 daemon |
 | `docker load` | `feather load` | 归档流给 daemon，不自己写 data root |
 | image / container | **没有对应** | archive 不是 image；map 不会一对多 |
@@ -491,7 +490,7 @@ feather stop --socket /tmp/s.sock a    # 不把 --socket 当 map id
 ```bash
 grep -rn "resolveDataRoot\|maps/\|blobs/" cli/src        # 0
 feather ps                                              # daemon 关：DAEMON_NOT_RUNNING
-feather daemon --data-root /tmp/fr &                    # socket 仍在默认位置
+featherd --data-root /tmp/fr &                        # socket 仍在默认位置
 feather load map.fmap                                   # 走 import API
 feather ps                                              # 能看到 created
 ```
