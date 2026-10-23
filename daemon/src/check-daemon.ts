@@ -107,8 +107,8 @@ async function main() {
     // 停完不能留旧端口：留着的话下一次 start 会读到它并报 running（幽灵 running）
     const stopped = await request(socketPath, 'GET', '/v1/instances/a');
     if (stopped.state !== 'stopped') throw new Error(`a not stopped: ${stopped.state}`);
-    if (stopped.port !== undefined) {
-      throw new Error(`a kept stale port after stop: ${stopped.port}`);
+    if (stopped.port === undefined) {
+      throw new Error('a lost its public listener port after stop');
     }
     await request(socketPath, 'POST', '/v1/instances/a/start');
     const restarted = await request(socketPath, 'GET', '/v1/instances/a');

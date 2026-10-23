@@ -27,6 +27,7 @@ import { resolveShardBudget, shouldCreateShard } from './runtime/shard-policy';
 import { createContentArenaSpec } from './runtime/content-arena';
 import { NOMINAL_TICK_RATE } from './runtime/stats';
 import { ShardRuntime } from './runtime/shard-runtime';
+import { InstanceGateway } from './runtime/gateway';
 import { prepareImport, type ImportOptions, type ImportResult } from './import';
 
 const VERSION = '0.1.0';
@@ -68,6 +69,8 @@ export class Daemon implements DaemonHandle {
   private readonly _definitions = new Map<string, MapDefinition>();
   private readonly _definitionSpecs = new Map<string, MapSpec>();
   private readonly _shards = new Map<string, ShardRuntime>();
+  private readonly _gateways = new Map<string, InstanceGateway>();
+  private readonly _gatewayStarts = new Map<string, Promise<number>>();
   private readonly _operations = new Map<string, Operation>();
   private readonly _events: DaemonEvent[] = [];
   private readonly _shardLogs = new Map<string, LogEntry[]>();
@@ -285,8 +288,10 @@ export class Daemon implements DaemonHandle {
         throw new Error(state?.error || `map ${id} did not start`);
       }
       record.status.state = 'running';
-      record.status.port = state.port;
-      record.status.url = `http://127.0.0.1:${state.port}`;
+      record.status.runtimePort = state.port;
+      const publicPort = this._gateways.get(id)?.port || record.spec.publicPort || state.port;
+      record.status.port = publicPort;
+      record.status.url = `http://127.0.0.1:${publicPort}`;
       record.status.startedAt = now();
       operation.state = 'done';
       operation.finishedAt = now();
@@ -323,8 +328,8 @@ export class Daemon implements DaemonHandle {
       const shard = record.shardId ? this._shards.get(record.shardId) : undefined;
       if (shard) await shard.stopMap(id, opts.timeoutMs ?? 30_000);
       record.status.state = 'stopped';
-      record.status.port = undefined;
-      record.status.url = undefined;
+      record.status.runtimePort = undefined;
+      record.status.port = this._gateways.get(id)?.port || record.spec.publicPort;
       operation.state = 'done';
       operation.finishedAt = now();
       this._event({ type: 'map.stopped', mapId: id, time: now() });
@@ -357,6 +362,11 @@ export class Daemon implements DaemonHandle {
 
   public async destroyMap(id: string, opts: DestroyOptions = {}): Promise<void> {
     const record = this._records.get(id);
+    const gateway = this._gateways.get(id);
+    if (gateway) {
+      this._gateways.delete(id);
+      await gateway.close();
+    }
     if (!record) return;
     this._cancelRestart(id);
     await this.stopMap(id, { force: opts.force });
@@ -368,6 +378,22 @@ export class Daemon implements DaemonHandle {
       await shard.stopAll();
       this._shards.delete(shard.shardId);
     }
+  }
+
+  private async _ensureGatewayRuntime(id: string): Promise<number> {
+    const record = this._requireMap(id);
+    if (record.status.state === 'sealed' || record.spec.sealed) {
+      throw new DaemonError('INSTANCE_SEALED', `instance is sealed: ${id}`);
+    }
+    if (record.status.state === 'running' && record.status.runtimePort) return record.status.runtimePort;
+    if (this._gatewayStarts.has(id)) return this._gatewayStarts.get(id)!;
+    const promise = this.startMap(id).then(() => {
+      const current = this._requireMap(id);
+      if (!current.status.runtimePort) throw new Error(`instance ${id} has no runtime port`);
+      return current.status.runtimePort;
+    }).finally(() => this._gatewayStarts.delete(id));
+    this._gatewayStarts.set(id, promise);
+    return promise;
   }
 
   public async createInstance(
@@ -386,7 +412,8 @@ export class Daemon implements DaemonHandle {
       id,
       mapId,
       contentHash: definition.contentHash,
-      port: options.port ?? 0,
+      port: 0,
+      publicPort: options.port ?? 0,
       volume,
       dataDir: path.join(this._options.dataDir!, 'instances', id, 'data'),
       databaseUrl: `sqlite:///${path.join(this._options.dataDir!, 'volumes', `${volume}.db`)}`,
@@ -407,6 +434,23 @@ export class Daemon implements DaemonHandle {
       labels: spec.labels,
     };
     this._records.set(id, { spec, status });
+    const gateway = new InstanceGateway({
+      instanceId: id,
+      port: spec.publicPort || 0,
+      ensureRuntime: () => this._ensureGatewayRuntime(id),
+      onIdle: () => {
+        void this.stopMap(id, { timeoutMs: 5_000 }).catch(() => {});
+      },
+    });
+    try {
+      const publicPort = await gateway.open();
+      spec.publicPort = publicPort;
+      status.port = publicPort;
+      this._gateways.set(id, gateway);
+    } catch (error) {
+      this._records.delete(id);
+      throw error;
+    }
     this._persist();
     this._event({ type: 'instance.created', mapId, instanceId: id, time: now() });
     return {
@@ -421,6 +465,7 @@ export class Daemon implements DaemonHandle {
     const record = this._requireMap(id);
     if (record.status.state !== 'sealed') {
       await this.stopMap(id, { force: true });
+      await this._gateways.get(id)?.seal();
       record.spec.sealed = true;
       record.status.state = 'sealed';
       record.status.port = undefined;
@@ -435,6 +480,19 @@ export class Daemon implements DaemonHandle {
   public async unsealInstance(id: string): Promise<InstanceStatus> {
     const record = this._requireMap(id);
     if (record.status.state === 'sealed') {
+      let gateway = this._gateways.get(id);
+      if (!gateway) {
+        gateway = new InstanceGateway({
+          instanceId: id,
+          port: record.spec.publicPort || 0,
+          ensureRuntime: () => this._ensureGatewayRuntime(id),
+          onIdle: () => { void this.stopMap(id, { timeoutMs: 5_000 }).catch(() => {}); },
+        });
+        this._gateways.set(id, gateway);
+      }
+      const port = await gateway.open();
+      record.spec.publicPort = port;
+      record.status.port = port;
       record.spec.sealed = false;
       record.status.state = 'stopped';
       this._persist();
@@ -563,6 +621,26 @@ export class Daemon implements DaemonHandle {
     return shard.exec(id, command);
   }
 
+  public async restoreGateways(): Promise<void> {
+    for (const record of this._records.values()) {
+      if (record.spec.sealed || this._gateways.has(record.spec.id)) continue;
+      const gateway = new InstanceGateway({
+        instanceId: record.spec.id,
+        port: record.spec.publicPort || 0,
+        ensureRuntime: () => this._ensureGatewayRuntime(record.spec.id),
+        onIdle: () => { void this.stopMap(record.spec.id, { timeoutMs: 5_000 }).catch(() => {}); },
+      });
+      try {
+        const port = await gateway.open();
+        record.spec.publicPort = port;
+        record.status.port = port;
+        this._gateways.set(record.spec.id, gateway);
+      } catch {
+        // Listener failure must not prevent the daemon from starting.
+      }
+    }
+  }
+
   public async close(): Promise<void> {
     if (this._closed) return;
     this._closed = true;
@@ -586,6 +664,10 @@ export class Daemon implements DaemonHandle {
       }
     }
     this._shards.clear();
+    for (const gateway of this._gateways.values()) {
+      try { await gateway.close(); } catch { /* best effort */ }
+    }
+    this._gateways.clear();
     this._persist();
     this._event({ type: 'daemon.shutdown', time: now() });
   }
@@ -912,5 +994,7 @@ export class DaemonError extends Error {
 }
 
 export async function createDaemon(options: CreateDaemonOptions = {}): Promise<Daemon> {
-  return new Daemon(options);
+  const daemon = new Daemon(options);
+  await daemon.restoreGateways();
+  return daemon;
 }

@@ -46,7 +46,12 @@ export interface InstanceSpec {
   mapId: string;
   /** 创建时 pin 的 map content hash；restart 不改变。 */
   mapContentHash: string;
+  /** public listener port */
+  /** public listener port */
   port?: number;
+  publicPort?: number;
+  /** internal engine port */
+  runtimePort?: number;
   volume?: string;
   limits?: MapLimits;
   labels?: Record<string, string>;
@@ -60,6 +65,7 @@ export interface InstanceStatus {
   runtime: 'worker';
   shardId?: string;
   port?: number;
+  runtimePort?: number;
   url?: string;
   pid?: number;
   startedAt?: string;
@@ -94,6 +100,8 @@ export interface MapSpec {
   projectStatePath?: string;
   contentDir?: string;
   port?: number;
+  /** public gateway listener port; engine runtime uses port=0 */
+  publicPort?: number;
   scriptWorkerEntry?: string;
   limits?: MapLimits;
   restartPolicy?: RestartPolicy;
@@ -126,6 +134,7 @@ export interface MapStatus {
   runtime: 'worker';
   shardId?: string;
   port?: number;
+  runtimePort?: number;
   url?: string;
   pid?: number;
   startedAt?: string;
