@@ -71,7 +71,7 @@ export async function startApiServer(
       if (url.pathname === '/v1/version') return json(res, 200, await daemon.version());
       if (url.pathname === '/v1/info') return json(res, 200, await daemon.info());
       if (url.pathname === '/v1/maps' && req.method === 'GET') {
-        return json(res, 200, await daemon.listMaps());
+        return json(res, 200, await daemon.listDefinitions());
       }
       if (url.pathname === '/v1/maps' && req.method === 'POST') {
         const body = (await readJson(req)) as MapSpec;
@@ -89,6 +89,57 @@ export async function startApiServer(
           return json(res, 201, result);
         } finally {
           await fsPromises.rm(tmp, { force: true }).catch(() => {});
+        }
+      }
+      if (url.pathname === '/v1/instances' && req.method === 'GET') {
+        return json(res, 200, await daemon.listInstances());
+      }
+      if (url.pathname === '/v1/instances' && req.method === 'POST') {
+        const body = (await readJson(req)) as { mapId?: string; id?: string; port?: number; volume?: string; limits?: { players?: number; memoryMb?: number }; labels?: Record<string, string> };
+        if (!body.mapId) return error(res, 422, 'INVALID_SPEC', 'mapId is required');
+        return json(res, 201, await daemon.createInstance(body.mapId, body));
+      }
+      const instanceMatch = url.pathname.match(/^\/v1\/instances\/([^/]+)(?:\/(start|stop|restart|stats|logs|exec|eval))?$/);
+      if (instanceMatch) {
+        const id = decodeURIComponent(instanceMatch[1]);
+        const action = instanceMatch[2];
+        if (!action && req.method === 'GET') {
+          const status = await daemon.getMap(id);
+          return status ? json(res, 200, status) : error(res, 404, 'MAP_NOT_FOUND', `instance not found: ${id}`);
+        }
+        if (!action && req.method === 'DELETE') {
+          await daemon.destroyInstance(id, { force: url.searchParams.get('force') === '1' });
+          res.writeHead(204);
+          return res.end();
+        }
+        if (action === 'start' && req.method === 'POST') return json(res, 202, await daemon.startMap(id));
+        if (action === 'stop' && req.method === 'POST') {
+          return json(res, 202, await daemon.stopMap(id, { timeoutMs: Number(url.searchParams.get('timeout') || 30) * 1000, force: url.searchParams.get('force') === '1' }));
+        }
+        if (action === 'restart' && req.method === 'POST') {
+          return json(res, 202, await daemon.restartMap(id, { timeoutMs: Number(url.searchParams.get('timeout') || 60) * 1000, force: url.searchParams.get('force') === '1' }));
+        }
+        if (action === 'stats' && req.method === 'GET') return json(res, 200, await daemon.stats(id));
+        if ((action === 'exec' || action === 'eval') && req.method === 'POST') {
+          const body = (await readJson(req)) as { command?: string; code?: string };
+          const command = String(body.command ?? body.code ?? '');
+          if (!command.trim()) return error(res, 422, 'INVALID_SPEC', 'missing command');
+          return json(res, 200, { result: await daemon.exec(id, command) });
+        }
+        if (action === 'logs' && req.method === 'GET') {
+          res.writeHead(200, { 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' });
+          res.flushHeaders?.();
+          const follow = url.searchParams.get('follow') === '1';
+          const tail = Number(url.searchParams.get('tail') || 0) || undefined;
+          let closed = false;
+          res.on('close', () => { closed = true; });
+          const iterator = daemon.logs(id, { follow, tail })[Symbol.asyncIterator]();
+          while (!closed) {
+            const next = await iterator.next();
+            if (next.done) break;
+            res.write(`${JSON.stringify(next.value)}\n`);
+          }
+          return res.end();
         }
       }
       if (url.pathname === '/v1/shards' && req.method === 'GET') {
@@ -123,9 +174,9 @@ export async function startApiServer(
         const id = decodeURIComponent(mapMatch[1]);
         const action = mapMatch[2];
         if (!action && req.method === 'GET') {
-          const status = await daemon.getMap(id);
-          return status
-            ? json(res, 200, status)
+          const definition = await daemon.getDefinition(id);
+          return definition
+            ? json(res, 200, definition)
             : error(res, 404, 'MAP_NOT_FOUND', `map not found: ${id}`);
         }
         if (!action && req.method === 'PUT') {
@@ -133,8 +184,14 @@ export async function startApiServer(
           return json(res, 200, await daemon.updateMap(id, body));
         }
         if (!action && req.method === 'DELETE') {
-          const force = url.searchParams.get('force') === '1';
-          await daemon.destroyMap(id, { force });
+          try {
+            await daemon.destroyDefinition(id, { force: url.searchParams.get('force') === '1' });
+          } catch (e) {
+            if ((e as any)?.code === 'MAP_HAS_INSTANCES') {
+              return error(res, 409, 'MAP_HAS_INSTANCES', (e as Error).message);
+            }
+            throw e;
+          }
           res.writeHead(204);
           return res.end();
         }

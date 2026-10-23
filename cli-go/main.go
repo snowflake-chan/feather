@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -43,19 +44,22 @@ type parsed struct {
 
 var commands = map[string]bool{
 	"build": true, "unpack": true, "load": true, "up": true,
-	"stop": true, "restart": true, "ps": true, "logs": true, "eval": true, "rm": true,
+	"stop": true, "start": true, "restart": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
 }
 
 var valueOptions = map[string]map[string]bool{
 	"build":  {"--output": true, "--project-version": true},
 	"unpack": {"--dir": true},
 	"logs":   {"--tail": true},
+	"up":     {"--name": true, "--replicas": true},
 }
 var flagOptions = map[string]map[string]bool{
 	"unpack": {"--force": true},
 	"load":   {"--replace": true, "--purge-data": true},
 	"logs":   {"-f": true, "--follow": true},
 	"rm":     {"--force": true},
+	"map":    {"--force": true},
+	"up":     {"--recreate": true},
 }
 
 func parse(argv []string) (*parsed, error) {
@@ -216,7 +220,7 @@ func run(p *parsed) error {
 	c := newClient(socket)
 	switch p.command {
 	case "ps":
-		data, err := c.json("GET", "/v1/maps", nil)
+		data, err := c.json("GET", "/v1/instances", nil)
 		if err != nil {
 			return err
 		}
@@ -232,7 +236,7 @@ func run(p *parsed) error {
 			fmt.Println("no maps")
 			return nil
 		}
-		fmt.Println("ID\tSTATE\tPORT\tSHARD\tVOLUME")
+		fmt.Println("INSTANCE\tMAP\tSTATE\tPORT\tSHARD\tVOLUME")
 		for _, m := range maps {
 			port := "-"
 			if v, ok := m["port"]; ok && v != nil {
@@ -246,8 +250,62 @@ func run(p *parsed) error {
 			if volume == "<nil>" || volume == "" {
 				volume = fmt.Sprint(m["id"])
 			}
-			fmt.Printf("%v\t%v\t%s\t%s\t%s\n", m["id"], m["state"], port, shard, volume)
+			fmt.Printf("%v\t%v\t%v\t%s\t%s\t%s\n", m["id"], m["mapId"], m["state"], port, shard, volume)
 		}
+		return nil
+	case "maps":
+		data, err := c.json("GET", "/v1/maps", nil)
+		if err != nil {
+			return err
+		}
+		var maps []map[string]any
+		if err := json.Unmarshal(data, &maps); err != nil {
+			return err
+		}
+		if p.json {
+			printJSON("maps", maps)
+			return nil
+		}
+		if len(maps) == 0 {
+			fmt.Println("no maps")
+			return nil
+		}
+		fmt.Println("ID\tVERSION\tHASH\tSIZE\tINSTANCES")
+		for _, m := range maps {
+			fmt.Printf("%v\t%v\t%v\t%v\t%v\n", m["id"], m["version"], m["contentHash"], m["size"], m["instanceCount"])
+		}
+		return nil
+	case "inspect":
+		if len(p.positionals) == 0 {
+			return usageError("inspect requires a map id")
+		}
+		data, err := c.json("GET", "/v1/maps/"+url.PathEscape(p.positionals[0]), nil)
+		if err != nil {
+			return err
+		}
+		if p.json {
+			printJSON("inspect", json.RawMessage(data))
+			return nil
+		}
+		fmt.Println(string(data))
+		return nil
+	case "map":
+		if len(p.positionals) < 2 || p.positionals[0] != "rm" {
+			return usageError("usage: feather map rm <map> [--force]")
+		}
+		query := ""
+		if p.flags["--force"] {
+			query = "?force=1"
+		}
+		data, err := c.json("DELETE", "/v1/maps/"+url.PathEscape(p.positionals[1])+query, nil)
+		if err != nil {
+			return err
+		}
+		if p.json {
+			printJSON("map.rm", json.RawMessage(data))
+			return nil
+		}
+		fmt.Println("removed\t" + p.positionals[1])
 		return nil
 	case "build":
 		if len(p.positionals) == 0 {
@@ -327,7 +385,7 @@ func run(p *parsed) error {
 		if tail := p.values["--tail"]; tail != "" {
 			query.Set("tail", tail)
 		}
-		path := "/v1/maps/" + url.PathEscape(p.positionals[0]) + "/logs"
+		path := "/v1/instances/" + url.PathEscape(p.positionals[0]) + "/logs"
 		if len(query) > 0 {
 			path += "?" + query.Encode()
 		}
@@ -361,7 +419,7 @@ func run(p *parsed) error {
 		if code == "" {
 			code = strings.Join(p.positionals[1:], " ")
 		}
-		data, err := c.json("POST", "/v1/maps/"+url.PathEscape(p.positionals[0])+"/eval", map[string]string{"code": code})
+		data, err := c.json("POST", "/v1/instances/"+url.PathEscape(p.positionals[0])+"/eval", map[string]string{"code": code})
 		if err != nil {
 			return err
 		}
@@ -373,8 +431,86 @@ func run(p *parsed) error {
 		_ = json.Unmarshal(data, &result)
 		fmt.Println(result["result"])
 		return nil
+	case "up":
+		return runUp(c, p)
+	case "start", "stop", "restart", "rm":
+		return runMapAction(c, p)
 	}
 	return usageError("unknown command: " + p.command)
+}
+
+func runUp(c *client, p *parsed) error {
+	maps := append([]string{}, p.positionals...)
+	if len(maps) == 0 {
+		data, err := c.json("GET", "/v1/maps", nil)
+		if err != nil {
+			return err
+		}
+		var defs []map[string]any
+		if err := json.Unmarshal(data, &defs); err != nil {
+			return err
+		}
+		for _, d := range defs {
+			maps = append(maps, fmt.Sprint(d["id"]))
+		}
+	}
+	if len(maps) == 0 {
+		fmt.Println("no maps")
+		return nil
+	}
+	replicas := 1
+	if value := p.values["--replicas"]; value != "" {
+		n, err := strconv.Atoi(value)
+		if err != nil || n < 1 {
+			return usageError("--replicas must be >= 1")
+		}
+		replicas = n
+	}
+	baseName := p.values["--name"]
+	for _, mapID := range maps {
+		names := []string{}
+		if replicas == 1 {
+			names = []string{baseName}
+			if names[0] == "" {
+				names[0] = mapID
+			}
+		} else {
+			base := baseName
+			if base == "" {
+				base = mapID
+			}
+			for i := 1; i <= replicas; i++ {
+				names = append(names, fmt.Sprintf("%s-%d", base, i))
+			}
+		}
+		for _, name := range names {
+			if _, err := c.json("POST", "/v1/instances", map[string]any{"mapId": mapID, "id": name}); err != nil {
+				var ce *cliError
+				if !errors.As(err, &ce) || ce.code != "MAP_CONFLICT" {
+					return err
+				}
+			}
+			if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
+				return err
+			}
+		}
+	}
+	data, err := c.json("GET", "/v1/instances", nil)
+	if err != nil {
+		return err
+	}
+	if p.json {
+		printJSON("up", json.RawMessage(data))
+		return nil
+	}
+	var instances []map[string]any
+	if err := json.Unmarshal(data, &instances); err != nil {
+		return err
+	}
+	for _, m := range instances {
+		fmt.Printf("%v\t%v\t%v\t%v\n", m["id"], m["mapId"], m["state"], m["url"])
+	}
+	return nil
 }
 
 func runMapAction(c *client, p *parsed) error {
@@ -384,18 +520,18 @@ func runMapAction(c *client, p *parsed) error {
 	for _, id := range p.positionals {
 		var path string
 		switch p.command {
-		case "up":
-			path = "/v1/maps/" + url.PathEscape(id) + "/start"
+		case "start":
+			path = "/v1/instances/" + url.PathEscape(id) + "/start"
 		case "stop":
-			path = "/v1/maps/" + url.PathEscape(id) + "/stop"
+			path = "/v1/instances/" + url.PathEscape(id) + "/stop"
 		case "restart":
-			path = "/v1/maps/" + url.PathEscape(id) + "/restart"
+			path = "/v1/instances/" + url.PathEscape(id) + "/restart"
 		case "rm":
 			query := ""
 			if p.flags["--force"] {
 				query = "?force=1"
 			}
-			data, err := c.json("DELETE", "/v1/maps/"+url.PathEscape(id)+query, nil)
+			data, err := c.json("DELETE", "/v1/instances/"+url.PathEscape(id)+query, nil)
 			if err != nil {
 				return err
 			}
@@ -423,7 +559,7 @@ func runMapAction(c *client, p *parsed) error {
 
 func main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|map|up|start|stop|restart|ps|logs|eval|rm>")
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
@@ -441,7 +577,7 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|up|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|map|up|start|stop|restart|ps|logs|eval|rm>")
 		return
 	}
 	if p.flags["--version"] {

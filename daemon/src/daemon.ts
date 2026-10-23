@@ -13,8 +13,11 @@ import type {
   DestroyOptions,
   LogEntry,
   LogOptions,
+  MapDefinition,
   MapSpec,
   MapStats,
+  InstanceStatus,
+  MapLimits,
   MapStatus,
   Operation,
   ShardStats,
@@ -62,6 +65,8 @@ function makeOperation(kind: Operation['kind'], mapId: string): Operation {
 export class Daemon implements DaemonHandle {
   private readonly _startedAt = Date.now();
   private readonly _records = new Map<string, MapRecord>();
+  private readonly _definitions = new Map<string, MapDefinition>();
+  private readonly _definitionSpecs = new Map<string, MapSpec>();
   private readonly _shards = new Map<string, ShardRuntime>();
   private readonly _operations = new Map<string, Operation>();
   private readonly _events: DaemonEvent[] = [];
@@ -102,7 +107,8 @@ export class Daemon implements DaemonHandle {
       version: VERSION,
       apiVersion: API_VERSION,
       runtime: 'node',
-      maps: this._records.size,
+      maps: this._definitions.size,
+      instances: this._records.size,
       shards: this._shards.size,
       cores: os.availableParallelism(),
       uptime: Date.now() - this._startedAt,
@@ -122,15 +128,70 @@ export class Daemon implements DaemonHandle {
     return record ? { ...record.status } : undefined;
   }
 
+  public async listDefinitions(): Promise<MapDefinition[]> {
+    return Array.from(this._definitions.values()).map((definition) => ({
+      ...definition,
+      instanceCount: this._instanceCount(definition.id),
+    }));
+  }
+
+  public async getDefinition(id: string): Promise<MapDefinition | undefined> {
+    const definition = this._definitions.get(id);
+    return definition ? { ...definition, instanceCount: this._instanceCount(id) } : undefined;
+  }
+
+  public async listInstances(): Promise<InstanceStatus[]> {
+    return Array.from(this._records.values()).map((record) => ({
+      ...record.status,
+      mapId: record.status.mapId || record.spec.mapId || record.spec.id,
+      mapContentHash: record.status.mapContentHash || record.spec.contentHash || record.spec.projectHash || record.spec.mapId || record.spec.id,
+    }));
+  }
+
+  private _instanceCount(mapId: string): number {
+    let count = 0;
+    for (const record of this._records.values()) {
+      if ((record.spec.mapId || record.spec.id) === mapId) count++;
+    }
+    return count;
+  }
+
+  private _ensureDefinition(spec: MapSpec): MapDefinition {
+    const mapId = spec.mapId || spec.id;
+    let definition = this._definitions.get(mapId);
+    if (!definition) {
+      definition = {
+        id: mapId,
+        name: spec.name,
+        version: spec.labels?.version || undefined,
+        contentHash: spec.contentHash || spec.projectHash || mapId,
+        installedAt: now(),
+        defaults: {
+          port: spec.port,
+          volume: spec.volume || mapId,
+          limits: spec.limits,
+        },
+        instanceCount: 0,
+        labels: spec.labels,
+      };
+      this._definitions.set(mapId, definition);
+      this._definitionSpecs.set(mapId, { ...spec, id: mapId, mapId: undefined });
+    }
+    return definition;
+  }
+
   public async createMap(spec: MapSpec): Promise<MapStatus> {
     if (!spec?.id || !/^[A-Za-z0-9._-]+$/.test(spec.id)) {
-      throw new DaemonError('INVALID_SPEC', `invalid map id: ${spec?.id || ''}`);
+      throw new DaemonError('INVALID_SPEC', `invalid instance id: ${spec?.id || ''}`);
     }
     if (this._records.has(spec.id)) {
-      throw new DaemonError('MAP_CONFLICT', `map already exists: ${spec.id}`);
+      throw new DaemonError('MAP_CONFLICT', `instance already exists: ${spec.id}`);
     }
+    const definition = this._ensureDefinition(spec);
     const status: MapStatus = {
       id: spec.id,
+      mapId: definition.id,
+      mapContentHash: definition.contentHash,
       name: spec.name,
       state: 'created',
       runtime: 'worker',
@@ -144,31 +205,36 @@ export class Daemon implements DaemonHandle {
     return { ...status };
   }
 
+  private _installDefinition(spec: MapSpec) {
+    const definition = this._ensureDefinition(spec);
+    this._persist();
+    this._event({ type: 'map.installed', mapId: definition.id, time: now() });
+  }
+
   public async importArchive(file: string, options: ImportOptions = {}): Promise<ImportResult> {
     const prepared = prepareImport(file, this._options.dataDir!, options);
     try {
-      const conflicts = prepared.specs.filter((spec) => this._records.has(spec.id));
+      const conflicts = prepared.specs.filter((spec) => this._definitions.has(spec.id));
       if (conflicts.length > 0 && !options.replace) {
         throw new DaemonError('MAP_CONFLICT', `map already exists: ${conflicts.map((map) => map.id).join(', ')}`);
       }
       for (const spec of conflicts) {
-        const state = this._records.get(spec.id)!.status.state;
-        if (state === 'running' || state === 'starting' || state === 'stopping') {
+        const instances = Array.from(this._records.values()).filter(
+          (record) => (record.spec.mapId || record.spec.id) === spec.id,
+        );
+        if (instances.some((record) => ['running', 'starting', 'stopping'].includes(record.status.state))) {
           throw new DaemonError('MAP_BUSY', `map is busy: ${spec.id}`);
         }
       }
       for (const spec of conflicts) {
-        await this.destroyMap(spec.id, { force: true });
+        await this.destroyDefinition(spec.id, { force: true });
       }
       for (const spec of prepared.specs) {
         prepared.install(spec);
-        await this.createMap(spec);
+        this._installDefinition(spec);
       }
       return {
-        maps: prepared.specs.map((spec) => ({
-          id: spec.id,
-          state: this._records.get(spec.id)!.status.state,
-        })),
+        maps: prepared.specs.map((spec) => ({ id: spec.id, state: 'created' })),
       };
     } finally {
       prepared.cleanup();
@@ -306,6 +372,58 @@ export class Daemon implements DaemonHandle {
       await shard.stopAll();
       this._shards.delete(shard.shardId);
     }
+  }
+
+  public async createInstance(
+    mapId: string,
+    options: { id?: string; port?: number; volume?: string; limits?: MapLimits; labels?: Record<string, string> } = {},
+  ): Promise<InstanceStatus> {
+    const definition = this._definitions.get(mapId);
+    const base = this._definitionSpecs.get(mapId);
+    if (!definition || !base) throw new DaemonError('MAP_NOT_FOUND', `map not found: ${mapId}`);
+    const id = options.id || mapId;
+    if (!/^[A-Za-z0-9._-]+$/.test(id)) throw new DaemonError('INVALID_SPEC', `invalid instance id: ${id}`);
+    if (this._records.has(id)) throw new DaemonError('MAP_CONFLICT', `instance already exists: ${id}`);
+    const volume = options.volume || id;
+    const spec: MapSpec = {
+      ...base,
+      id,
+      mapId,
+      contentHash: definition.contentHash,
+      port: options.port ?? 0,
+      volume,
+      dataDir: path.join(this._options.dataDir!, 'instances', id, 'data'),
+      databaseUrl: `sqlite:///${path.join(this._options.dataDir!, 'volumes', `${volume}.db`)}`,
+      dataStorageNamespace: id,
+      limits: options.limits || base.limits,
+      labels: { ...(base.labels || {}), ...(options.labels || {}) },
+    };
+    const status = await this.createMap(spec);
+    return {
+      ...status,
+      id,
+      mapId,
+      mapContentHash: definition.contentHash,
+    };
+  }
+
+  public async destroyInstance(id: string, opts: DestroyOptions = {}): Promise<void> {
+    await this.destroyMap(id, opts);
+  }
+
+  public async destroyDefinition(mapId: string, opts: DestroyOptions = {}): Promise<void> {
+    if (!this._definitions.has(mapId)) throw new DaemonError('MAP_NOT_FOUND', `map not found: ${mapId}`);
+    const instances = Array.from(this._records.values()).filter(
+      (record) => (record.spec.mapId || record.spec.id) === mapId,
+    );
+    if (instances.length > 0 && !opts.force) {
+      throw new DaemonError('MAP_HAS_INSTANCES', `map has instances: ${mapId}`);
+    }
+    for (const instance of instances) await this.destroyMap(instance.spec.id, { force: true });
+    this._definitions.delete(mapId);
+    this._definitionSpecs.delete(mapId);
+    this._persist();
+    this._event({ type: 'map.removed', mapId, time: now() });
   }
 
   public async stats(id: string): Promise<MapStats> {
@@ -652,18 +770,32 @@ export class Daemon implements DaemonHandle {
     if (!fs.existsSync(this._stateFile)) return;
     try {
       const parsed = JSON.parse(fs.readFileSync(this._stateFile, 'utf8')) as {
-        maps?: MapSpec[];
+        maps?: Array<{ definition?: MapDefinition; spec?: MapSpec } | MapSpec>;
+        instances?: MapSpec[];
       };
-      for (const spec of parsed.maps || []) {
+      const legacySpecs: MapSpec[] = [];
+      for (const item of parsed.maps || []) {
+        if ('definition' in item && item.definition) {
+          this._definitions.set(item.definition.id, item.definition);
+          if (item.spec) this._definitionSpecs.set(item.definition.id, item.spec);
+        } else {
+          const spec = item as MapSpec;
+          legacySpecs.push(spec);
+          this._ensureDefinition(spec);
+        }
+      }
+      const instances = parsed.instances?.length ? parsed.instances : legacySpecs;
+      for (const spec of instances) {
         this._records.set(spec.id, {
           spec,
           status: {
             id: spec.id,
+            mapId: spec.mapId || spec.id,
+            mapContentHash: spec.contentHash || spec.projectHash || spec.mapId || spec.id,
             name: spec.name,
-                  state: 'stopped',
+            state: 'stopped',
             runtime: 'worker',
             restartPolicy: spec.restartPolicy,
-            // 与 createMap 保持一致：少了这个字段，daemon 重启后 volume 会变 undefined
             volume: spec.volume || spec.id,
             labels: spec.labels,
           },
@@ -680,7 +812,13 @@ export class Daemon implements DaemonHandle {
     const temporary = `${file}.${process.pid}.tmp`;
     fs.writeFileSync(
       temporary,
-      `${JSON.stringify({ maps: Array.from(this._records.values()).map((r) => r.spec) }, null, 2)}\n`,
+      `${JSON.stringify({
+        maps: Array.from(this._definitions.values()).map((definition) => ({
+          definition,
+          spec: this._definitionSpecs.get(definition.id),
+        })),
+        instances: Array.from(this._records.values()).map((record) => record.spec),
+      }, null, 2)}\n`,
       'utf8',
     );
     fs.renameSync(temporary, file);

@@ -33,7 +33,8 @@
 | **map archive** | 一张 map 的归档，扩展名 `.fmap`，格式标识 `feather.map` | `FmapManifest`、`readFmapManifest` |
 | **play bundle** | 神岛导出的可玩包 `.boxplay`，可含多张 map | `PlayBundle` |
 | **project archive** | 神岛导出的项目源码包 `.boxproject` | `buildProjectArchive` |
-| **map** | 实体：有 `map.id`、内容、生命周期。从 `load` 起存在 | `MapSpec` / `MapStatus` |
+| **map** | cached map / image：已安装的定义。从 `load` 起存在 | `MapDefinition` |
+| **instance** | map 的运行副本 / container。从 `up` 起存在 | `InstanceSpec` / `InstanceStatus` |
 | **cached map** | 已导入未运行，或已停止的 map。状态 `created` / `stopped` | `<dataRoot>/maps/<id>` |
 | **running map** | 正在运行的 map。状态 `starting` / `running` / `stopping` | `MapState` |
 | **volume** | 存储单元：一个 SQLite 文件 = 一个持久化边界。**不是 Docker volume** | `storage.volume`、`volumes/<volume>.db` |
@@ -49,7 +50,7 @@
 
 | 不要用 | 改用 | 原因 |
 |---|---|---|
-| server / instance | map | 与引擎 `GameServer` 混淆 |
+| server / world / replica | instance | `GameServer` 是 engine 内部对象 |
 | supervisor（作 CLI 名词） | daemon | 角色不是名字 |
 | data dir | data root | 同一概念两个词 |
 | workspace（指 data root） | data root | workspace 专指项目 |
@@ -138,15 +139,25 @@ content/
 
 `content.hash` 是内容身份。`source.hash` 是来源身份。两者不得混用。
 
-### 3.3 archive 不是 image
+### 3.3 archive / map / instance 三层
 
-Docker 的 image/container 是「模板 → 多实例」。feather 不是：
+Docker 是三层，feather 也必须三层。之前把 archive 当 image 是错的：一对多发生在 **map → instance**，不在 archive → map。
 
-- 一个 `.fmap` 只携带一个 `map.id`。
-- 同一个归档 `load` 两次 = `MAP_CONFLICT`，不是创建第二个 map。
-- 没有 tag、没有 image 层、没有 `run --name`。
+| 层 | 定义 | Docker 对应 | 路径 |
+|---|---|---|---|
+| archive | `.fmap` 分发物 | image tar | 文件 |
+| cached map | 已安装的地图定义 | image | `<dataRoot>/maps/<mapId>/` |
+| instance | map 的运行副本 | container | `<dataRoot>/instances/<instanceId>/` |
+| volume | SQLite 持久化边界 | volume | `<dataRoot>/volumes/<volume>.db` |
 
-因此不要照搬 image/container 的命名和命令。`archive` 是**序列化形式**，`map` 是实体；关系类似 document / `.docx`，不是 image / container。
+规则：
+
+- `load` 安装/更新 cached map；`up` 创建并启动 instance。
+- 一个 map 可以起多个 instance（多房间、测试服、replica）。
+- instance 创建时 pin `mapContentHash`；map 更新不影响 running instance。
+- `--recreate` / `up --recreate` 才把 instance 更新到新内容。
+- 默认 instance id = mapId；`--name` / `--replicas` 生成其它 id。
+- `map rm` 在存在 instance 时拒绝；`--force` 才一起删。
 
 ### 3.4 兼容层
 
@@ -319,16 +330,20 @@ daemon 侧：
 
 | 命令 | 层 | 需要 daemon | 幂等 | 说明 |
 |---|---|---|---|---|
-| `feather build <workspace\|.boxproject>` | workspace → archive | ❌ | 覆盖输出 | `feather build` 子进程 |
-| `feather unpack <project archive>` | archive → workspace | ❌ | `--force` | `feather unpack` 子进程；默认 baked |
-| `feather load <archive>` | archive → map | ✅ | `--replace` | 只接受 `.fmap` / `.boxplay` |
-| `feather up [map...]` | cached → running | ✅ | 是 | 无参 = 所有已导入 map |
-| `feather stop <map...>` | running → cached | ✅ | 是 | 不删内容 |
-| `feather restart <map...>` | running → running | ✅ | 是 | |
-| `feather ps` | 列表 | ✅ | 是 | 含 `created` / `stopped` |
-| `feather logs <map> [-f] [--tail N]` | map | ✅ | 是 | shard 级输出（已知限制） |
-| `feather eval <map> -- <code>` | map | ✅ | ❌ | JS 表达式求值；需 daemon `--enable-eval` |
-| `feather rm <map> [--force]` | map → gone | ✅ | 是 | 删记录 + 缓存 |
+| `feather build <workspace\|.boxproject>` | workspace → archive | ❌ | 覆盖输出 | spawn `featherd build` |
+| `feather unpack <project archive>` | archive → workspace | ❌ | `--force` | spawn `featherd unpack` |
+| `feather load <archive>` | archive → cached map | ✅ | `--replace` | 安装/更新 image |
+| `feather maps` | 列表 | ✅ | 是 | 列 cached maps |
+| `feather inspect <map>` | map | ✅ | 是 | map 详情 |
+| `feather map rm <map> [--force]` | image → gone | ✅ | 是 | 有 instance 时拒绝 |
+| `feather up [map...] [--name X] [--replicas N]` | map → instance | ✅ | 是 | 创建/启动 instance；无参确保默认 instance |
+| `feather start <instance...>` | instance → running | ✅ | 是 | |
+| `feather stop <instance...>` | running → stopped | ✅ | 是 | 不删 instance |
+| `feather restart <instance...>` | running → running | ✅ | 是 | |
+| `feather ps` | 列表 | ✅ | 是 | 列 instances |
+| `feather logs <instance> [-f] [--tail N]` | instance | ✅ | 是 | shard 级输出 |
+| `feather eval <instance> -- <code>` | instance | ✅ | ❌ | JS eval；需 daemon `--enable-eval` |
+| `feather rm <instance> [--force]` | instance → gone | ✅ | 是 | 删运行副本 |
 
 删除：
 
@@ -440,17 +455,20 @@ new-map         created   -      -       new-map
 | `docker` CLI | `feather` CLI | 只通过 socket 说话 |
 | `dockerd --data-root` | `featherd --data-root` | data root 只属于 daemon |
 | `/var/run/docker.sock`、`DOCKER_HOST` | `~/.feather/daemon.sock`、`--socket`、`FEATHER_SOCKET` | 客户端只用这个找 daemon |
-| `docker load` | `feather load` | 归档流给 daemon，不自己写 data root |
-| image / container | **没有对应** | archive 不是 image；map 不会一对多 |
-| `docker start` | `feather up <map...>` | 只能启动已导入的 map |
-| `docker stop` | `feather stop <map...>` | 不删除 |
-| `docker rm` | `feather rm <map>` | 删记录 + 缓存 |
-| `docker ps` | `feather ps` | 含 created/stopped |
-| `docker logs` | `feather logs <map>` | 目前是 shard 级输出 |
-| `docker exec` | `feather eval <map> -- <code>` | 是 JS eval，不是进程 exec |
-| `docker compose up` | `feather up`（仅批量启动） | 没有 compose 文件、没有 create |
+| `docker load` | `feather load` | 安装/更新 cached map |
+| `docker images` | `feather maps` | 列 cached maps |
+| `docker run --name` | `feather up <map> --name <instance>` | 创建 instance |
+| `--scale` | `feather up <map> --replicas N` | 多 instance |
+| `docker ps` | `feather ps` | 列 instances |
+| `docker start` | `feather start <instance>` | 启动已创建 instance |
+| `docker stop` | `feather stop <instance>` | 不删除 |
+| `docker rm` | `feather rm <instance>` | 删 instance |
+| `docker logs` | `feather logs <instance>` | 目前是 shard 级输出 |
+| `docker exec` | `feather eval <instance> -- <code>` | 是 JS eval，不是进程 exec |
+| `docker compose up` | `feather up`（确保默认 instance） | 没有 compose 文件 |
 | `docker compose down` | **删除** | 停所有 map + 停 daemon 不属于 CLI |
-| `docker volume` | `feather volume`（无命令，仅配置） | 语义不同：SQLite 文件 |
+| `docker volume` | `feather volume`（无命令，仅配置） | SQLite 文件 |
+| `docker rmi` | `feather map rm <map>` | 有 instance 时拒绝 |
 
 **裁决规则**：表里有对应项，按 Docker 的语义裁剪；表里写「没有对应」或「删除」，就不要发明。
 

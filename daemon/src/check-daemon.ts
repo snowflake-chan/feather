@@ -96,20 +96,20 @@ async function main() {
     if (owning.shardId !== stats.shardId) {
       throw new Error(`stats.shardId=${stats.shardId} but a lives on ${owning.shardId}`);
     }
-    const maps = await request(socketPath, 'GET', '/v1/maps');
+    const maps = await request(socketPath, 'GET', '/v1/instances');
     process.stdout.write(`maps=${JSON.stringify(maps.map((m: any) => [m.id, m.state, m.shardId]))}\n`);
     if (maps.length !== 2 || maps.some((m: any) => m.state !== 'running')) throw new Error('maps not running');
     await request(socketPath, 'POST', '/v1/maps/a/stop');
-    const after = await request(socketPath, 'GET', '/v1/maps/b');
+    const after = await request(socketPath, 'GET', '/v1/instances/b');
     if (after.state !== 'running') throw new Error('b not running after a stop');
     // 停完不能留旧端口：留着的话下一次 start 会读到它并报 running（幽灵 running）
-    const stopped = await request(socketPath, 'GET', '/v1/maps/a');
+    const stopped = await request(socketPath, 'GET', '/v1/instances/a');
     if (stopped.state !== 'stopped') throw new Error(`a not stopped: ${stopped.state}`);
     if (stopped.port !== undefined) {
       throw new Error(`a kept stale port after stop: ${stopped.port}`);
     }
     await request(socketPath, 'POST', '/v1/maps/a/start');
-    const restarted = await request(socketPath, 'GET', '/v1/maps/a');
+    const restarted = await request(socketPath, 'GET', '/v1/instances/a');
     if (restarted.state !== 'running' || !restarted.port) {
       throw new Error(`a did not restart cleanly: ${JSON.stringify(restarted)}`);
     }

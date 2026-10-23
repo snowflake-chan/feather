@@ -47,10 +47,13 @@ CLI（Go，`cli-go/`）：
 # daemon 前台运行（另开终端）
 featherd
 
-feather load map.fmap
-feather up
-feather ps
-feather stop my-map
+feather load map.fmap          # install image / cached map
+feather maps                  # list maps
+feather up my-map             # create default instance
+feather up my-map --replicas 2
+feather ps                    # list instances
+feather stop my-map-1
+feather map rm my-map
 ```
 
 客户端命令只通过 `--socket` 找 daemon；`--data-root` 只属于 `featherd`。

@@ -130,6 +130,7 @@ function specFor(
     projectStatePath: statePath,
     contentDir: path.join(dataRoot, 'blobs'),
     projectHash: projectHash(statePath),
+    contentHash: manifest.content?.hash || "",
     port: Number(manifest.runtime?.port) || 0,
     scriptWorkerEntry: path.resolve(__dirname, '../../shell/tools/worker-entry/worker-entry.js'),
     dataDir: path.join(dataRoot, 'maps', id, 'data'),

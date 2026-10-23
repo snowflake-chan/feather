@@ -17,7 +17,75 @@ export interface MapLimits {
   memoryMb?: number;
 }
 
-/** 创建/加载一张地图所需的最小描述 */
+/**
+ * Cached map = Docker image = 定义层。
+ * 一个 map 可以派生多个 running instance；map 内容更新不自动影响已有 instance。
+ */
+export interface MapDefinition {
+  id: string;
+  name?: string;
+  version?: string;
+  /** 内容身份，来自 feather.json.content.hash；instance 创建时 pin 住。 */
+  contentHash: string;
+  size?: number;
+  installedAt: string;
+  /** 安装时从 archive manifest 带下来的默认运行参数。 */
+  defaults?: {
+    port?: number;
+    volume?: string;
+    limits?: MapLimits;
+  };
+  instanceCount: number;
+  labels?: Record<string, string>;
+}
+
+/** Instance = Docker container = map definition 的运行副本。 */
+export interface InstanceSpec {
+  id: string;
+  mapId: string;
+  /** 创建时 pin 的 map content hash；restart 不改变。 */
+  mapContentHash: string;
+  port?: number;
+  volume?: string;
+  limits?: MapLimits;
+  labels?: Record<string, string>;
+}
+
+export interface InstanceStatus {
+  id: string;
+  mapId: string;
+  mapContentHash: string;
+  state: MapState;
+  runtime: 'worker';
+  shardId?: string;
+  port?: number;
+  url?: string;
+  pid?: number;
+  startedAt?: string;
+  engine?: EngineStatus;
+  error?: string;
+  restartPolicy?: RestartPolicy;
+  volume?: string;
+  limits?: MapLimits;
+  labels?: Record<string, string>;
+}
+
+/** engine 边界：由 MapDefinition + InstanceSpec 合成，尽量不改 engine contract。 */
+export interface ResolvedMapSpec extends InstanceSpec {
+  projectHash?: string;
+  projectStatePath?: string;
+  contentDir?: string;
+  scriptWorkerEntry?: string;
+  restartPolicy?: RestartPolicy;
+  dataDir?: string;
+  mode?: 'play' | 'edit';
+  method?: 'local';
+  databaseUrl?: string;
+  dataStorageNamespace?: string;
+  contentId?: number;
+}
+
+/** @deprecated 旧两层模型；迁移完成后由 ResolvedMapSpec 替代。 */
 export interface MapSpec {
   id: string;
   name?: string;
@@ -36,11 +104,18 @@ export interface MapSpec {
   volume?: string;
   dataStorageNamespace?: string;
   contentId?: number;
+  /** instance 所属 cached map；缺省等于 id（旧兼容） */
+  mapId?: string;
+  /** archive content.hash；instance 创建时 pin */
+  contentHash?: string;
   labels?: Record<string, string>;
 }
 
 export interface MapStatus {
   id: string;
+  /** cached map this instance belongs to */
+  mapId?: string;
+  mapContentHash?: string;
   name?: string;
   state: MapState;
   runtime: 'worker';
@@ -139,11 +214,20 @@ export type DaemonEventType =
   | 'map.stopping'
   | 'map.stopped'
   | 'map.error'
-  | 'map.destroyed';
+  | 'map.destroyed'
+  | 'map.installed'
+  | 'map.removed'
+  | 'instance.starting'
+  | 'instance.running'
+  | 'instance.stopping'
+  | 'instance.stopped'
+  | 'instance.error'
+  | 'instance.destroyed';
 
 export interface DaemonEvent {
   type: DaemonEventType;
   mapId?: string;
+  instanceId?: string;
   time: string;
   data?: Record<string, unknown>;
 }
@@ -151,6 +235,7 @@ export interface DaemonEvent {
 export interface Operation {
   id: string;
   mapId: string;
+  instanceId?: string;
   kind: 'start' | 'stop' | 'restart' | 'destroy';
   state: 'pending' | 'running' | 'done' | 'error';
   createdAt: string;
@@ -163,6 +248,7 @@ export interface DaemonInfo {
   apiVersion: string;
   runtime: string;
   maps: number;
+  instances: number;
   shards: number;
   cores: number;
   /** daemon 已运行时长（ms） */
@@ -223,6 +309,12 @@ export interface DaemonHandle {
   info(): Promise<DaemonInfo>;
 
   listMaps(): Promise<MapStatus[]>;
+  listDefinitions(): Promise<MapDefinition[]>;
+  getDefinition(id: string): Promise<MapDefinition | undefined>;
+  listInstances(): Promise<InstanceStatus[]>;
+  createInstance(mapId: string, options?: { id?: string; port?: number; volume?: string; limits?: MapLimits; labels?: Record<string, string> }): Promise<InstanceStatus>;
+  destroyInstance(id: string, opts?: DestroyOptions): Promise<void>;
+  destroyDefinition(mapId: string, opts?: DestroyOptions): Promise<void>;
   getMap(id: string): Promise<MapStatus | undefined>;
   createMap(spec: MapSpec): Promise<MapStatus>;
   importArchive(file: string, options?: { replace?: boolean; purgeData?: boolean }): Promise<{ maps: { id: string; state: string }[] }>;
