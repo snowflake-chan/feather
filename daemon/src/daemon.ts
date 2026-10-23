@@ -475,15 +475,24 @@ export class Daemon implements DaemonHandle {
   public async *logs(id: string, opts: LogOptions = {}): AsyncIterable<LogEntry> {
     const record = this._requireMap(id);
     const shardId = record.shardId;
+    const mapId = record.spec.mapId || record.spec.id;
+    const decorate = (entry: LogEntry): LogEntry => ({
+      ...entry,
+      level: entry.level || (entry.stream === 'stderr' ? 'error' : 'info'),
+      source: entry.source || (entry.stream === 'engine' ? 'engine' : entry.stream === 'script' ? 'script' : 'process'),
+      instanceId: id,
+      mapId,
+      shardId,
+    });
     const store = shardId ? this._shardLogs.get(shardId) || [] : [];
     const tail = opts.tail && opts.tail > 0 ? store.slice(-opts.tail) : store;
-    for (const entry of tail) yield { ...entry };
+    for (const entry of tail) yield decorate(entry);
     if (!opts.follow) return;
     let cursor = store.length;
     while (!this._closed) {
       await new Promise((resolve) => setTimeout(resolve, 200));
       const current = shardId ? this._shardLogs.get(shardId) || [] : [];
-      for (; cursor < current.length; ++cursor) yield { ...current[cursor] };
+      for (; cursor < current.length; ++cursor) yield decorate(current[cursor]);
     }
   }
 

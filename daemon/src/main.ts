@@ -28,6 +28,18 @@ function installProcessErrorHandlers() {
 
 async function main() {
   installProcessErrorHandlers();
+  const argv = process.argv.slice(2);
+  if (argv.length === 1 && (argv[0] === '--help' || argv[0] === '-h')) {
+    console.log('featherd [--data-root <path>] [--socket <path>] [--tcp] [--enable-eval]');
+    console.log('featherd build <workspace>');
+    console.log('featherd unpack <archive>');
+    console.log('featherd workspace init [dir]');
+    return;
+  }
+  if (argv.length === 1 && argv[0] === '--version') {
+    console.log('featherd 0.1.0');
+    return;
+  }
   const tool = process.argv[2];
   if (tool === 'build' || tool === 'unpack' || tool === 'workspace') {
     await runFeatherdTool(process.argv.slice(2));
@@ -78,8 +90,8 @@ async function main() {
   });
   process.on('SIGINT', () => void shutdown());
   process.on('SIGTERM', () => void shutdown());
-  if (api.port) process.stdout.write(`featherd tcp ${api.port}\n`);
-  else process.stdout.write(`featherd uds ${socketPath}\n`);
+  if (api.port) process.stderr.write(`featherd tcp ${api.port}\n`);
+  else process.stderr.write(`featherd uds ${socketPath}\n`);
 }
 
 main().catch((error) => {

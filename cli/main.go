@@ -574,12 +574,33 @@ func run(p *parsed) error {
 				fmt.Println(line)
 				continue
 			}
-			var entry struct{ Time, Stream, Message string }
+			var entry struct {
+				Time, Level, Source, Stream, Message, InstanceId string
+			}
 			if json.Unmarshal([]byte(line), &entry) == nil && entry.Message != "" {
 				if p.flags["--raw"] {
 					fmt.Println(entry.Message)
 				} else {
-					fmt.Printf("%s [%s] %s\n", entry.Time, entry.Stream, entry.Message)
+					stamp := entry.Time
+					if t, err := time.Parse(time.RFC3339Nano, entry.Time); err == nil {
+						stamp = t.Local().Format("15:04:05")
+					}
+					level := entry.Level
+					if level == "" {
+						level = "info"
+					}
+					source := entry.Source
+					if source == "" {
+						source = entry.Stream
+					}
+					if source == "" {
+						source = "process"
+					}
+					instance := entry.InstanceId
+					if instance == "" {
+						instance = "-"
+					}
+					fmt.Printf("%s %-5s %-7s %-12s %s\n", stamp, strings.ToUpper(level), source, instance, entry.Message)
 				}
 			} else {
 				fmt.Println(line)

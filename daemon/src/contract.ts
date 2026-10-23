@@ -202,8 +202,15 @@ export interface MapStats {
 
 export interface LogEntry {
   time: string;
-  stream: 'stdout' | 'stderr' | 'engine' | 'script';
+  level?: 'error' | 'warn' | 'info' | 'debug' | 'trace';
+  source?: 'daemon' | 'gateway' | 'engine' | 'script' | 'process';
+  stream?: 'stdout' | 'stderr' | 'engine' | 'script';
   message: string;
+  instanceId?: string;
+  mapId?: string;
+  shardId?: string;
+  sessionId?: string;
+  fields?: Record<string, unknown>;
 }
 
 export type DaemonEventType =
