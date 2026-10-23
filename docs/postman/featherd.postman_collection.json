@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Feather Daemon API",
-    "description": "Feather local daemon API over Unix domain socket. Import this collection, set the daemonSocket collection variable, then send /_ping.",
+    "description": "Feather daemon API over Unix domain socket. Import this collection, set daemonSocket (and mapId/instanceId), then send /_ping. Maps are images; instances are containers.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -11,6 +11,10 @@
     },
     {
       "key": "mapId",
+      "value": "cloud-4e84ee7ef626058f-imported"
+    },
+    {
+      "key": "instanceId",
       "value": "cloud-4e84ee7ef626058f-imported"
     }
   ],
@@ -23,8 +27,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://unix:{{daemonSocket}}:/_ping",
-            "description": "Liveness. Returns OK."
+            "url": "http://unix:{{daemonSocket}}:/_ping"
           }
         },
         {
@@ -48,14 +51,13 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://unix:{{daemonSocket}}:/v1/shards",
-            "description": "ShardStats[]。资源指标唯一有意义的口径——engine 一个 shard 可以打包多图，CPU / V8 堆是线程 / isolate 共享的，摊不到单图上。cpuPercent 走 worker.cpuUsage()（per-thread，单核满载 = 100，多图可 >100）；heapUsedBytes 走 worker.getHeapStatistics()（per-isolate）；rssBytes 例外，是进程级，每个 shard 报的都一样。采样是按需的，cpuPercent 在 1s 内复用上次结果。"
+            "url": "http://unix:{{daemonSocket}}:/v1/shards"
           }
         }
       ]
     },
     {
-      "name": "Maps",
+      "name": "Maps (definitions)",
       "item": [
         {
           "name": "list maps",
@@ -74,64 +76,7 @@
           }
         },
         {
-          "name": "create map",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "http://unix:{{daemonSocket}}:/v1/maps",
-            "description": "Create a map. Replace ABS and projectHash with real paths/hash.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"id\": \"my-map\",\n  \"name\": \"My Map\",\n  \"projectStatePath\": \"/ABS/workspace/maps/group/worlds/my-map/data/project-state.json\",\n  \"contentDir\": \"/ABS/workspace/maps/group/worlds/my-map/data/blobs\",\n  \"projectHash\": \"Qm...\",\n  \"port\": 0,\n  \"scriptWorkerEntry\": \"/ABS/feather/shell/tools/worker-entry/worker-entry.js\",\n  \"databaseUrl\": \"sqlite:////ABS/workspace/.feather/sqlite/group.sqlite\",\n  \"groupNamespace\": \"group\",\n  \"dataStorageNamespace\": \"my-map\",\n  \"dataDir\": \"/ABS/workspace/.feather/data/my-map\",\n  \"contentId\": 100,\n  \"limits\": { \"players\": 32, \"memoryMb\": 512 }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "start map",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": "http://unix:{{daemonSocket}}:/v1/maps/{{mapId}}/start",
-            "description": "启动地图并分配 shard。shard 按核数分配：预算 = availableParallelism()（可用 FEATHER_MAX_SHARDS 覆盖），预算没用完就一图一 shard，用完才打包。返回的 shardId 可见。"
-          }
-        },
-        {
-          "name": "stop map",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": "http://unix:{{daemonSocket}}:/v1/maps/{{mapId}}/stop"
-          }
-        },
-        {
-          "name": "restart map",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": "http://unix:{{daemonSocket}}:/v1/maps/{{mapId}}/restart"
-          }
-        },
-        {
-          "name": "stats",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "http://unix:{{daemonSocket}}:/v1/maps/{{mapId}}/stats",
-            "description": "MapStats. 只有图自身能测的指标：tickRate = 实测 TPS（标称 15.625 = 1000/64）；tickDuration = 上一采样窗口内每帧的平均计算耗时（ms，对应 MC 的 MSPT），注意不是 1000/tickRate —— 那是帧周期（含等待），空闲图两者能差 150 倍；maxTickDuration = 启动以来最慢的一帧；uptime = 运行时长（ms）。资源指标在 shard 子对象里（cpuPercent / heapUsedBytes / heapTotalBytes / heapLimitBytes / externalBytes），是 shard 口径——同 shard 的图读到同一份数。权威视角用 GET /v1/shards。单位约定：时间默认 ms 不加后缀，字节必须带 Bytes。"
-          }
-        },
-        {
-          "name": "delete map",
+          "name": "delete map (rmi)",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -141,23 +86,105 @@
       ]
     },
     {
-      "name": "Logs / Events",
+      "name": "Instances",
       "item": [
         {
-          "name": "logs tail 50",
+          "name": "list instances",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://unix:{{daemonSocket}}:/v1/maps/{{mapId}}/logs?tail=50"
+            "url": "http://unix:{{daemonSocket}}:/v1/instances"
           }
         },
         {
-          "name": "logs follow",
+          "name": "create instance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mapId\": \"{{mapId}}\",\n  \"id\": \"{{instanceId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "get instance",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "http://unix:{{daemonSocket}}:/v1/maps/{{mapId}}/logs?follow=1&tail=10",
-            "description": "NDJSON stream. Postman may buffer the response until disconnect; use curl -N or feather logs -f for live output."
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}"
+          }
+        },
+        {
+          "name": "start",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}/start"
+          }
+        },
+        {
+          "name": "stop",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}/stop"
+          }
+        },
+        {
+          "name": "restart",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}/restart"
+          }
+        },
+        {
+          "name": "stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}/stats"
+          }
+        },
+        {
+          "name": "delete instance (rm)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logs / Events",
+      "item": [
+        {
+          "name": "instance logs tail 50",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}/logs?tail=50"
+          }
+        },
+        {
+          "name": "instance logs follow",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://unix:{{daemonSocket}}:/v1/instances/{{instanceId}}/logs?follow=1&tail=10"
           }
         },
         {

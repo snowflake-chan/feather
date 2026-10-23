@@ -23,20 +23,21 @@
 ## 1. 对象与状态机
 
 ```
-workspace ──build──▶ archive ──load(daemon)──▶ map (created = cached)
+workspace ──build──▶ archive ──load(daemon)──▶ map (image / cached)
     ▲                                             │
     │                                             │ run
     └────────── unpack ──────────────────────     ▼
-      (project archive → workspace)           map (running)
+      (project archive → workspace)          instance (container)
                                                   │
                                                   │ stop
                                                   ▼
-                                             map (stopped = cached)
+                                             instance (stopped)
 ```
 
 - **workspace**：创作现场。人和 AI 改这里；GUI 编辑器也改这里。
 - **archive**：可分发包。`.fmap`（map archive）、`.boxplay`（play bundle）、`.boxproject`（project archive）。
-- **map**：实体。cached map（`created` / `stopped`）和 running map 都是 map。
+- **map**：cached map / image。已安装的定义，没有运行时状态；从 `load` 起存在。
+- **instance**：map 的运行副本 / container。从 `run` 起存在；一张 map 可以起多个 instance。
 - `project-state.json` **不在工作区里**。它是 archive 的入口文件和运行时状态文件，不是创作源。
 
 ---
@@ -273,10 +274,10 @@ content/
 
 - `map.id`
 - `content.hash`
-- `storage.volume`
-- `runtime`（port / memoryMb / playerLimit）
 
-不参与：`source.*`（provenance）、tar 字节。
+不参与 map 身份：`storage.volume` / `runtime`（instance 的默认/覆盖）、`source.*`（provenance）、tar 字节。
+
+instance 身份 = `instance.id`；绑定 `mapId` + `mapContentHash` + 自己的 overrides。
 
 ### 7.3 不提交 `.fmap`
 
@@ -436,13 +437,19 @@ feather diff --out diff.png
 feather build my-map
 feather pack
 
-# 运行
+# 运行（map = image，instance = container）
 feather load dist/my-map.fmap
-feather run my-map
+feather maps
+feather run my-map                 # 默认 instance id = map id
+feather run my-map --replicas 2    # my-map-1, my-map-2
+feather ps
+feather rmi my-map                 # 有 instance 时拒绝；--force 连 instance 一起删
 ```
 
 规则：
 
+- 一张 map 可以起多个 instance；instance 的运行时数据在 `<dataRoot>/instances/<instanceId>/data`。
+- `load` 只装 map；`run` 才创建 instance；`rm` 删 instance，`rmi` 删 map。
 - 所有编辑命令只改工作区文件，不维护隐藏状态。
 - `feather preview` 是 AI 闭环的必需项；没有预览等于盲写。
 - `feather diff` 是内容级：变化的 chunk 坐标、实体增删、UI 节点、天气字段，外加渲染图。
@@ -461,6 +468,7 @@ GUI 编辑器（如果做）必须遵守：
 5. **预览是只读的。** 预览可以缓存，但不能成为 source of truth。
 6. **失败可见。** schema 错误、跨引用错误、palette 不匹配、merge 冲突，都要在编辑器里明确显示，不静默修复。
 7. **AI 与人类同权。** 编辑器不提供只有 GUI 能做的操作；否则 AI 永远做不完整。
+8. **编辑 map，不编辑 instance。** 编辑器改 workspace；预览/运行走 build → load → run 得到 instance，不直接改 instance 的运行时数据。
 
 ---
 
@@ -510,11 +518,13 @@ level = "info"
 - 不默认使用 LFS / 外部 blob store。
 - 不改 content 布局（`project-state.json` + `blobs/` 是官方设计）。
 - 不改 `.fmap` / `feather.map` 的 wire 名。
-- 不引入 image / container 二分。
+- 不把 archive 叫 image；map 是 image，instance 是 container。
 
 ---
 
 ## 15. 落地顺序
+
+> 本节是原始落地计划；当前实现状态见 [CLI-CONTRACT.md](CLI-CONTRACT.md) §10。
 
 ### A. 确定性（阻塞项）
 

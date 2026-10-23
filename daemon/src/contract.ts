@@ -217,6 +217,7 @@ export type DaemonEventType =
   | 'map.destroyed'
   | 'map.installed'
   | 'map.removed'
+  | 'instance.created'
   | 'instance.starting'
   | 'instance.running'
   | 'instance.stopping'
@@ -316,7 +317,7 @@ export interface DaemonHandle {
   destroyInstance(id: string, opts?: DestroyOptions): Promise<void>;
   destroyDefinition(mapId: string, opts?: DestroyOptions): Promise<void>;
   getMap(id: string): Promise<MapStatus | undefined>;
-  createMap(spec: MapSpec): Promise<MapStatus>;
+  defineMap(spec: MapSpec): Promise<MapDefinition>;
   importArchive(file: string, options?: { replace?: boolean; purgeData?: boolean }): Promise<{ maps: { id: string; state: string }[] }>;
   startMap(id: string): Promise<Operation>;
   stopMap(id: string, opts?: StopOptions): Promise<Operation>;

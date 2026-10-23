@@ -3,16 +3,17 @@
 > **状态**：本文关于 **data root、volume、`.fmap` 归档格式** 的部分仍然有效。
 > workspace 布局、创作流程、git/merge 已迁移到 [MAP-AUTHORING.md](MAP-AUTHORING.md)；命令面见 [CLI-CONTRACT.md](CLI-CONTRACT.md)。
 
-feather 没有 workspace 编排文件。一个可玩地图是 data root 下的一个 `feather.map` 目录：
+feather 没有 workspace 编排文件。cached map（image）在 data root 的 `maps/` 下，运行副本（instance）在 `instances/` 下：
 
 ```text
-~/.feather/                 # 默认 data root，可用 FEATHER_DATA_DIR 覆盖
-  blobs/                  # 全局 content-addressed store，所有地图共享
-  maps/<mapId>/
+~/.feather/                 # 默认 data root，可用 FEATHER_DATA_ROOT 覆盖
+  blobs/                    # 全局 content-addressed store，所有地图共享
+  maps/<mapId>/             # cached map / image
     feather.json
     content/
       project-state.json
-    data/                 # 运行时由 engine 写入
+  instances/<instanceId>/   # 运行副本 / container
+    data/                   # 运行时由 engine 写入
   volumes/<volume>.db
   daemon.sock
   daemon.pid
@@ -91,12 +92,12 @@ database_url
 "storage": { "volume": "bedwars-group" }
 ```
 
-- 不写：每张图独立 `<dataRoot>/volumes/<mapId>.db`
-- 显式同名：共享同一个 `.db`
-- 每张图私有 namespace 仍然用 `map.id`
-- 显式 volume 同时作为 group namespace
-
-暂不支持 `"instance"`；实例 isolation 以后再做。
+- 不写：每个 instance 独立 `<dataRoot>/volumes/<instanceId>.db`
+- 显式同名：共享同一个 `.db`（SQLite 多写要警告；跨实例共享建议 Postgres）
+- 每个 instance 的 `dataStorageNamespace` 用 `instance.id`
+- `feather.toml` 的 `[storage].volume` 是 map 的默认值；`run --volume` 可覆盖
+- 迁移中：`run` 未指定 `--volume` 时当前默认 = instance id；目标是继承 map 的 `[storage].volume`
+- 显式 volume 仍可作为 group namespace 的兼容别名（group 已废弃）
 
 ## 构建
 
@@ -107,8 +108,9 @@ workspace 布局、`kind = baked|native|boxproject`、JSON sections、chunks、g
 ## 从 `.boxplay` 导入
 
 ```bash
-pnpm --filter @feather/cli build
 feather load /path/to/map.fmap
+feather maps
+feather run <mapId>
 ```
 
 一个 `.boxplay` group 会拆成多个独立地图：
@@ -124,6 +126,8 @@ feather load /path/to/map.fmap
 ```
 
 同一个 `mapGroupId` 下所有成员写同一个 `storage.volume`，用于共享 group storage。
+
+`load` 只安装 cached map；`run` 才创建 instance，instance 的运行时数据在 `<dataRoot>/instances/<instanceId>/data`。
 
 ## `.fmap`
 
@@ -149,11 +153,13 @@ feather load map.fmap
 featherd --data-root /var/lib/feather
 
 # 客户端只认 socket
-feather run
-feather run cloud-4e84... cloud-3b56...
+feather maps
+feather run cloud-4e84...                 # 默认 instance id = map id
+feather run cloud-4e84... --replicas 2    # cloud-4e84...-1 / -2
+feather run cloud-4e84... cloud-3b56...   # 每张 map 一个默认 instance
 feather ps
-feather logs <id> -f
-feather stop <id> <id2>
+feather logs <instance> -f
+feather stop <instance> [<instance>...]
 ```
 
 ## `.boxproject`

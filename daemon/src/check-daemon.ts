@@ -58,13 +58,15 @@ async function main() {
   const daemon = await createDaemon({ dataDir: path.join(workspace, '.feather'), socketPath });
   const api = await startApiServer(daemon, { socketPath });
   try {
-    await request(socketPath, 'POST', '/v1/maps', makeMap('a'));
-    await request(socketPath, 'POST', '/v1/maps', makeMap('b'));
-    await request(socketPath, 'POST', '/v1/maps/a/start');
-    await request(socketPath, 'POST', '/v1/maps/b/start');
+    await daemon.defineMap(makeMap('a'));
+    await daemon.defineMap(makeMap('b'));
+    await request(socketPath, 'POST', '/v1/instances', { mapId: 'a', id: 'a' });
+    await request(socketPath, 'POST', '/v1/instances', { mapId: 'b', id: 'b' });
+    await request(socketPath, 'POST', '/v1/instances/a/start');
+    await request(socketPath, 'POST', '/v1/instances/b/start');
     // 等一个 stats 采样窗口（shard 侧 1s 一次）
     await new Promise((resolve) => setTimeout(resolve, 2500));
-    const stats = await request(socketPath, 'GET', '/v1/maps/a/stats');
+    const stats = await request(socketPath, 'GET', '/v1/instances/a/stats');
     process.stdout.write(`stats=${JSON.stringify(stats)}\n`);
     if (!(stats.tickRate > 0)) throw new Error(`tickRate missing: ${JSON.stringify(stats)}`);
     if (!(stats.tickDuration > 0)) throw new Error(`tickDuration missing: ${JSON.stringify(stats)}`);
@@ -99,7 +101,7 @@ async function main() {
     const maps = await request(socketPath, 'GET', '/v1/instances');
     process.stdout.write(`maps=${JSON.stringify(maps.map((m: any) => [m.id, m.state, m.shardId]))}\n`);
     if (maps.length !== 2 || maps.some((m: any) => m.state !== 'running')) throw new Error('maps not running');
-    await request(socketPath, 'POST', '/v1/maps/a/stop');
+    await request(socketPath, 'POST', '/v1/instances/a/stop');
     const after = await request(socketPath, 'GET', '/v1/instances/b');
     if (after.state !== 'running') throw new Error('b not running after a stop');
     // 停完不能留旧端口：留着的话下一次 start 会读到它并报 running（幽灵 running）
@@ -108,7 +110,7 @@ async function main() {
     if (stopped.port !== undefined) {
       throw new Error(`a kept stale port after stop: ${stopped.port}`);
     }
-    await request(socketPath, 'POST', '/v1/maps/a/start');
+    await request(socketPath, 'POST', '/v1/instances/a/start');
     const restarted = await request(socketPath, 'GET', '/v1/instances/a');
     if (restarted.state !== 'running' || !restarted.port) {
       throw new Error(`a did not restart cleanly: ${JSON.stringify(restarted)}`);

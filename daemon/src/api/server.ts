@@ -73,11 +73,6 @@ export async function startApiServer(
       if (url.pathname === '/v1/maps' && req.method === 'GET') {
         return json(res, 200, await daemon.listDefinitions());
       }
-      if (url.pathname === '/v1/maps' && req.method === 'POST') {
-        const body = (await readJson(req)) as MapSpec;
-        const status = await daemon.createMap(body);
-        return json(res, 201, status);
-      }
       if (url.pathname === '/v1/maps/import' && req.method === 'POST') {
         const tmp = path.join(os.tmpdir(), `feather-import-${process.pid}-${Date.now()}.fmap`);
         try {
@@ -193,55 +188,6 @@ export async function startApiServer(
             throw e;
           }
           res.writeHead(204);
-          return res.end();
-        }
-        if (action === 'start' && req.method === 'POST') {
-          return json(res, 202, await daemon.startMap(id));
-        }
-        if (action === 'stop' && req.method === 'POST') {
-          const timeoutMs = Number(url.searchParams.get('timeout') || 30) * 1000;
-          return json(res, 202, await daemon.stopMap(id, {
-            timeoutMs,
-            force: url.searchParams.get('force') === '1',
-          }));
-        }
-        if (action === 'restart' && req.method === 'POST') {
-          const timeoutMs = Number(url.searchParams.get('timeout') || 60) * 1000;
-          return json(res, 202, await daemon.restartMap(id, {
-            timeoutMs,
-            force: url.searchParams.get('force') === '1',
-          }));
-        }
-        if (action === 'stats' && req.method === 'GET') {
-          return json(res, 200, await daemon.stats(id));
-        }
-        if ((action === 'exec' || action === 'eval') && req.method === 'POST') {
-          const body = (await readJson(req)) as { command?: string; code?: string };
-          const command = String(body.command ?? body.code ?? '');
-          if (!command.trim()) return error(res, 422, 'INVALID_SPEC', 'missing command');
-          const result = await daemon.exec(id, command);
-          return json(res, 200, { result });
-        }
-        if (action === 'logs' && req.method === 'GET') {
-          res.writeHead(200, {
-            'Content-Type': 'application/x-ndjson',
-            'Cache-Control': 'no-store',
-          });
-          res.flushHeaders?.();
-          res.socket?.setNoDelay(true);
-          const follow = url.searchParams.get('follow') === '1';
-          const tail = Number(url.searchParams.get('tail') || 0) || undefined;
-          let closed = false;
-          res.on('close', () => {
-            closed = true;
-          });
-          const iterator = daemon.logs(id, { follow, tail })[Symbol.asyncIterator]();
-          while (!closed) {
-            const next = await iterator.next();
-            if (next.done) break;
-            const entry: LogEntry = next.value;
-            res.write(`${JSON.stringify(entry)}\n`);
-          }
           return res.end();
         }
       }

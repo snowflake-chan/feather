@@ -4,12 +4,12 @@
 
 ## 1. 定位
 
-daemon 是 **supervisor**：
+daemon 是 **supervisor**，管理两层资源：
 
-- 管理多张地图的运行时（map runtime）
-- 负责 start/stop/restart/destroy、日志、统计、事件
-- 不处理玩家 session，不暴露 `createSession`
-- 默认只监听本机（Unix socket 或 127.0.0.1）
+- **cached map**（image）：已安装的地图定义；`load` 产生。
+- **instance**（container）：map 的运行副本；`run` 产生，一张 map 可以起多个。
+
+daemon 负责 instance 的 start/stop/restart/destroy、日志、统计、事件；不处理玩家 session，不暴露 `createSession`。默认只监听本机（Unix socket 或 127.0.0.1）。
 
 Game API（玩家）见 [API-DESIGN.md](API-DESIGN.md)。
 
@@ -17,7 +17,7 @@ Game API（玩家）见 [API-DESIGN.md](API-DESIGN.md)。
 
 | 项 | 默认 |
 |---|---|
-| 传输 | Unix socket `/var/run/feather/daemon.sock` |
+| 传输 | Unix socket `~/.feather/daemon.sock` |
 | TCP 回退 | `127.0.0.1:9978`，需显式开启 |
 | 认证 | socket 文件权限 `0600`；TCP 用本地 token |
 | CORS | **不允许** |
@@ -31,12 +31,23 @@ Game API（玩家）见 [API-DESIGN.md](API-DESIGN.md)。
 
 | 资源 | 说明 |
 |---|---|
-| Map | 一张地图的运行时；有 spec / status / stats |
-| Operation | 异步 start/stop/restart/delete 的操作记录 |
-| Event | 生命周期事件流 |
-| Log | 每个 map 的日志流 |
+| MapDefinition | cached map / image：id、version、contentHash、size、installedAt、defaults、instanceCount |
+| Instance | container：id、mapId、mapContentHash、state、port、shardId、dataDir、volume、limits |
+| Operation | 异步 start/stop/restart/destroy 的记录；引用 `instanceId` |
+| Event | map / instance 生命周期事件流 |
+| Log | 每个 instance 的日志流（当前底层仍是 shard 级输出） |
 
-### Map 状态机
+### 3.1 Map 生命周期（image）
+
+```
+installed ──load --replace──▶ updated ──rmi──▶ removed
+```
+
+- map 没有 running 状态；只有 `installedAt` / `contentHash` / `instanceCount`。
+- `DELETE /v1/maps/:id` 在仍有 instance 时返回 `409 MAP_HAS_INSTANCES`；`?force=1` 连 instance 一起删。
+- map 更新不影响已有 instance：instance 创建时 pin `mapContentHash`（当前 `--replace` 例外，见 §4.4）。
+
+### 3.2 Instance 状态机（container）
 
 ```
 created → starting → running → stopping → stopped
@@ -46,55 +57,64 @@ stopped / error → starting（restart）
 任意状态 → destroyed（DELETE，先 stop）
 ```
 
-**shard 崩溃后的自动重启**由 `MapSpec.restartPolicy` 决定：
+**shard 崩溃后的自动重启**由 `InstanceSpec.restartPolicy` 决定：
 
 | 值 | 行为 |
 |---|---|
-| `no`（默认） | 不重启，图停在 `error`，等人工处理 |
+| `no`（默认） | 不重启，instance 停在 `error`，等人工处理 |
 | `on-failure` | 仅当 shard 以非 0 退出码结束时重启 |
 | `always` | 无论退出码都重启 |
 
-退避从 1s 起翻倍、上限 30s；连续失败 5 次后放弃，把原因写进 `MapStatus.error`。
-计数在两种情况下清零：图稳定运行超过 60s 之后又崩，或用户手动 `start` / `stop`。
+退避从 1s 起翻倍、上限 30s；连续失败 5 次后放弃，把原因写进 `InstanceStatus.error`。
+计数在两种情况下清零：instance 稳定运行超过 60s 之后又崩，或用户手动 `start` / `stop`。
 退避期间执行 `stop` / `destroy` 会取消待执行的重启。
 
 ## 4. Endpoints
 
 所有管理接口在 `/v1` 下；`/_ping` 不带版本。
 
+### 4.1 Canonical
+
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/_ping` | liveness；`OK`；不需要认证 |
 | GET | `/v1/version` | `{ version, apiVersion }` |
-| GET | `/v1/info` | daemon 信息、runtime、地图数、uptime |
-| GET | `/v1/maps` | 列出 map |
-| POST | `/v1/maps` | 创建 map（CLI 不直接使用） |
-| POST | `/v1/maps/import` | 上传 `.fmap` / `.boxplay`；`?replace=1&purge=1` |
-| GET | `/v1/maps/:id` | map status |
-| DELETE | `/v1/maps/:id` | destroy；`?force=1` |
-| POST | `/v1/maps/:id/start` | start；异步返回 operation |
-| POST | `/v1/maps/:id/stop` | stop；`?timeout=10&force=1` |
-| POST | `/v1/maps/:id/restart` | restart |
-| GET | `/v1/maps/:id/stats` | `tickRate`（TPS）/ `tickDuration`（每帧计算耗时，MC 的 MSPT）/ players / 所在 shard 的资源快照 |
-| GET | `/v1/shards` | 按 shard 报 CPU / V8 堆 / 承载的图；资源指标唯一有意义的口径 |
-| GET | `/v1/maps/:id/logs` | NDJSON；`follow=1&since=&tail=` |
+| GET | `/v1/info` | daemon 信息、maps 数、instances 数、uptime |
+| GET | `/v1/maps` | 列出 `MapDefinition`（不是 instance） |
+| POST | `/v1/maps/import` | 安装 `.fmap` / `.boxplay`；`?replace=1&purge=1` |
+| GET | `/v1/maps/:id` | map definition |
+| DELETE | `/v1/maps/:id` | 移除 cached map；有 instance 时 `409 MAP_HAS_INSTANCES`，`?force=1` |
+| GET | `/v1/instances` | 列出 `InstanceStatus` |
+| POST | `/v1/instances` | 创建 instance：`{ mapId, id?, port?, volume?, limits?, labels? }` |
+| GET | `/v1/instances/:id` | instance status |
+| DELETE | `/v1/instances/:id` | destroy instance；`?force=1` |
+| POST | `/v1/instances/:id/start` | start；异步返回 operation |
+| POST | `/v1/instances/:id/stop` | stop；`?timeout=10&force=1` |
+| POST | `/v1/instances/:id/restart` | restart |
+| GET | `/v1/instances/:id/stats` | `tickRate`（TPS）/ `tickDuration`（每帧计算耗时，MC 的 MSPT）/ players / 所在 shard 的资源快照 |
+| GET | `/v1/instances/:id/logs` | NDJSON；`follow=1&since=&tail=` |
+| POST | `/v1/instances/:id/eval` | JS eval（谨慎；默认关闭） |
+| POST | `/v1/instances/:id/exec` | eval 的兼容别名 |
+| GET | `/v1/shards` | 按 shard 报 CPU / V8 堆 / 承载的 instance；资源指标唯一有意义的口径 |
 | GET | `/v1/events` | NDJSON 生命周期事件；`since=` |
 | GET | `/v1/operations/:id` | 异步操作状态 |
-| POST | `/v1/maps/:id/eval` | JS eval（谨慎；默认关闭） |
-| POST | `/v1/maps/:id/exec` | eval 的兼容别名 |
 | POST | `/v1/shutdown` | 关闭 daemon；仅本地/已认证 |
 | GET | `/v1/metrics` | Prometheus（可选） |
 
-### 4.1 指标口径（`stats` / `shards`）
+### 4.2 兼容别名
 
-资源指标**只有 shard 口径**。engine 允许一个 shard 打包多图，CPU 和 V8 堆是整条线程 / 整个 isolate 共享的，摊不到单张图上。
+没有。发版前不保留 `/v1/maps/:id/{start,stop,restart,stats,logs,eval,exec}` 或 `POST /v1/maps`；cached map 只走 `/v1/maps` / `/v1/maps/import`，运行副本只走 `/v1/instances`。
+
+### 4.3 指标口径（`stats` / `shards`）
+
+资源指标**只有 shard 口径**。engine 允许一个 shard 打包多个 instance，CPU 和 V8 堆是整条线程 / 整个 isolate 共享的，摊不到单个 instance 上。
 
 | 字段 | 口径 | 说明 |
 |---|---|---|
-| `tickRate` | per-map | 实测 TPS。标称 15.625（`1000/64`），掉到标称以下说明已经跟不上 |
-| `tickDuration` | per-map | 上一采样窗口内每帧的平均**计算耗时**（ms，MC 的 MSPT）。**不是** `1000/tickRate` |
-| `maxTickDuration` | per-map | 启动以来最慢的一帧 |
-| `cpuPercent` | per-shard | `worker.cpuUsage()` 窗口差值，单位 %。单核满载 = 100，塞了多图可超过 100 |
+| `tickRate` | per-instance | 实测 TPS。标称 15.625（`1000/64`），掉到标称以下说明已经跟不上 |
+| `tickDuration` | per-instance | 上一采样窗口内每帧的平均**计算耗时**（ms，MC 的 MSPT）。**不是** `1000/tickRate` |
+| `maxTickDuration` | per-instance | 启动以来最慢的一帧 |
+| `cpuPercent` | per-shard | `worker.cpuUsage()` 窗口差值，单位 %。单核满载 = 100，塞了多个 instance 可超过 100 |
 | `heapUsedBytes` / `heapTotalBytes` / `heapLimitBytes` | per-shard | `worker.getHeapStatistics()`，该 isolate 的 V8 堆 |
 | `rssBytes` | 进程级 | 线程共享地址空间，RSS 没有 per-thread 口径。每个 shard 报的都是同一个数 |
 
@@ -116,7 +136,7 @@ stopped / error → starting（restart）
 - **字节必须带后缀**：`heapUsedBytes`、`rssBytes` —— 裸数字不会默认被理解成字节
 - 百分比带 `Percent`，频率带 `Rate`
 
-`GET /v1/maps/:id/stats` 只返回图自己能测的东西，资源以 `shardId` + `shard` 子对象附上：
+`GET /v1/instances/:id/stats` 只返回 instance 自己能测的东西，资源以 `shardId` + `shard` 子对象附上：
 
 ```json
 {
@@ -136,7 +156,7 @@ stopped / error → starting（restart）
 
 ```json
 [
-  {"shardId":"shard-0","maps":["a"],"mapCount":1,"rssBytes":207290368,
+  {"shardId":"shard-0","maps":["a-1"],"mapCount":1,"rssBytes":207290368,
    "uptime":70726,"cpuPercent":2.8,"heapUsedBytes":60761080,
    "heapTotalBytes":67747840,"heapLimitBytes":4345298944,
    "externalBytes":21078111,"sampledAt":"2026-10-20T14:52:15.218Z"},
@@ -147,44 +167,64 @@ stopped / error → starting（restart）
 ]
 ```
 
-采样是**按需**的：请求进来才向 worker 要一次数，`cpuPercent` 在 1s 内复用上次结果（窗口太短会被启动抖动主导）。所以 daemon 空闲时这块零开销。
+`maps` 字段是 instance id。采样是**按需**的：请求进来才向 worker 要一次数，`cpuPercent` 在 1s 内复用上次结果（窗口太短会被启动抖动主导）。所以 daemon 空闲时这块零开销。
 
-### 4.2 创建地图
+### 4.4 安装 cached map
 
 ```http
-POST /v1/maps
-Idempotency-Key: 7f3c...
+POST /v1/maps/import?replace=1
+Content-Type: application/gzip
+
+<.fmap 原始字节>
+```
+
+返回 `201`：
+
+```json
+{ "maps": [{ "id": "bedwars", "state": "created" }] }
+```
+
+- 只写 `<dataRoot>/maps/<mapId>/` + 合并 blobs；**不创建 instance**。
+- `.boxplay` 的多个成员一起注册为多个 cached map。
+- `--replace` 更新 definition；已有 instance pin 旧 `mapContentHash`，不会被自动更新。
+
+`state` 是兼容字段；目标只返回 definition 字段（`id` / `version` / `contentHash`）。
+
+### 4.5 创建 / 启动 instance
+
+```http
+POST /v1/instances
 Content-Type: application/json
 
 {
-  "id": "bedwars-s2",
-  "name": "起床战争·S2",
-  "projectHash": "QmRHV...",
-  "projectStatePath": "/data/maps/bedwars/project-state.json",
-  "port": 3001,
-  "scriptWorkerEntry": "/app/shell/dist/worker-entry.js",
-  "env": { "SCRIPT_MEMORY_LIMIT": "512" },
-  "limits": { "players": 32, "memoryMb": 512 },
-  "restartPolicy": "on-failure",
+  "mapId": "bedwars",
+  "id": "bedwars-2",
+  "port": 3002,
+  "volume": "bedwars-2",
+  "limits": { "players": 32, "memoryMb": 512 }
 }
 ```
 
-返回 `201` + `MapStatus`。`id` 由客户端提供；同一个 `Idempotency-Key` 重放返回同一个结果。
+- `id` 缺省 = `mapId`；重复返回 `409 MAP_CONFLICT`。
+- `volume` 缺省 = `id`；显式同名会共享 SQLite（多写要警告）。
+- 返回 `201` + `InstanceStatus`（`state = "created"`）。
+- `POST /v1/instances/:id/start` 返回 `202` + operation。
 
-### 4.3 停止
+### 4.6 停止 / 重启
 
 ```http
-POST /v1/maps/bedwars-s2/stop?timeout=10
+POST /v1/instances/bedwars-2/stop?timeout=10
+POST /v1/instances/bedwars-2/restart
 ```
 
 - 默认优雅停止：先停止接收新玩家，再让 tick 落地，最后退出
 - `force=1`：直接 terminate
 - 超时返回 `202` + operation；CLI 轮询 `/v1/operations/:id`
 
-### 4.4 日志
+### 4.7 日志
 
 ```http
-GET /v1/maps/bedwars-s2/logs?follow=1&tail=200
+GET /v1/instances/bedwars-2/logs?follow=1&tail=200
 ```
 
 NDJSON，每行一条：
@@ -195,24 +235,32 @@ NDJSON，每行一条：
 
 `stream`: `stdout` | `stderr` | `engine` | `script`。
 
-### 4.5 事件
+当前底层是 shard 级 stdout/stderr，还没有按 instance 打标；per-instance 日志在后续补。
+
+### 4.8 事件
 
 ```http
 GET /v1/events?since=...
 ```
 
 ```json
-{"type":"map.running","mapId":"bedwars-s2","time":"..."}
+{"type":"instance.running","mapId":"bedwars","instanceId":"bedwars-2","time":"..."}
 ```
 
-事件类型：`map.created`、`map.starting`、`map.running`、`map.stopping`、`map.stopped`、`map.error`、`map.destroyed`、`daemon.ready`、`daemon.shutdown`。
+| 层 | 事件 |
+|---|---|
+| map | `map.installed`、`map.updated`、`map.removed` |
+| instance | `instance.created`、`instance.starting`、`instance.running`、`instance.stopping`、`instance.stopped`、`instance.error`、`instance.destroyed` |
+| daemon | `daemon.ready`、`daemon.shutdown` |
+
+> 迁移中：`instance.created` 已发；start/stop 生命周期仍发 `map.starting/running/...`（`mapId` = instance id）。新代码用 `instance.*`。
 
 ## 5. 错误模型
 
 ```json
 {
   "code": "MAP_NOT_FOUND",
-  "message": "map bedwars-s2 not found",
+  "message": "map bedwars not found",
   "details": {}
 }
 ```
@@ -221,40 +269,42 @@ GET /v1/events?since=...
 |---|---|
 | 400 | `INVALID_ARGUMENT` |
 | 401 | `UNAUTHORIZED` |
-| 403 | `FORBIDDEN` |
-| 404 | `MAP_NOT_FOUND` |
-| 409 | `MAP_CONFLICT`、`OPERATION_IN_PROGRESS` |
-| 422 | `INVALID_SPEC` |
+| 403 | `FORBIDDEN`、`EVAL_DISABLED` |
+| 404 | `MAP_NOT_FOUND`、`OPERATION_NOT_FOUND` |
+| 409 | `MAP_CONFLICT`、`MAP_HAS_INSTANCES`、`MAP_BUSY`、`OPERATION_IN_PROGRESS` |
+| 422 | `INVALID_SPEC`、`ARCHIVE_INVALID`、`ARCHIVE_UNSUPPORTED` |
 | 500 | `INTERNAL` |
 | 503 | `NOT_READY` |
 
+- `MAP_NOT_FOUND` 目前同时用于 map 和 instance；后续拆 `INSTANCE_NOT_FOUND`。
+- `MAP_CONFLICT`：import 目标 mapId 已存在，或 instance id 已存在。
+- `MAP_HAS_INSTANCES`：`DELETE /v1/maps/:id` 时仍有 instance。
 - 异步操作返回 `202` + `operation`
 - 冲突时返回 `409`，带当前状态
 - 限流返回 `429` + `Retry-After`（未来）
 
 ## 6. 幂等、并发、分页
 
-- `POST /v1/maps`、`POST .../start|stop|restart` 支持 `Idempotency-Key`
-- 同一 map 同一时间只允许一个生命周期操作；冲突 `409`
-- 列表未来支持 `?limit=&cursor=`；当前地图数量小，先全量
+- `POST /v1/maps/import`、`POST /v1/instances`、`POST .../start|stop|restart` 支持 `Idempotency-Key`
+- 同一个 instance 同一时间只允许一个生命周期操作；冲突 `409`
+- 列表未来支持 `?limit=&cursor=`；当前数量小，先全量
 - 未来更新 spec 用 `If-Match` / generation 做乐观并发
 
-## 7. D2 实现状态
+## 7. 实现状态
 
-- daemon 运行时已落地：`createDaemon()` + UDS/TCP API
-- shard 按核数分配：预算 = `availableParallelism()`（`FEATHER_MAX_SHARDS` 可覆盖），预算没用完就一图一 shard，用完才打包；script 仍一图一个 worker
-- map 状态含 `shardId` / `runtime: "worker"`
-- 资源指标按 shard 采（`worker.cpuUsage()` / `worker.getHeapStatistics()`），不再用 `process.*` —— 后者在 worker 里读的是整个进程，多 shard 会串号
-- `feather run/ps/stop/logs/down` 已接入
-- `featherd` 默认 `~/.feather/daemon.sock`
-- daemon 重启只恢复 map 注册表，不自动启动图；需要显式 `start`
+- map / instance 拆分已在 contract、API、Go CLI 落地：`MapDefinition` / `InstanceSpec` / `InstanceStatus`。
+- `MapStatus` / `MapSpec` 仍保留为 deprecated 兼容类型。
+- `importArchive` 现在只装 definition；但 `--replace` 仍会 force 删除该 map 的 instance。目标是保留 instance、只更新 definition。
+- `instance.created` 已发；start/stop 生命周期仍发 `map.*`，目标是 `instance.*`。
+- `featherd` 默认 `~/.feather/daemon.sock`。
+- daemon 重启只恢复 instance 注册表，不自动启动；需要显式 `run` / `start`。
 
 Postman Collection：[docs/postman/featherd.postman_collection.json](postman/featherd.postman_collection.json)（导入后改 `daemonSocket` 变量）。
 
 Postman 可直接调 UDS：
 
 ```text
-http://unix:/abs/workspace/.feather/daemon.sock:/v1/maps
+http://unix:/Users/you/.feather/daemon.sock:/v1/maps
 ```
 
 Windows named pipe：
@@ -262,8 +312,6 @@ Windows named pipe：
 ```text
 http://unix://./pipe/featherd:/v1/maps
 ```
-
-注意：D2 的 map logs 暂时是 shard 级日志（worker stdout/stderr），还没有按图打标；per-map 日志在 D3 补。
 
 ## 8. Daemon 契约
 
@@ -275,13 +323,22 @@ interface DaemonHandle {
   version(): Promise<{ version: string; apiVersion: string }>;
   info(): Promise<DaemonInfo>;
 
-  listMaps(): Promise<MapStatus[]>;
-  getMap(id: string): Promise<MapStatus | undefined>;
-  createMap(spec: MapSpec): Promise<MapStatus>;
+  // cached maps / images
+  listDefinitions(): Promise<MapDefinition[]>;
+  getDefinition(id: string): Promise<MapDefinition | undefined>;
+  destroyDefinition(mapId: string, opts?: DestroyOptions): Promise<void>;
+
+  // instances / containers
+  listInstances(): Promise<InstanceStatus[]>;
+  createInstance(mapId: string, options?: { id?: string; port?: number; volume?: string; limits?: MapLimits; labels?: Record<string, string> }): Promise<InstanceStatus>;
+  destroyInstance(id: string, opts?: DestroyOptions): Promise<void>;
   startMap(id: string): Promise<Operation>;
   stopMap(id: string, opts?: StopOptions): Promise<Operation>;
   restartMap(id: string): Promise<Operation>;
-  destroyMap(id: string, opts?: DestroyOptions): Promise<void>;
+
+  listMaps(): Promise<MapStatus[]>;
+  getMap(id: string): Promise<MapStatus | undefined>;
+  defineMap(spec: MapSpec): Promise<MapDefinition>;
 
   stats(id: string): Promise<MapStats>;
   listShards(): Promise<ShardStats[]>;
@@ -293,32 +350,45 @@ interface DaemonHandle {
 }
 ```
 
-- `MapSpec` / `MapStatus` / `MapStats` / `ShardStats` / `LogEntry` / `DaemonEvent` / `Operation` 见契约文件
-- 类型只描述 supervisor；单图 engine 仍是 `EngineHandle`
-- D2 已实现 shard worker 多图；共享 HostContext 在 D3
+- `MapDefinition` / `InstanceSpec` / `InstanceStatus` / `ResolvedMapSpec` 见契约文件。
+- `MapSpec` / `MapStatus` 是 deprecated 兼容类型。
+- engine 侧仍然消费 `ResolvedMapSpec`，由 MapDefinition + InstanceSpec 合成；engine contract 尽量不改。
+- `MapStats` 是 per-instance；`ShardStats` 是 per-shard。
 
 ## 9. CLI 映射
 
 | CLI | API |
 |---|---|
 | `feather load <archive>` | `POST /v1/maps/import` |
-| `feather ps` | `GET /v1/maps` |
-| `feather run [id...]` | `GET /v1/maps` + `POST /v1/maps/:id/start` |
-| `feather stop <id...>` | `POST /v1/maps/:id/stop` |
-| `feather restart <id...>` | `POST /v1/maps/:id/restart` |
-| `feather rm <id>` | `DELETE /v1/maps/:id` |
-| `feather logs <id> -f` | `GET /v1/maps/:id/logs?follow=1` |
-| `feather eval <id> -- code` | `POST /v1/maps/:id/eval` |
-| `feather stats <id>`（planned） | `GET /v1/maps/:id/stats` |
+| `feather maps` | `GET /v1/maps` |
+| `feather inspect <map>` | `GET /v1/maps/:id` |
+| `feather rmi <map>` | `DELETE /v1/maps/:id` |
+| `feather run <map>` | `POST /v1/instances` + `POST /v1/instances/:id/start` |
+| `feather ps` | `GET /v1/instances` |
+| `feather start <instance>` | `POST /v1/instances/:id/start` |
+| `feather stop <instance>` | `POST /v1/instances/:id/stop` |
+| `feather restart <instance>` | `POST /v1/instances/:id/restart` |
+| `feather rm <instance>` | `DELETE /v1/instances/:id` |
+| `feather logs <instance> -f` | `GET /v1/instances/:id/logs?follow=1` |
+| `feather eval <instance> -- code` | `POST /v1/instances/:id/eval` |
+| `feather stats <instance>`（planned） | `GET /v1/instances/:id/stats` |
 | `feather events`（planned） | `GET /v1/events` |
 
 ## 10. 迁移
 
-- **D1（本次）**：`@feather/daemon` 只放契约类型；不实现
-- **D2（已完成）**：shard worker supervisor + 本地 UDS API；`ps/run/stop/logs`
-- **D3**：共享 HostContext（content/build/brpc/redis），减少每图重复
-- **D4**：多进程 / 独立 game runtime；daemon 只负责进程与 socket
-- **D5**：events/metrics/exec，CLI 完整
+- **D1**：contract 类型。
+- **D2**：shard worker supervisor + UDS API；map/instance 拆分。
+- **D3**：共享 HostContext，减少每 instance 重复。
+- **D4**：多进程 / 独立 game runtime；daemon 只负责进程与 socket。
+- **D5**：events / metrics / eval，CLI 完整。
+
+当前剩余：
+
+- 删除 `MapSpec` / `MapStatus` 兼容类型。
+- `importArchive` 改为只装 definition，不再创建默认 instance。
+- 事件全面切到 `instance.*`。
+- instance 错误码拆 `INSTANCE_*`。
+- Postman collection 按 maps/instances 重新生成。
 
 ## 11. 明确不做
 

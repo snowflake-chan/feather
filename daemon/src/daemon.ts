@@ -180,35 +180,15 @@ export class Daemon implements DaemonHandle {
     return definition;
   }
 
-  public async createMap(spec: MapSpec): Promise<MapStatus> {
-    if (!spec?.id || !/^[A-Za-z0-9._-]+$/.test(spec.id)) {
-      throw new DaemonError('INVALID_SPEC', `invalid instance id: ${spec?.id || ''}`);
-    }
-    if (this._records.has(spec.id)) {
-      throw new DaemonError('MAP_CONFLICT', `instance already exists: ${spec.id}`);
-    }
-    const definition = this._ensureDefinition(spec);
-    const status: MapStatus = {
-      id: spec.id,
-      mapId: definition.id,
-      mapContentHash: definition.contentHash,
-      name: spec.name,
-      state: 'created',
-      runtime: 'worker',
-      restartPolicy: spec.restartPolicy,
-      volume: spec.volume || spec.id,
-      labels: spec.labels,
-    };
-    this._records.set(spec.id, { spec, status });
-    this._persist();
-    this._event({ type: 'map.created', mapId: spec.id, time: now() });
-    return { ...status };
-  }
-
-  private _installDefinition(spec: MapSpec) {
+  public async defineMap(spec: MapSpec): Promise<MapDefinition> {
     const definition = this._ensureDefinition(spec);
     this._persist();
     this._event({ type: 'map.installed', mapId: definition.id, time: now() });
+    return { ...definition, instanceCount: this._instanceCount(definition.id) };
+  }
+
+  private _installDefinition(spec: MapSpec) {
+    void this.defineMap(spec);
   }
 
   public async importArchive(file: string, options: ImportOptions = {}): Promise<ImportResult> {
@@ -231,7 +211,7 @@ export class Daemon implements DaemonHandle {
       }
       for (const spec of prepared.specs) {
         prepared.install(spec);
-        this._installDefinition(spec);
+        await this.defineMap(spec);
       }
       return {
         maps: prepared.specs.map((spec) => ({ id: spec.id, state: 'created' })),
@@ -398,7 +378,20 @@ export class Daemon implements DaemonHandle {
       limits: options.limits || base.limits,
       labels: { ...(base.labels || {}), ...(options.labels || {}) },
     };
-    const status = await this.createMap(spec);
+    const status: MapStatus = {
+      id,
+      mapId,
+      mapContentHash: definition.contentHash,
+      name: spec.name,
+      state: 'created',
+      runtime: 'worker',
+      restartPolicy: spec.restartPolicy,
+      volume,
+      labels: spec.labels,
+    };
+    this._records.set(id, { spec, status });
+    this._persist();
+    this._event({ type: 'instance.created', mapId, instanceId: id, time: now() });
     return {
       ...status,
       id,
@@ -770,28 +763,21 @@ export class Daemon implements DaemonHandle {
     if (!fs.existsSync(this._stateFile)) return;
     try {
       const parsed = JSON.parse(fs.readFileSync(this._stateFile, 'utf8')) as {
-        maps?: Array<{ definition?: MapDefinition; spec?: MapSpec } | MapSpec>;
+        maps?: Array<{ definition?: MapDefinition; spec?: MapSpec }>;
         instances?: MapSpec[];
       };
-      const legacySpecs: MapSpec[] = [];
       for (const item of parsed.maps || []) {
-        if ('definition' in item && item.definition) {
-          this._definitions.set(item.definition.id, item.definition);
-          if (item.spec) this._definitionSpecs.set(item.definition.id, item.spec);
-        } else {
-          const spec = item as MapSpec;
-          legacySpecs.push(spec);
-          this._ensureDefinition(spec);
-        }
+        if (!item.definition || !item.spec) continue;
+        this._definitions.set(item.definition.id, item.definition);
+        this._definitionSpecs.set(item.definition.id, item.spec);
       }
-      const instances = parsed.instances?.length ? parsed.instances : legacySpecs;
-      for (const spec of instances) {
+      for (const spec of parsed.instances || []) {
         this._records.set(spec.id, {
           spec,
           status: {
             id: spec.id,
             mapId: spec.mapId || spec.id,
-            mapContentHash: spec.contentHash || spec.projectHash || spec.mapId || spec.id,
+            mapContentHash: spec.contentHash || spec.mapId || spec.id,
             name: spec.name,
             state: 'stopped',
             runtime: 'worker',

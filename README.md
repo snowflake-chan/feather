@@ -48,13 +48,18 @@ CLI（Go，`cli-go/`）：
 featherd
 
 feather load map.fmap          # install image / cached map
-feather maps                  # list maps
+feather maps                  # list maps（image）
+feather inspect my-map        # map definition
 feather run my-map             # create default instance
 feather run my-map --replicas 2
-feather ps                    # list instances
+feather ps                    # list instances（container）
+feather start my-map-1
 feather stop my-map-1
+feather rm my-map-1
 feather rmi my-map
 ```
+
+map = image，instance = container；一张 map 可以起多个 instance。`load` 只装 map，`run` 才创建 instance。
 
 客户端命令只通过 `--socket` 找 daemon；`--data-root` 只属于 `featherd`。
 

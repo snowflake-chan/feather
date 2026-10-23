@@ -55,7 +55,8 @@ async function main() {
   });
 
   try {
-    await daemon.createMap(spec);
+    await daemon.defineMap(spec);
+    await daemon.createInstance(spec.id);
     await daemon.startMap(spec.id);
     const first = await daemon.getMap(spec.id);
     if (first?.state !== 'running' || !first.port) {
