@@ -286,7 +286,31 @@ func run(p *parsed) error {
 			printJSON("inspect", json.RawMessage(data))
 			return nil
 		}
-		fmt.Println(string(data))
+		var m map[string]any
+		if err := json.Unmarshal(data, &m); err != nil {
+			return err
+		}
+		defaults, _ := m["defaults"].(map[string]any)
+		limits, _ := defaults["limits"].(map[string]any)
+		fmt.Printf("ID          %v\n", m["id"])
+		fmt.Printf("NAME        %v\n", m["name"])
+		fmt.Printf("VERSION     %v\n", m["version"])
+		fmt.Printf("CONTENT     %v\n", m["contentHash"])
+		fmt.Printf("SIZE        %v\n", m["size"])
+		fmt.Printf("INSTALLED   %v\n", m["installedAt"])
+		fmt.Printf("DEFAULTS    port=%v volume=%v players=%v memoryMb=%v\n", defaults["port"], defaults["volume"], limits["players"], limits["memoryMb"])
+		fmt.Printf("INSTANCES   %v\n", m["instanceCount"])
+		if labels, ok := m["labels"].(map[string]any); ok {
+			parts := []string{}
+			for _, key := range []string{"version", "source"} {
+				if value, ok := labels[key]; ok {
+					parts = append(parts, fmt.Sprintf("%s=%v", key, value))
+				}
+			}
+			if len(parts) > 0 {
+				fmt.Printf("LABELS      %s\n", strings.Join(parts, " "))
+			}
+		}
 		return nil
 	case "build":
 		if len(p.positionals) == 0 {
