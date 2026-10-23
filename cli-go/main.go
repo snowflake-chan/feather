@@ -43,7 +43,7 @@ type parsed struct {
 }
 
 var commands = map[string]bool{
-	"build": true, "unpack": true, "load": true, "up": true,
+	"build": true, "unpack": true, "load": true, "run": true, "rmi": true,
 	"stop": true, "start": true, "restart": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
 }
 
@@ -51,15 +51,14 @@ var valueOptions = map[string]map[string]bool{
 	"build":  {"--output": true, "--project-version": true},
 	"unpack": {"--dir": true},
 	"logs":   {"--tail": true},
-	"up":     {"--name": true, "--replicas": true},
+	"run":    {"--name": true, "--replicas": true},
 }
 var flagOptions = map[string]map[string]bool{
 	"unpack": {"--force": true},
 	"load":   {"--replace": true, "--purge-data": true},
 	"logs":   {"-f": true, "--follow": true},
 	"rm":     {"--force": true},
-	"map":    {"--force": true},
-	"up":     {"--recreate": true},
+	"rmi":    {"--force": true},
 }
 
 func parse(argv []string) (*parsed, error) {
@@ -289,24 +288,6 @@ func run(p *parsed) error {
 		}
 		fmt.Println(string(data))
 		return nil
-	case "map":
-		if len(p.positionals) < 2 || p.positionals[0] != "rm" {
-			return usageError("usage: feather map rm <map> [--force]")
-		}
-		query := ""
-		if p.flags["--force"] {
-			query = "?force=1"
-		}
-		data, err := c.json("DELETE", "/v1/maps/"+url.PathEscape(p.positionals[1])+query, nil)
-		if err != nil {
-			return err
-		}
-		if p.json {
-			printJSON("map.rm", json.RawMessage(data))
-			return nil
-		}
-		fmt.Println("removed\t" + p.positionals[1])
-		return nil
 	case "build":
 		if len(p.positionals) == 0 {
 			return usageError("build requires a workspace or .boxproject")
@@ -431,10 +412,28 @@ func run(p *parsed) error {
 		_ = json.Unmarshal(data, &result)
 		fmt.Println(result["result"])
 		return nil
-	case "up":
+	case "run":
 		return runUp(c, p)
 	case "start", "stop", "restart", "rm":
 		return runMapAction(c, p)
+	case "rmi":
+		if len(p.positionals) == 0 {
+			return usageError("rmi requires a map id")
+		}
+		query := ""
+		if p.flags["--force"] {
+			query = "?force=1"
+		}
+		data, err := c.json("DELETE", "/v1/maps/"+url.PathEscape(p.positionals[0])+query, nil)
+		if err != nil {
+			return err
+		}
+		if p.json {
+			printJSON("rmi", json.RawMessage(data))
+			return nil
+		}
+		fmt.Println("removed\t" + p.positionals[0])
+		return nil
 	}
 	return usageError("unknown command: " + p.command)
 }
@@ -442,21 +441,7 @@ func run(p *parsed) error {
 func runUp(c *client, p *parsed) error {
 	maps := append([]string{}, p.positionals...)
 	if len(maps) == 0 {
-		data, err := c.json("GET", "/v1/maps", nil)
-		if err != nil {
-			return err
-		}
-		var defs []map[string]any
-		if err := json.Unmarshal(data, &defs); err != nil {
-			return err
-		}
-		for _, d := range defs {
-			maps = append(maps, fmt.Sprint(d["id"]))
-		}
-	}
-	if len(maps) == 0 {
-		fmt.Println("no maps")
-		return nil
+		return usageError("run requires a map id")
 	}
 	replicas := 1
 	if value := p.values["--replicas"]; value != "" {
@@ -485,10 +470,7 @@ func runUp(c *client, p *parsed) error {
 		}
 		for _, name := range names {
 			if _, err := c.json("POST", "/v1/instances", map[string]any{"mapId": mapID, "id": name}); err != nil {
-				var ce *cliError
-				if !errors.As(err, &ce) || ce.code != "MAP_CONFLICT" {
-					return err
-				}
+				return err
 			}
 			if _, err := c.json("POST", "/v1/instances/"+url.PathEscape(name)+"/start", nil); err != nil {
 				return err
@@ -508,7 +490,7 @@ func runUp(c *client, p *parsed) error {
 		return err
 	}
 	for _, m := range instances {
-		fmt.Printf("%v\t%v\t%v\t%v\n", m["id"], m["mapId"], m["state"], m["url"])
+		fmt.Printf("%v\t%v\t%v\t%v\tshard=%v\n", m["id"], m["mapId"], m["state"], m["url"], m["shardId"])
 	}
 	return nil
 }
@@ -559,7 +541,7 @@ func runMapAction(c *client, p *parsed) error {
 
 func main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|map|up|start|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
@@ -577,7 +559,7 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|map|up|start|stop|restart|ps|logs|eval|rm>")
+		fmt.Println("feather [--socket <path>] [--json] <build|unpack|load|maps|inspect|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		return
 	}
 	if p.flags["--version"] {

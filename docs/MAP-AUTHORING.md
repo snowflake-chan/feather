@@ -25,7 +25,7 @@
 ```
 workspace ──build──▶ archive ──load(daemon)──▶ map (created = cached)
     ▲                                             │
-    │                                             │ up
+    │                                             │ run
     └────────── unpack ──────────────────────     ▼
       (project archive → workspace)           map (running)
                                                   │
@@ -438,7 +438,7 @@ feather pack
 
 # 运行
 feather load dist/my-map.fmap
-feather up my-map
+feather run my-map
 ```
 
 规则：

@@ -149,8 +149,8 @@ feather load map.fmap
 featherd --data-root /var/lib/feather
 
 # 客户端只认 socket
-feather up
-feather up cloud-4e84... cloud-3b56...
+feather run
+feather run cloud-4e84... cloud-3b56...
 feather ps
 feather logs <id> -f
 feather stop <id> <id2>

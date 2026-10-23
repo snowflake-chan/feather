@@ -2,7 +2,7 @@
 
 ## UDS
 
-1. `feather up`（确保 daemon 已启动）
+1. `feather run`（确保 daemon 已启动）
 2. Postman → Import → File → 选 `featherd.postman_collection.json`
 3. 打开 collection variables，把 `daemonSocket` 改成你的 workspace：
    `/abs/workspace/.feather/daemon.sock`

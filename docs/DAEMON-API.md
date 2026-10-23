@@ -245,7 +245,7 @@ GET /v1/events?since=...
 - shard 按核数分配：预算 = `availableParallelism()`（`FEATHER_MAX_SHARDS` 可覆盖），预算没用完就一图一 shard，用完才打包；script 仍一图一个 worker
 - map 状态含 `shardId` / `runtime: "worker"`
 - 资源指标按 shard 采（`worker.cpuUsage()` / `worker.getHeapStatistics()`），不再用 `process.*` —— 后者在 worker 里读的是整个进程，多 shard 会串号
-- `feather up/ps/stop/logs/down` 已接入
+- `feather run/ps/stop/logs/down` 已接入
 - `featherd` 默认 `~/.feather/daemon.sock`
 - daemon 重启只恢复 map 注册表，不自动启动图；需要显式 `start`
 
@@ -303,7 +303,7 @@ interface DaemonHandle {
 |---|---|
 | `feather load <archive>` | `POST /v1/maps/import` |
 | `feather ps` | `GET /v1/maps` |
-| `feather up [id...]` | `GET /v1/maps` + `POST /v1/maps/:id/start` |
+| `feather run [id...]` | `GET /v1/maps` + `POST /v1/maps/:id/start` |
 | `feather stop <id...>` | `POST /v1/maps/:id/stop` |
 | `feather restart <id...>` | `POST /v1/maps/:id/restart` |
 | `feather rm <id>` | `DELETE /v1/maps/:id` |
@@ -315,7 +315,7 @@ interface DaemonHandle {
 ## 10. 迁移
 
 - **D1（本次）**：`@feather/daemon` 只放契约类型；不实现
-- **D2（已完成）**：shard worker supervisor + 本地 UDS API；`ps/up/stop/logs/down`
+- **D2（已完成）**：shard worker supervisor + 本地 UDS API；`ps/run/stop/logs`
 - **D3**：共享 HostContext（content/build/brpc/redis），减少每图重复
 - **D4**：多进程 / 独立 game runtime；daemon 只负责进程与 socket
 - **D5**：events/metrics/exec，CLI 完整

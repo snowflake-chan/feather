@@ -34,7 +34,7 @@
 | **play bundle** | 神岛导出的可玩包 `.boxplay`，可含多张 map | `PlayBundle` |
 | **project archive** | 神岛导出的项目源码包 `.boxproject` | `buildProjectArchive` |
 | **map** | cached map / image：已安装的定义。从 `load` 起存在 | `MapDefinition` |
-| **instance** | map 的运行副本 / container。从 `up` 起存在 | `InstanceSpec` / `InstanceStatus` |
+| **instance** | map 的运行副本 / container。从 `run` 起存在 | `InstanceSpec` / `InstanceStatus` |
 | **cached map** | 已导入未运行，或已停止的 map。状态 `created` / `stopped` | `<dataRoot>/maps/<id>` |
 | **running map** | 正在运行的 map。状态 `starting` / `running` / `stopping` | `MapState` |
 | **volume** | 存储单元：一个 SQLite 文件 = 一个持久化边界。**不是 Docker volume** | `storage.volume`、`volumes/<volume>.db` |
@@ -70,7 +70,7 @@
 ```
 workspace ──build──▶ archive ──load(daemon)──▶ map (created = cached)
     ▲                                            │
-    │                                            │ up
+    │                                            │ run
     └────────── unpack ──────────────────────    ▼
          (project archive → workspace)       map (running)
                                                  │
@@ -82,15 +82,15 @@ workspace ──build──▶ archive ──load(daemon)──▶ map (created 
 - `build`：一次性 `feather build` 子进程，workspace → archive。
 - `load`：**经 daemon**，archive → map（`created`）。
 - `unpack`：一次性 `feather unpack` 子进程，project archive → workspace。
-- `up`：经 daemon，cached map → running map。
+- `run`：经 daemon，cached map → running map。
 
 ### 2.2 Map 生命周期
 
 ```
-created ──up──▶ starting ──▶ running ──stop──▶ stopping ──▶ stopped
+created ──run──▶ starting ──▶ running ──stop──▶ stopping ──▶ stopped
    ▲                              │                          │
    │                              └──────── error ◀──────────┘
-   └──────────────── up ──────────────────────────────────────┘
+   └──────────────── run ──────────────────────────────────────┘
 任意状态 ──rm──▶ destroyed
 ```
 
@@ -99,7 +99,7 @@ created ──up──▶ starting ──▶ running ──stop──▶ stoppin
 - `stop` **不删除** map，只停运行时；map 回到 cached 状态。
 - `rm` 删除记录 + 缓存内容；运行中必须 `--force` 或先 `stop`。
 - daemon 关闭时停掉所有 map，记录保留为 `stopped`。
-- daemon 启动时恢复记录为 `stopped`，**不自动启动**；启动由 `up` 负责。
+- daemon 启动时恢复记录为 `stopped`，**不自动启动**；启动由 `run` 负责。
 - `ps` 必须能看到 `created` / `stopped`，否则 `load` 之后没有命令能确认安装结果。
 
 ---
@@ -152,12 +152,12 @@ Docker 是三层，feather 也必须三层。之前把 archive 当 image 是错�
 
 规则：
 
-- `load` 安装/更新 cached map；`up` 创建并启动 instance。
+- `load` 安装/更新 cached map；`run` 创建并启动 instance。
 - 一个 map 可以起多个 instance（多房间、测试服、replica）。
 - instance 创建时 pin `mapContentHash`；map 更新不影响 running instance。
-- `--recreate` / `up --recreate` 才把 instance 更新到新内容。
+- 更新镜像后用 `rm` + `run` 重建 instance。
 - 默认 instance id = mapId；`--name` / `--replicas` 生成其它 id。
-- `map rm` 在存在 instance 时拒绝；`--force` 才一起删。
+- `rmi` 在存在 instance 时拒绝；`--force` 才一起删。
 
 ### 3.4 兼容层
 
@@ -265,7 +265,7 @@ feather build <workspace|project archive> [--output <file>] [--project-version <
 - 只有一种启动方式：`featherd`，前台运行，日志写 stdout/stderr。`feather` 不启动 daemon。
 - 停止方式：SIGINT / SIGTERM（Ctrl-C、systemd、容器 stop）。
 - **没有** `feather down`；`/v1/shutdown` 只作为内部/测试 API，不映射成 CLI 命令。
-- **不自动 spawn**。daemon 没起时，`load` / `up` / `ps` / `stop` / `logs` / `eval` / `rm` 一律：
+- **不自动 spawn**。daemon 没起时，`load` / `run` / `ps` / `stop` / `logs` / `eval` / `rm` 一律：
 
   ```
   daemon not running: <socket>
@@ -335,8 +335,8 @@ daemon 侧：
 | `feather load <archive>` | archive → cached map | ✅ | `--replace` | 安装/更新 image |
 | `feather maps` | 列表 | ✅ | 是 | 列 cached maps |
 | `feather inspect <map>` | map | ✅ | 是 | map 详情 |
-| `feather map rm <map> [--force]` | image → gone | ✅ | 是 | 有 instance 时拒绝 |
-| `feather up [map...] [--name X] [--replicas N]` | map → instance | ✅ | 是 | 创建/启动 instance；无参确保默认 instance |
+| `feather rmi <map> [--force]` | image → gone | ✅ | 是 | 有 instance 时拒绝 |
+| `feather run <map> [--name X] [--replicas N]` | map → instance | ✅ | 是 | 创建并启动 instance |
 | `feather start <instance...>` | instance → running | ✅ | 是 | |
 | `feather stop <instance...>` | running → stopped | ✅ | 是 | 不删 instance |
 | `feather restart <instance...>` | running → running | ✅ | 是 | |
@@ -360,17 +360,16 @@ daemon 侧：
 
 占位符统一：`<workspace>`、`<archive>`、`<map>`、`<code>`。不要混用 `<id>` / `<mapId>`。
 
-### 6.1 `up` 的语义
+### 6.1 `run` 的语义
 
-`up` 是**批量启动**，不是 compose 的 create+start：
+`run` 是 Docker 的 create + start：
 
-- 无参：启动 daemon 已知的全部 map。
-- 带参：只启动列出的 map；未知 id → `MAP_NOT_FOUND`。
-- 已 running：no-op，返回当前状态。
+- 必须给 map；未知 id → `MAP_NOT_FOUND`。
+- 同名 instance 已存在 → `MAP_CONFLICT`；用 `start` 启动已有 instance。
 - 不 import、不 build、不 unpack。
-- `up` 之后输出每张 map 的 `id / state / url / shard`。
+- `run` 之后输出 instance 的 `id / map / state / url / shard`。
 
-`stop` 与 `up` 对称，接受多个 id。`restart` 等价于 `stop` + `up`，但原子地由 daemon 执行。
+`start/stop/restart/rm` 只接受 instance id；`restart` 等价于 `stop` + `start`。
 
 ---
 
@@ -443,7 +442,7 @@ lobby-2         stopped   -      -       lobby-2
 new-map         created   -      -       new-map
 ```
 
-`created` 是 `load` 之后、`up` 之前的状态。`VOLUME` 永远有值（默认 = map id），不要写 `-`。
+`created` 是 `load` 之后、`run` 之前的状态。`VOLUME` 永远有值（默认 = map id），不要写 `-`。
 
 ---
 
@@ -457,18 +456,18 @@ new-map         created   -      -       new-map
 | `/var/run/docker.sock`、`DOCKER_HOST` | `~/.feather/daemon.sock`、`--socket`、`FEATHER_SOCKET` | 客户端只用这个找 daemon |
 | `docker load` | `feather load` | 安装/更新 cached map |
 | `docker images` | `feather maps` | 列 cached maps |
-| `docker run --name` | `feather up <map> --name <instance>` | 创建 instance |
-| `--scale` | `feather up <map> --replicas N` | 多 instance |
+| `docker run --name` | `feather run <map> --name <instance>` | 创建并启动 instance |
+| `--scale` | `feather run <map> --replicas N` | 多 instance |
 | `docker ps` | `feather ps` | 列 instances |
 | `docker start` | `feather start <instance>` | 启动已创建 instance |
 | `docker stop` | `feather stop <instance>` | 不删除 |
 | `docker rm` | `feather rm <instance>` | 删 instance |
 | `docker logs` | `feather logs <instance>` | 目前是 shard 级输出 |
 | `docker exec` | `feather eval <instance> -- <code>` | 是 JS eval，不是进程 exec |
-| `docker compose up` | `feather up`（确保默认 instance） | 没有 compose 文件 |
+| `docker compose up` | **删除** | 没有 compose 文件 |
 | `docker compose down` | **删除** | 停所有 map + 停 daemon 不属于 CLI |
 | `docker volume` | `feather volume`（无命令，仅配置） | SQLite 文件 |
-| `docker rmi` | `feather map rm <map>` | 有 instance 时拒绝 |
+| `docker rmi` | `feather rmi <map>` | 有 instance 时拒绝 |
 
 **裁决规则**：表里有对应项，按 Docker 的语义裁剪；表里写「没有对应」或「删除」，就不要发明。
 
@@ -483,7 +482,7 @@ new-map         created   -      -       new-map
 - 删除 `down`；`exec` → `eval`（保留一个版本的 alias 可选）；`load` 拒绝 `.boxproject`。
 - `--force` → `--replace`（load）。
 - 统一 `<map>` 占位符；错误码与退出码按 §8。
-- 修文档漂移：README 的 `--dir` / `cd my-server`；`DAEMON-API.md` 的「up 读 feather.toml」。
+- 修文档漂移：README 的 `--dir` / `cd my-server`。
 
 验收：
 
@@ -560,5 +559,5 @@ ls ~/.feather/.feather                                   # 不存在
 
 1. `exec` → `eval` 的改名。若担心破坏脚本，可保留 `exec` 一个版本作为 deprecated alias。
 2. 默认 socket 路径 `~/.feather/daemon.sock`。若要多用户/多实例隔离，改用 `$XDG_RUNTIME_DIR/feather/daemon.sock`。
-3. `up` 作为唯一的启动动词（不新增 `start`）。若坚持 dockerd 字面，可改为 `start` 并把 `up` 降为 alias。
+3. `run` = create+start；`start` = start existing。
 4. `--replace` 默认保留 `data/`（只换内容）。若希望默认干净覆盖，改为默认 `--purge-data`。

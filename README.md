@@ -49,11 +49,11 @@ featherd
 
 feather load map.fmap          # install image / cached map
 feather maps                  # list maps
-feather up my-map             # create default instance
-feather up my-map --replicas 2
+feather run my-map             # create default instance
+feather run my-map --replicas 2
 feather ps                    # list instances
 feather stop my-map-1
-feather map rm my-map
+feather rmi my-map
 ```
 
 客户端命令只通过 `--socket` 找 daemon；`--data-root` 只属于 `featherd`。
@@ -122,5 +122,5 @@ curl http://127.0.0.1:9977/api/health-check
 
 - **Phase 1（已完成）**：合并、统一 vendor、build + typecheck + smoke
 - **Phase 2（已完成）**：抽 `protocol/`（`ScriptProtocol` + 共享 schema + golden vectors）
-- **Phase 3（D2 已完成）**：daemon shard supervisor + UDS API + `feather up/ps/stop/logs`
+- **Phase 3（D2 已完成）**：daemon shard supervisor + UDS API + `feather run/ps/stop/logs`
 - **Phase 4**：共享 HostContext（C2，content/build 复用）、反代、CI
