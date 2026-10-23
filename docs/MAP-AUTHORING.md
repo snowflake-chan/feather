@@ -49,7 +49,7 @@ featherc init my-map
 # 或 cd my-map && featherc init
 ```
 
-生成空白 `feather.toml`、`project/`、`chunks/`、`scripts/`、`assets/`，可直接 `featherc build my-map`。
+生成空白 `feather.toml`、`project/`、`chunks/`、`scripts/`、`assets/`，可直接 `featherc build [my-map]`。
 
 ## 2. 工作区布局
 
@@ -406,9 +406,9 @@ git config merge.feather-voxel.driver "feather merge-chunk %O %A %B"
 验收：
 
 ```bash
-featherc build my-map
+featherc build [my-map]
 sha256sum dist/my-map.fmap > /tmp/a
-featherc build my-map
+featherc build [my-map]
 sha256sum dist/my-map.fmap > /tmp/b
 diff /tmp/a /tmp/b          # 必须为空
 ```
@@ -445,7 +445,7 @@ featherc preview --out preview.png
 featherc diff --out diff.png
 
 # 构建 / 校验
-featherc build my-map
+featherc build [my-map]
 
 # 运行（map = image，instance = container）
 feather load dist/my-map.fmap

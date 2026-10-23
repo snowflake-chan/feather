@@ -260,7 +260,7 @@ featherc build .                # 校验并组装
 ### 4.5 `build`
 
 ```
-featherc build <workspace|project archive> [--output <file>] [--project-version <v>]
+featherc build [workspace|project archive] [--output <file>] [--project-version <v>]
 ```
 
 - 输入是目录 → 读 `feather.toml`；输入是 `.boxproject` 文件 → 等价于 `kind = "boxproject"` 的临时 workspace。
@@ -346,7 +346,7 @@ daemon 侧：
 | 命令 | 层 | 需要 daemon | 幂等 | 说明 |
 |---|---|---|---|---|
 | `featherc init [dir]` | 创建 workspace | ❌ | `--force` | 默认 cwd；id = 目录名 |
-| `featherc build <workspace\|.boxproject>` | workspace → archive | ❌ | 覆盖输出 | spawn `featherd build` |
+| `featherc build [workspace\|.boxproject]` | workspace → archive | ❌ | 覆盖输出 | spawn `featherd build` |
 | `featherc unpack <project archive>` | archive → workspace | ❌ | `--force` | spawn `featherd unpack` |
 | `feather load <archive>` | archive → cached map | ✅ | `--replace` | 安装/更新 image |
 | `feather maps` | 列表 | ✅ | 是 | 列 cached maps |

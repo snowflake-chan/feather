@@ -335,10 +335,12 @@ func run(p *parsed) error {
 		}
 		return runFeatherd(args)
 	case "build":
-		if len(p.positionals) == 0 {
-			return usageError("build requires a workspace or .boxproject")
+		rootArg := "."
+		if len(p.positionals) > 0 {
+			rootArg = p.positionals[0]
 		}
-		root, err := filepath.Abs(p.positionals[0])
+		root, err := filepath.Abs(rootArg)
+
 		if err != nil {
 			return err
 		}
