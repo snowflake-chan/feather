@@ -7,9 +7,6 @@ export interface InstanceGatewayOptions {
   host?: string;
   /** Start runtime if needed; resolves with internal runtime port. */
   ensureRuntime: () => Promise<number>;
-  /** Called when no active connections for idleMs. */
-  onIdle?: () => void | Promise<void>;
-  idleMs?: number;
 }
 
 /**
@@ -25,7 +22,6 @@ export class InstanceGateway {
   private _sealed = false;
   private _closed = false;
   private _active = 0;
-  private _idleTimer?: NodeJS.Timeout;
   private _startPromise?: Promise<number>;
   private readonly _sockets = new Set<net.Socket>();
 
@@ -55,7 +51,6 @@ export class InstanceGateway {
   public async close(): Promise<void> {
     this._closed = true;
     this._sealed = true;
-    if (this._idleTimer) clearTimeout(this._idleTimer);
     for (const socket of this._sockets) socket.destroy();
     this._sockets.clear();
     await this._closeServer();
@@ -81,23 +76,11 @@ export class InstanceGateway {
     return this._startPromise;
   }
 
-  private _scheduleIdle() {
-    if (!this._options.onIdle) return;
-    if (this._idleTimer) clearTimeout(this._idleTimer);
-    const idleMs = this._options.idleMs ?? 5 * 60_000;
-    this._idleTimer = setTimeout(() => {
-      if (this._active > 0 || this._sealed || this._closed) return;
-      void this._options.onIdle?.();
-    }, idleMs);
-    this._idleTimer.unref?.();
-  }
-
   private _onConnection(client: net.Socket) {
     if (this._sealed || this._closed) {
       client.destroy();
       return;
     }
-    if (this._idleTimer) clearTimeout(this._idleTimer);
     this._active++;
     this._sockets.add(client);
     client.pause();
@@ -105,7 +88,6 @@ export class InstanceGateway {
     const cleanup = () => {
       this._sockets.delete(client);
       this._active = Math.max(0, this._active - 1);
-      if (this._active === 0) this._scheduleIdle();
     };
     client.once('close', cleanup);
     client.once('error', cleanup);

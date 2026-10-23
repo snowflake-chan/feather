@@ -9,7 +9,7 @@
 ## 0. TL;DR
 
 - **map = image**；**instance = registration + runtime**；**session = 玩家会话**。
-- `featherd` 启动后监听地图访问；**玩家进入才启动 runtime / createSession**；空闲后回到 `created`，registration 保留。
+- `featherd` 启动后监听地图访问；**玩家进入才启动 runtime / createSession**；空闲停 runtime 由 GameServer 自己管理，gateway 不重复实现 idle timer。
 - **`create` 注册 + 监听；`run` = create + start；`up` = 从工作区 build + load + start dev instance。**
 - **不需要用 `server.toml` 声明 instance/route**。`state.json` 持久化。
 - CLI 三件套：**`feather`**（runtime / ops）、**`featherc`**（authoring，`apc` 的开放对应物）、**`featherd`**（daemon + one-shot）。
@@ -57,7 +57,7 @@ create ──▶ created ──player/start──▶ starting ──▶ running
 - `running`：有玩家，或 `start` 预热。
 - `idle`：runtime 在，0 玩家；timeout 后回 `created`。
 - `stopped`：listener 和 runtime 都不在；玩家进不来；`start` 恢复。
-- `stop`：下线（runtime + listener）；idle timeout 是内部行为，不是 CLI `stop`。
+- `stop`：停 runtime，listener 保留；`seal` 才关 listener；idle timeout 由 GameServer 自己管理。
 - `rm`：注销。
 - `error`：启动/运行失败；按 `restartPolicy` 处理。
 - daemon 重启恢复 `created` / `stopped`，不自动启动。

@@ -438,9 +438,6 @@ export class Daemon implements DaemonHandle {
       instanceId: id,
       port: spec.publicPort || 0,
       ensureRuntime: () => this._ensureGatewayRuntime(id),
-      onIdle: () => {
-        void this.stopMap(id, { timeoutMs: 5_000 }).catch(() => {});
-      },
     });
     try {
       const publicPort = await gateway.open();
@@ -486,7 +483,6 @@ export class Daemon implements DaemonHandle {
           instanceId: id,
           port: record.spec.publicPort || 0,
           ensureRuntime: () => this._ensureGatewayRuntime(id),
-          onIdle: () => { void this.stopMap(id, { timeoutMs: 5_000 }).catch(() => {}); },
         });
         this._gateways.set(id, gateway);
       }
@@ -628,7 +624,6 @@ export class Daemon implements DaemonHandle {
         instanceId: record.spec.id,
         port: record.spec.publicPort || 0,
         ensureRuntime: () => this._ensureGatewayRuntime(record.spec.id),
-        onIdle: () => { void this.stopMap(record.spec.id, { timeoutMs: 5_000 }).catch(() => {}); },
       });
       try {
         const port = await gateway.open();
