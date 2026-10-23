@@ -45,7 +45,7 @@ workspace ──build──▶ archive ──load(daemon)──▶ map (image / 
 ## 1.5 初始化
 
 ```bash
-feather workspace init my-map
+featherc init my-map
 ```
 
 生成空白 `feather.toml`、`project/`、`chunks/`、`scripts/`、`assets/`，可直接 `featherc build my-map`。

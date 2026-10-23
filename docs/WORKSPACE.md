@@ -21,7 +21,7 @@ feather 没有 workspace 编排文件。cached map（image）在 data root 的 `
   logs/
 ```
 
-`feather.toml` 是 **map 的构建配置**，不会出现在 play 目录里。`feather build` 已实现；workspace 布局与 `kind` 见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §4。
+`feather.toml` 是 **map 的构建配置**，不会出现在 play 目录里。`featherc build` 已实现；workspace 布局与 `kind` 见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §4。
 
 ## `feather.json`
 
@@ -167,10 +167,10 @@ feather stop <instance> [<instance>...]
 `.boxproject` 是可编辑源码，不是可玩 release：
 
 ```bash
-feather unpack project.boxproject --dir my-project
+featherc unpack project.boxproject --dir my-project
 ```
 
-产物是 workspace（`project/` + `chunks/` + `scripts/` + `assets/` + `feather.toml`），见 [MAP-AUTHORING.md](MAP-AUTHORING.md)。`load` 不再接受 `.boxproject`；构建用 `feather build`。
+产物是 workspace（`project/` + `chunks/` + `scripts/` + `assets/` + `feather.toml`），见 [MAP-AUTHORING.md](MAP-AUTHORING.md)。`load` 不再接受 `.boxproject`；构建用 `featherc build`。
 
 ## shard 行为
 

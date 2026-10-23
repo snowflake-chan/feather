@@ -30,7 +30,7 @@
 
 | 词 | 定义 | 代码锚点 |
 |---|---|---|
-| **workspace** | 地图项目目录，构建输入。最少含 `feather.toml`；源码形式见 §4 | `feather.toml`、`feather build <workspace>` |
+| **workspace** | 地图项目目录，构建输入。最少含 `feather.toml`；源码形式见 §4 | `feather.toml`、`featherc build <workspace>` |
 | **archive** | 可分发物的统称。只在文档/文案层使用，不是命令名 | — |
 | **map archive** | 一张 map 的归档，扩展名 `.fmap`，格式标识 `feather.map` | `FmapManifest`、`readFmapManifest` |
 | **play bundle** | 神岛导出的可玩包 `.boxplay`，可含多张 map | `PlayBundle` |
@@ -82,9 +82,9 @@ workspace ──build──▶ archive ──load(daemon)──▶ map (image / 
                                              instance (stopped)
 ```
 
-- `build`：一次性 `feather build` 子进程，workspace → archive。
+- `build`：一次性 `featherc build` 子进程，workspace → archive。
 - `load`：**经 daemon**，archive → cached map（image）。不创建 instance。
-- `unpack`：一次性 `feather unpack` 子进程，project archive → workspace。
+- `unpack`：一次性 `featherc unpack` 子进程，project archive → workspace。
 - `run`：**经 daemon**，map → instance（create + start）。
 - `stop` / `rm` 只作用于 instance；`rmi` 作用于 map。
 
@@ -240,34 +240,34 @@ contentHash = "sha256:..."
 ### 4.4 `unpack`
 
 ```
-feather unpack <project archive> [--dir <workspace>] [--force]
+featherc unpack <project archive> [--dir <workspace>] [--force]
 ```
 
 - 把 archive 的 hash DAG 展开成工作区——`chunks/<x>,<y>,<z>.bin`、各 JSON section、`scripts/`、`assets/`——再写 `feather.toml`。布局见 [MAP-AUTHORING.md](MAP-AUTHORING.md) §2、§7.4。
-- 产出必须**不需要任何修改就能 `feather build`**，且 `content.hash` 与源归档一致。
-- `unpack` 由一次性 `feather unpack` 执行；CLI 不解析 archive、不碰 data root。
+- 产出必须**不需要任何修改就能 `featherc build`**，且 `content.hash` 与源归档一致。
+- `unpack` 由一次性 `featherc unpack` 执行；CLI 不解析 archive、不碰 data root。
 - 目标目录非空时拒绝，除非 `--force`。
 - 默认目录名 = 归档 basename。
 
 验收：
 
 ```bash
-feather unpack bedwars.boxproject --dir bedwars
+featherc unpack bedwars.boxproject --dir bedwars
 cd bedwars
-feather build .                # 校验并组装
+featherc build .                # 校验并组装
 ```
 
 ### 4.5 `build`
 
 ```
-feather build <workspace|project archive> [--output <file>] [--project-version <v>]
+featherc build <workspace|project archive> [--output <file>] [--project-version <v>]
 ```
 
 - 输入是目录 → 读 `feather.toml`；输入是 `.boxproject` 文件 → 等价于 `kind = "boxproject"` 的临时 workspace。
 - `kind = "baked"`：校验 JSON sections + 对每个 chunk 文件做 hash，按官方顺序组装 `voxels.chunks`，写 `.fmap`。
 - 只接受位置参数。不再有 `--workspace` / `-C`；`--version` 保留给 CLI 自身。
 - 版本覆盖用 `--project-version`。
-- 构建由一次性 `feather build` 执行；CLI 只 spawn 并转发 stdout/stderr。daemon 不需要运行。
+- 构建由一次性 `featherc build` 执行；CLI 只 spawn 并转发 stdout/stderr。daemon 不需要运行。
 
 ---
 
@@ -335,7 +335,7 @@ daemon 侧：
 - `--replace`：更新 cached map 内容；若有运行中的 instance，返回 `MAP_BUSY`。`up <archive>` 带 `recreate=1`，才会先 stop + rm 再重建。
 - `--purge-data`：只对旧 per-map `data/` 有效；新模型的 instance data 用 `rm` 删除，flag 将移除。
 
-`.boxproject` 不走这个接口；`load` 遇到 `.boxproject` 直接报 `ARCHIVE_UNSUPPORTED` 并提示 `feather unpack`。
+`.boxproject` 不走这个接口；`load` 遇到 `.boxproject` 直接报 `ARCHIVE_UNSUPPORTED` 并提示 `featherc unpack`。
 
 > `load --replace` 只更新 definition；运行中的 instance 不会被隐式删除。需要重建时用 `up <archive>`。
 
@@ -345,9 +345,9 @@ daemon 侧：
 
 | 命令 | 层 | 需要 daemon | 幂等 | 说明 |
 |---|---|---|---|---|
-| `feather workspace init <dir>` | 创建 workspace | ❌ | `--force` | 空白 project + chunks + assets |
-| `feather build <workspace\|.boxproject>` | workspace → archive | ❌ | 覆盖输出 | spawn `featherd build` |
-| `feather unpack <project archive>` | archive → workspace | ❌ | `--force` | spawn `featherd unpack` |
+| `featherc init <dir>` | 创建 workspace | ❌ | `--force` | 空白 project + chunks + assets |
+| `featherc build <workspace\|.boxproject>` | workspace → archive | ❌ | 覆盖输出 | spawn `featherd build` |
+| `featherc unpack <project archive>` | archive → workspace | ❌ | `--force` | spawn `featherd unpack` |
 | `feather load <archive>` | archive → cached map | ✅ | `--replace` | 安装/更新 image |
 | `feather maps` | 列表 | ✅ | 是 | 列 cached maps |
 | `feather inspect <map>` | map | ✅ | 是 | map 详情 |
@@ -370,8 +370,8 @@ daemon 侧：
 | `feather exec` | 改名 `feather eval`。语义是 JS eval，不是进程 exec |
 | `feather load *.boxproject` | 删除该分支；改用 `unpack` |
 | `feather` 自动 spawn daemon | 删除；daemon 只由 `featherd` 启动 |
-| `feather build --workspace` / `-C` | 删除；只保留位置参数 |
-| `feather build --version` | 删除；改用 `--project-version` |
+| `featherc build --workspace` / `-C` | 删除；只保留位置参数 |
+| `featherc build --version` | 删除；改用 `--project-version` |
 | `feather load --force` | 改名 `--replace`（+ `--purge-data`） |
 | 客户端 `--data-dir` | 删除 |
 
@@ -444,7 +444,7 @@ feather up lobby --scale 3
 反例（现状，必须修）：
 
 ```
-feather build --output ./dist/x.fmap     # 现在把 ./dist/x.fmap 当 workspace
+featherc build --output ./dist/x.fmap     # 现在把 ./dist/x.fmap 当 workspace
 feather stop --socket /tmp/s.sock map-a # 现在把 --socket 当 map id
 ```
 

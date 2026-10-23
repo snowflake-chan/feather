@@ -47,7 +47,7 @@ CLI（Go，`cli-go/`）：
 # daemon 前台运行（另开终端）
 featherd
 
-feather workspace init my-map # blank workspace
+featherc init my-map # blank workspace
 feather load map.fmap          # install image / cached map
 feather maps                  # list maps（image）
 feather inspect my-map        # map definition
@@ -70,6 +70,7 @@ map = image，instance = container；一张 map 可以起多个 instance。`load
 ```bash
 cd cli-go
 go build -o feather .
+go build -ldflags "-X main.mode=authoring" -o featherc .
 ```
 
 ## Smoke

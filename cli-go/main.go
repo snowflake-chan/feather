@@ -20,6 +20,7 @@ import (
 )
 
 var version = "0.0.0"
+var mode = "runtime"
 
 type cliError struct {
 	code string
@@ -43,26 +44,26 @@ type parsed struct {
 }
 
 var commands = map[string]bool{
-	"build": true, "unpack": true, "workspace": true, "load": true, "up": true, "run": true, "rmi": true,
+	"build": true, "unpack": true, "init": true, "load": true, "up": true, "run": true, "rmi": true,
 	"stop": true, "start": true, "restart": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
 }
 
 var valueOptions = map[string]map[string]bool{
-	"build":     {"--output": true, "--project-version": true},
-	"unpack":    {"--dir": true},
-	"logs":      {"--tail": true},
-	"run":       {"--name": true, "--replicas": true},
-	"up":        {"--name": true, "--scale": true, "--replicas": true},
-	"workspace": {"--id": true, "--name": true, "--version": true},
+	"build":  {"--output": true, "--project-version": true},
+	"unpack": {"--dir": true},
+	"logs":   {"--tail": true},
+	"run":    {"--name": true, "--replicas": true},
+	"up":     {"--name": true, "--scale": true, "--replicas": true},
+	"init":   {"--id": true, "--name": true, "--version": true},
 }
 var flagOptions = map[string]map[string]bool{
-	"unpack":    {"--force": true},
-	"load":      {"--replace": true, "--purge-data": true},
-	"logs":      {"-f": true, "--follow": true},
-	"rm":        {"--force": true},
-	"rmi":       {"--force": true},
-	"up":        {"--recreate": true},
-	"workspace": {"--force": true},
+	"unpack": {"--force": true},
+	"load":   {"--replace": true, "--purge-data": true},
+	"logs":   {"-f": true, "--follow": true},
+	"rm":     {"--force": true},
+	"rmi":    {"--force": true},
+	"up":     {"--recreate": true},
+	"init":   {"--force": true},
 }
 
 func parse(argv []string) (*parsed, error) {
@@ -316,11 +317,11 @@ func run(p *parsed) error {
 			}
 		}
 		return nil
-	case "workspace":
-		if len(p.positionals) < 2 || p.positionals[0] != "init" {
-			return usageError("usage: feather workspace init <dir> [--id <id>] [--name <name>] [--version <v>] [--force]")
+	case "init":
+		if len(p.positionals) < 1 {
+			return usageError("usage: featherc init <dir> [--id <id>] [--name <name>] [--version <v>] [--force]")
 		}
-		args := []string{"workspace", "init", p.positionals[1]}
+		args := []string{"workspace", "init", p.positionals[0]}
 		for _, key := range []string{"--id", "--name", "--version"} {
 			if value := p.values[key]; value != "" {
 				args = append(args, key, value)
@@ -721,9 +722,17 @@ func runMapAction(c *client, p *parsed) error {
 	return nil
 }
 
+func modeAuthoringCommand(command string) bool {
+	return command == "init" || command == "build" || command == "unpack"
+}
+
 func main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|workspace|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		if mode == "authoring" {
+			fmt.Println("featherc <init|build|unpack> [options]")
+		} else {
+			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		}
 		return
 	}
 	if len(os.Args) == 2 && os.Args[1] == "--version" {
@@ -741,12 +750,34 @@ func main() {
 		os.Exit(1)
 	}
 	if p.flags["--help"] || p.flags["-h"] {
-		fmt.Println("feather [--socket <path>] [--json] <build|unpack|workspace|load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		if mode == "authoring" {
+			fmt.Println("featherc <init|build|unpack> [options]")
+		} else {
+			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+		}
 		return
 	}
 	if p.flags["--version"] {
 		fmt.Println("feather " + version)
 		return
+	}
+	allowed := map[string]bool{
+		"load": true, "maps": true, "inspect": true, "up": true, "run": true,
+		"start": true, "stop": true, "restart": true, "ps": true, "logs": true,
+		"eval": true, "rm": true, "rmi": true,
+	}
+	if mode == "authoring" {
+		allowed = map[string]bool{"init": true, "build": true, "unpack": true}
+	}
+	if !allowed[p.command] {
+		hint := "feather"
+		use := "featherc"
+		if mode == "authoring" {
+			hint = "featherc"
+			use = "feather"
+		}
+		fmt.Fprintf(os.Stderr, "USAGE: %s does not support %s; use %s\n", hint, p.command, use)
+		os.Exit(2)
 	}
 	if err := run(p); err != nil {
 		var ce *cliError
