@@ -34,11 +34,15 @@ engine 不跑用户脚本；script worker 一图一个，严格隔离。daemon �
 
 ```bash
 pnpm install
-pnpm typecheck     # protocol + transport + shell + engine，0 errors
-pnpm build         # protocol + transport + shell + engine
+pnpm typecheck     # protocol + transport + shell + engine + daemon，0 errors
+pnpm build         # protocol + transport + shell + engine + daemon
 pnpm test:protocol # golden vectors（schema 指纹 + diff/patch 字节）
 pnpm test:daemon   # shard + daemon API E2E（需要 BOX_BUNDLED_CONTENT_PATH）
 ```
+
+> `typecheck` 中 protocol / transport / engine 使用 `--emitDeclarationOnly`：下游包通过
+> `dist/*.d.ts` 解析 workspace 类型，干净 checkout 下无需先 `build`。该命令只产出声明文件，
+> JS 仍由 `build` 生成。
 
 CLI（Go，`cli/`）：
 
