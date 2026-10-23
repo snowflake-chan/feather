@@ -46,7 +46,7 @@ type parsed struct {
 }
 
 var commands = map[string]bool{
-	"build": true, "unpack": true, "init": true, "load": true, "up": true, "run": true, "rmi": true,
+	"build": true, "unpack": true, "init": true, "load": true, "create": true, "up": true, "run": true, "rmi": true,
 	"stop": true, "start": true, "restart": true, "ps": true, "maps": true, "inspect": true, "map": true, "logs": true, "eval": true, "rm": true,
 }
 
@@ -54,6 +54,7 @@ var valueOptions = map[string]map[string]bool{
 	"build":  {"--output": true, "--project-version": true},
 	"unpack": {"--dir": true},
 	"logs":   {"--tail": true},
+	"create": {"--name": true, "--replicas": true, "--scale": true},
 	"run":    {"--name": true, "--replicas": true},
 	"up":     {"--name": true, "--scale": true, "--replicas": true},
 	"init":   {"--id": true, "--name": true, "--version": true},
@@ -657,6 +658,8 @@ func run(p *parsed) error {
 		return nil
 	case "up":
 		return runDeploy(c, p)
+	case "create":
+		return runCreate(c, p)
 	case "run":
 		return runUp(c, p)
 	case "start", "stop", "restart", "rm":
@@ -847,6 +850,66 @@ func runDeploy(c *client, p *parsed) error {
 	if !p.flags["--quiet"] {
 		for _, m := range targets {
 			fmt.Printf("started  %v  map=%v  state=%v  url=%v\n", m["id"], m["mapId"], m["state"], m["url"])
+		}
+	}
+	return nil
+}
+
+func runCreate(c *client, p *parsed) error {
+	if len(p.positionals) == 0 {
+		return usageError("create requires a map id")
+	}
+	scale := 1
+	if value := p.values["--scale"]; value != "" {
+		n, err := strconv.Atoi(value)
+		if err != nil || n < 1 {
+			return usageError("--scale must be >= 1")
+		}
+		scale = n
+	} else if value := p.values["--replicas"]; value != "" {
+		n, err := strconv.Atoi(value)
+		if err != nil || n < 1 {
+			return usageError("--replicas must be >= 1")
+		}
+		scale = n
+	}
+	baseName := p.values["--name"]
+	names := []string{}
+	for _, mapID := range p.positionals {
+		targets := []string{}
+		if scale == 1 {
+			name := baseName
+			if name == "" {
+				name = mapID
+			}
+			targets = append(targets, name)
+		} else {
+			base := baseName
+			if base == "" {
+				base = mapID
+			}
+			for i := 1; i <= scale; i++ {
+				targets = append(targets, fmt.Sprintf("%s-%d", base, i))
+			}
+		}
+		for _, name := range targets {
+			if _, err := c.json("POST", "/v1/instances", map[string]any{"mapId": mapID, "id": name}); err != nil {
+				return err
+			}
+			names = append(names, name)
+		}
+	}
+	created, err := fetchInstances(c, names)
+	if err != nil {
+		return err
+	}
+	if p.json {
+		printJSON("create", created)
+		return nil
+	}
+	if !p.flags["--quiet"] {
+		for _, m := range created {
+			fmt.Printf("created  %v  map=%v  state=%v\n", m["id"], m["mapId"], m["state"])
 		}
 	}
 	return nil
@@ -1052,7 +1115,7 @@ func main() {
 		if mode == "authoring" {
 			fmt.Println("featherc <init|build|unpack> [options]")
 		} else {
-			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|create|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		}
 		return
 	}
@@ -1077,7 +1140,7 @@ func main() {
 		if mode == "authoring" {
 			fmt.Println("featherc <init|build|unpack> [options]")
 		} else {
-			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
+			fmt.Println("feather [--socket <path>] [--json] <load|maps|inspect|create|up|run|start|stop|restart|ps|logs|eval|rm|rmi>")
 		}
 		return
 	}
@@ -1086,7 +1149,7 @@ func main() {
 		return
 	}
 	allowed := map[string]bool{
-		"load": true, "maps": true, "inspect": true, "up": true, "run": true,
+		"load": true, "maps": true, "inspect": true, "create": true, "up": true, "run": true,
 		"start": true, "stop": true, "restart": true, "ps": true, "logs": true,
 		"eval": true, "rm": true, "rmi": true,
 	}

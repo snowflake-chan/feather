@@ -81,7 +81,8 @@ content  sha256:...
 一行一个受影响对象：
 
 ```text
-created  bedwars-1  map=bedwars  port=3001
+created  bedwars-1  map=bedwars  state=created
+started  bedwars-1  map=bedwars  state=running
 removed  bedwars-1
 loaded   bedwars  sha256:...
 ```

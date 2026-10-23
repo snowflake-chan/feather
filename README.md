@@ -54,12 +54,13 @@ featherc init [my-map]        # blank workspace; default cwd
 feather load [map.fmap]       # default: cwd archive
 feather maps                  # list maps（image）
 feather inspect my-map        # map definition
-feather up                    # workspace cwd: build + load + recreate/start
-feather run my-map             # primitive create+start
+feather create my-map         # register instance, no runtime
+feather start my-map          # start runtime
+feather run my-map            # create + start
+feather up                    # workspace cwd: build + load + start
 feather up my-map --scale 2
 feather ps                    # list instances（container）
-feather start my-map-1
-feather stop my-map-1
+feather stop my-map-1         # stop runtime, keep registration
 feather rm my-map-1
 feather rmi my-map
 ```

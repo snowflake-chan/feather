@@ -353,7 +353,8 @@ daemon 侧：
 | `feather inspect <map>` | map | ✅ | 是 | map 详情 |
 | `feather rmi <map> [--force]` | image → gone | ✅ | 是 | 有 instance 时拒绝；`--force` 连 instance 一起删 |
 | `feather up [workspace\|archive\|map] [--name X] [--scale N]` | workspace/archive/map → instance | ✅ | 是 | 自动 load + run；hash 变化自动 recreate |
-| `feather run <map> [--name X] [--replicas N]` | map → instance | ✅ | 是 | 创建并启动 instance |
+| `feather create <map> [--name X] [--scale N]` | map → instance | ✅ | 是 | 注册 instance；不启动 runtime |
+| `feather run <map> [--name X] [--replicas N]` | map → instance | ✅ | 是 | create + start |
 | `feather start <instance...>` | instance → running | ✅ | 是 | |
 | `feather stop <instance...>` | running → stopped | ✅ | 是 | 不删 instance |
 | `feather restart <instance...>` | running → running | ✅ | 是 | |
