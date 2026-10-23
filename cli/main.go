@@ -85,6 +85,10 @@ func parse(argv []string) (*parsed, error) {
 			p.json = true
 			continue
 		}
+		if token == "--no-headers" || token == "--wide" || token == "--quiet" || token == "--verbose" {
+			p.flags[token] = true
+			continue
+		}
 		if token == "--socket" {
 			if i+1 >= len(argv) {
 				return nil, usageError("missing value for --socket")
@@ -245,12 +249,14 @@ func printHumanError(err error) {
 	}
 }
 
-func writeTable(headers []string, rows [][]string) {
+func writeTable(headers []string, rows [][]string, noHeaders bool) {
 	if len(rows) == 0 {
 		return
 	}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, strings.Join(headers, "\t"))
+	if !noHeaders {
+		fmt.Fprintln(w, strings.Join(headers, "\t"))
+	}
 	for _, row := range rows {
 		fmt.Fprintln(w, strings.Join(row, "\t"))
 	}
@@ -276,6 +282,47 @@ func runFeatherd(args []string) error {
 		return nil
 	}
 	return err
+}
+
+func featherdBin() string {
+	bin := os.Getenv("FEATHERD_BIN")
+	if bin == "" {
+		bin = "featherd"
+	}
+	return bin
+}
+
+func runFeatherdToStderr(args []string) error {
+	cmd := exec.Command(featherdBin(), args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func runFeatherdJSON(args []string, command string) error {
+	cmd := exec.Command(featherdBin(), args...)
+	cmd.Stdin = os.Stdin
+	var out, errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	if err := cmd.Run(); err != nil {
+		message := strings.TrimSpace(errOut.String())
+		if message == "" {
+			message = strings.TrimSpace(out.String())
+		}
+		if message == "" {
+			message = err.Error()
+		}
+		return runtimeError("CHILD_FAILED", message)
+	}
+	if progress := strings.TrimSpace(errOut.String()); progress != "" {
+		fmt.Fprintln(os.Stderr, progress)
+	}
+	if text := strings.TrimSpace(out.String()); text != "" {
+		fmt.Println(text)
+	}
+	return nil
 }
 
 func run(p *parsed) error {
@@ -315,7 +362,7 @@ func run(p *parsed) error {
 			}
 			rows = append(rows, []string{fmt.Sprint(m["id"]), fmt.Sprint(m["mapId"]), fmt.Sprint(m["state"]), port, shard, volume})
 		}
-		writeTable([]string{"INSTANCE", "MAP", "STATE", "PORT", "SHARD", "VOLUME"}, rows)
+		writeTable([]string{"INSTANCE", "MAP", "STATE", "PORT", "SHARD", "VOLUME"}, rows, p.flags["--no-headers"])
 		return nil
 	case "maps":
 		data, err := c.json("GET", "/v1/maps", nil)
@@ -338,7 +385,7 @@ func run(p *parsed) error {
 		for _, m := range maps {
 			rows = append(rows, []string{fmt.Sprint(m["id"]), fmt.Sprint(m["version"]), fmt.Sprint(m["contentHash"]), fmt.Sprint(m["size"]), fmt.Sprint(m["instanceCount"])})
 		}
-		writeTable([]string{"ID", "VERSION", "HASH", "SIZE", "INSTANCES"}, rows)
+		writeTable([]string{"ID", "VERSION", "HASH", "SIZE", "INSTANCES"}, rows, p.flags["--no-headers"])
 		return nil
 	case "inspect":
 		if len(p.positionals) == 0 {
@@ -393,6 +440,7 @@ func run(p *parsed) error {
 		}
 		if p.json {
 			args = append(args, "--json")
+			return runFeatherdJSON(args, "init")
 		}
 		return runFeatherd(args)
 	case "build":
@@ -414,6 +462,7 @@ func run(p *parsed) error {
 		}
 		if p.json {
 			args = append(args, "--json")
+			return runFeatherdJSON(args, "build")
 		}
 		return runFeatherd(args)
 	case "unpack":
@@ -440,6 +489,7 @@ func run(p *parsed) error {
 		}
 		if p.json {
 			args = append(args, "--json")
+			return runFeatherdJSON(args, "unpack")
 		}
 		return runFeatherd(args)
 	case "load":
@@ -483,8 +533,10 @@ func run(p *parsed) error {
 		if err := json.Unmarshal(data, &imported); err != nil {
 			return err
 		}
-		for _, m := range imported.Maps {
-			fmt.Printf("loaded  %s\n", m.ID)
+		if !p.flags["--quiet"] {
+			for _, m := range imported.Maps {
+				fmt.Printf("loaded  %s\n", m.ID)
+			}
 		}
 		return nil
 	case "logs":
@@ -588,12 +640,7 @@ func buildWorkspaceForUp(workspace string) (string, func(), error) {
 	tmpPath := tmp.Name()
 	tmp.Close()
 	os.Remove(tmpPath)
-	toolExitCode = 0
-	if err := runFeatherd([]string{"build", workspace, "--output", tmpPath}); err != nil {
-		os.Remove(tmpPath)
-		return "", nil, err
-	}
-	if toolExitCode != 0 {
+	if err := runFeatherdToStderr([]string{"build", workspace, "--output", tmpPath}); err != nil {
 		os.Remove(tmpPath)
 		return "", nil, runtimeError("BUILD_FAILED", "featherd build failed")
 	}
@@ -746,8 +793,10 @@ func runDeploy(c *client, p *parsed) error {
 		printJSON("up", targets)
 		return nil
 	}
-	for _, m := range targets {
-		fmt.Printf("up  %v  map=%v  state=%v  url=%v\n", m["id"], m["mapId"], m["state"], m["url"])
+	if !p.flags["--quiet"] {
+		for _, m := range targets {
+			fmt.Printf("up  %v  map=%v  state=%v  url=%v\n", m["id"], m["mapId"], m["state"], m["url"])
+		}
 	}
 	return nil
 }
@@ -801,8 +850,10 @@ func runUp(c *client, p *parsed) error {
 		printJSON("run", created)
 		return nil
 	}
-	for _, m := range created {
-		fmt.Printf("created  %v  map=%v  state=%v\n", m["id"], m["mapId"], m["state"])
+	if !p.flags["--quiet"] {
+		for _, m := range created {
+			fmt.Printf("created  %v  map=%v  state=%v\n", m["id"], m["mapId"], m["state"])
+		}
 	}
 	return nil
 }
@@ -821,6 +872,33 @@ func fetchInstances(c *client, names []string) ([]map[string]any, error) {
 		result = append(result, m)
 	}
 	return result, nil
+}
+
+func waitInstance(c *client, id string, terminal []string, timeout time.Duration) (map[string]any, error) {
+	deadline := time.Now().Add(timeout)
+	for {
+		data, err := c.json("GET", "/v1/instances/"+url.PathEscape(id), nil)
+		if err != nil {
+			return nil, err
+		}
+		var inst map[string]any
+		if err := json.Unmarshal(data, &inst); err != nil {
+			return nil, err
+		}
+		state := fmt.Sprint(inst["state"])
+		for _, target := range terminal {
+			if state == target {
+				return inst, nil
+			}
+		}
+		if state == "error" {
+			return inst, nil
+		}
+		if time.Now().After(deadline) {
+			return inst, nil
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
 }
 
 func runMapAction(c *client, p *parsed) error {
@@ -855,16 +933,18 @@ func runMapAction(c *client, p *parsed) error {
 		if _, err := c.json("POST", path, nil); err != nil {
 			return err
 		}
-		instData, err := c.json("GET", "/v1/instances/"+url.PathEscape(id), nil)
+		terminal := []string{"running"}
+		if p.command == "stop" {
+			terminal = []string{"stopped", "created"}
+		}
+		inst, err := waitInstance(c, id, terminal, 15*time.Second)
 		if err != nil {
 			return err
 		}
 		if p.json {
-			printJSON(p.command, json.RawMessage(instData))
-		} else {
-			var inst map[string]any
-			_ = json.Unmarshal(instData, &inst)
-			fmt.Printf("%s  %v  map=%v\n", p.command, inst["id"], inst["mapId"])
+			printJSON(p.command, inst)
+		} else if !p.flags["--quiet"] {
+			fmt.Printf("%s  %v  map=%v  state=%v\n", p.command, inst["id"], inst["mapId"], inst["state"])
 		}
 	}
 	return nil
